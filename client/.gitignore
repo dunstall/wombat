@@ -1,2 +1,4 @@
 # Cargo
 /target
+# This is a library so should not have a Cargo.lock
+Cargo.lock
