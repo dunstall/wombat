@@ -1,5 +1,5 @@
 [package]
-name = "client"
+name = "wombat"
 version = "0.1.0"
 authors = ["Andy Dunstall <andydunstall@hotmail.com>"]
 edition = "2018"
