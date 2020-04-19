@@ -1,5 +1,2 @@
 [workspace]
-members = [
-    "broker",
-    "client"
-]
+members = ["broker", "client"]
