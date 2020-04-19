@@ -6,3 +6,17 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
+jobs:
+  include:
+    - stage: test
+      name: "Broker unit tests"
+      script:
+        - cd broker
+        - cargo build --verbose --all
+        - cargo test --verbose --all
+    - stage: test
+      name: "Client unit tests"
+      script:
+        - cd client
+        - cargo build --verbose --all
+        - cargo test --verbose --all
