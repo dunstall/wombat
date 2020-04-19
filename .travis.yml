@@ -1,15 +1,8 @@
 language: rust
-jobs:
-  include:
-    - stage: test
-      name: "Broker unit tests"
-      script:
-        - cd broker
-        - cargo build --verbose --all
-        - cargo test --verbose --all
-    - stage: test
-      name: "Client unit tests"
-      script:
-        - cd client
-        - cargo build --verbose --all
-        - cargo test --verbose --all
+rust:
+  - stable
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
