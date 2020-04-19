@@ -1,19 +1,18 @@
-use std::io::prelude::*;
-use std::net::{SocketAddr, TcpStream};
+use std::error::Error;
 
-pub struct Consumer {
-    addr: SocketAddr,
+use crate::connection::Connection;
+
+pub struct Consumer<'a> {
+    conn: &'a mut (dyn Connection + 'a),
 }
 
-impl Consumer {
-    pub fn new(addr: SocketAddr) -> Consumer {
-        Consumer { addr: addr }
+impl<'a> Consumer<'a> {
+    pub fn new(conn: &'a mut dyn Connection) -> Consumer<'a> {
+        Consumer { conn: conn }
     }
 
-    pub fn poll(&self) -> std::io::Result<()> {
-        let mut stream = TcpStream::connect(self.addr)?;
-
-        stream.write(&[1])?;
-        Ok(())
+    pub fn poll(&mut self) -> Result<&[u8], Box<dyn Error>> {
+        let data = self.conn.recv()?;
+        Ok(data)
     }
 }
