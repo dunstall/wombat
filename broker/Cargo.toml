@@ -8,3 +8,4 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
+websocket = "0.24.0"

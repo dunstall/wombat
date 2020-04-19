@@ -2,14 +2,12 @@ use std::io::prelude::*;
 use std::net::{SocketAddr, TcpStream};
 
 pub struct Consumer {
-    addr: SocketAddr
+    addr: SocketAddr,
 }
 
 impl Consumer {
     pub fn new(addr: SocketAddr) -> Consumer {
-        Consumer{
-            addr: addr
-        }
+        Consumer { addr: addr }
     }
 
     pub fn poll(&self) -> std::io::Result<()> {
