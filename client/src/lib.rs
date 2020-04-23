@@ -1,7 +1,6 @@
+pub mod connection;
 pub mod consumer;
 pub mod producer;
-
-mod connection;
 
 #[cfg(test)]
 mod tests {

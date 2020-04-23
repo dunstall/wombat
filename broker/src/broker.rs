@@ -1,14 +1,20 @@
+use std::vec::Vec;
+
 use websocket::sync::Server;
 use websocket::OwnedMessage;
 
-pub struct Broker {}
+pub struct Broker {
+    logs: Vec<Vec<u8>>
+}
 
 impl Broker {
     pub fn new() -> Broker {
-        Broker {}
+        Broker {
+            logs: Vec::new()
+        }
     }
 
-    pub fn listen(&self) -> std::io::Result<()> {
+    pub fn listen(&mut self) -> std::io::Result<()> {
         let server = Server::bind("0.0.0.0:3110")?;
 
         for request in server.filter_map(Result::ok) {
@@ -39,7 +45,17 @@ impl Broker {
                         let message = OwnedMessage::Pong(ping);
                         sender.send_message(&message).unwrap();
                     }
-                    _ => sender.send_message(&message).unwrap(),
+                    OwnedMessage::Binary(data) => {
+                        println!("binary data {:?}", data);
+
+                        self.logs.push(data)
+                    }
+                    OwnedMessage::Text(data) => {
+                        println!("text data {:?}", data);
+                    }
+                    OwnedMessage::Pong(pong) => {
+                        println!("pong data {:?}", pong);
+                    }
                 }
             }
         }
