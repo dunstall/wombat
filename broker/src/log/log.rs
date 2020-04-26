@@ -1,7 +1,7 @@
 use std::vec::Vec;
 
 use crate::log::logheader::LogHeader;
-use crate::log::result::{LogError, LogResult};
+use crate::log::result::{Error, Result};
 
 #[derive(Debug)]
 pub struct Log {
@@ -16,14 +16,14 @@ impl Log {
         Log { header, key, val }
     }
 
-    pub fn encode(&mut self) -> LogResult<Vec<u8>> {
+    pub fn encode(&mut self) -> Result<Vec<u8>> {
         let mut enc = self.header.encode()?;
         enc.append(&mut self.key);
         enc.append(&mut self.val);
         Ok(enc)
     }
 
-    pub fn verify_crc(&self) -> LogResult<()> {
-        Err(LogError::LogCorrupted)
+    pub fn verify_crc(&self) -> Result<()> {
+        Err(Error::LogCorrupted)
     }
 }

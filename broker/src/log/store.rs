@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::string::String;
 
 use crate::log::log::Log;
-use crate::log::result::LogResult;
+use crate::log::result::Result;
 use crate::log::segment::Segment;
 
 // Maximum segment size of 1GB.
@@ -27,14 +27,14 @@ impl<T: Segment> Store<T> {
         s
     }
 
-    pub fn append(&mut self, log: Log) -> LogResult<u64> {
+    pub fn append(&mut self, log: Log) -> Result<u64> {
         if self.active_expired() {
             self.update_active();
         }
         self.active().append(log)
     }
 
-    pub fn lookup(&mut self, offset: u64) -> LogResult<Log> {
+    pub fn lookup(&mut self, offset: u64) -> Result<Log> {
         // TODO for now just use active only
         self.active().lookup(offset)
     }

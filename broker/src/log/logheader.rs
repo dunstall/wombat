@@ -4,7 +4,7 @@ use std::vec::Vec;
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-use crate::log::result::{LogError, LogResult};
+use crate::log::result::{Error, Result};
 
 pub const LOG_HEADER_SIZE: usize = 28;
 
@@ -26,9 +26,9 @@ impl LogHeader {
     ///
     /// Returns the first `LOG_HEADER_SIZE` bytes of the data decoded, or an error if the given
     /// data is too short.
-    pub fn decode(enc: Vec<u8>) -> LogResult<LogHeader> {
+    pub fn decode(enc: Vec<u8>) -> Result<LogHeader> {
         if enc.len() < LOG_HEADER_SIZE {
-            return Err(LogError::DecodeError("log header too small"));
+            return Err(Error::DecodeError("log header too small"));
         }
 
         let mut rdr = Cursor::new(enc);
@@ -42,7 +42,7 @@ impl LogHeader {
     }
 
     /// Encodes this header.
-    pub fn encode(&self) -> LogResult<Vec<u8>> {
+    pub fn encode(&self) -> Result<Vec<u8>> {
         let mut enc = Vec::<u8>::new();
         enc.resize(LOG_HEADER_SIZE, 0);
 

@@ -6,7 +6,7 @@ use std::process;
 
 use crate::log::log::Log;
 use crate::log::logheader::{LogHeader, LOG_HEADER_SIZE};
-use crate::log::result::LogResult;
+use crate::log::result::Result;
 use crate::log::segment::Segment;
 
 pub struct FileSegment {
@@ -36,7 +36,7 @@ impl Segment for FileSegment {
     }
 
     /// Appends the given log to the segment and returns the offset.
-    fn append(&mut self, mut log: Log) -> LogResult<u64> {
+    fn append(&mut self, mut log: Log) -> Result<u64> {
         // Get the current file position as the offset.
         let offset = self.file.seek(SeekFrom::Current(0))?;
         self.file.write_all(&log.encode()?)?;
@@ -46,7 +46,7 @@ impl Segment for FileSegment {
     /// Looks up the log at the given offset.
     ///
     /// Verifies the log CRC for corrupted data.
-    fn lookup(&mut self, offset: u64) -> LogResult<Log> {
+    fn lookup(&mut self, offset: u64) -> Result<Log> {
         self.file.seek(SeekFrom::Start(offset))?;
         let mut buffer = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer)?;
@@ -67,7 +67,7 @@ impl Segment for FileSegment {
         Ok(log)
     }
 
-    fn size(&mut self) -> LogResult<u64> {
+    fn size(&mut self) -> Result<u64> {
         return Ok(self.file.seek(SeekFrom::End(0))?);
     }
 }

@@ -1,16 +1,16 @@
 use std::io;
 
 #[derive(Debug)]
-pub enum LogError {
+pub enum Error {
     IoError(io::Error),
     DecodeError(&'static str),
     LogCorrupted,
 }
 
-pub type LogResult<T> = std::result::Result<T, LogError>;
+pub type Result<T> = std::result::Result<T, Error>;
 
-impl From<io::Error> for LogError {
+impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
-        LogError::IoError(error)
+        Error::IoError(error)
     }
 }
