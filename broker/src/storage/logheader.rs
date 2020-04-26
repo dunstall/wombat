@@ -4,7 +4,7 @@ use std::vec::Vec;
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-use crate::storage::segment::{LogError, LogResult};
+use crate::storage::result::{LogError, LogResult};
 
 pub const LOG_HEADER_SIZE: usize = 28;
 

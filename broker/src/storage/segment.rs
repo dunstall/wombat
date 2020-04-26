@@ -1,21 +1,5 @@
-use std::io;
-
 use crate::storage::log::Log;
-
-#[derive(Debug)]
-pub enum LogError {
-    IoError(io::Error),
-    DecodeError(&'static str),
-    LogCorrupted,
-}
-
-pub type LogResult<T> = std::result::Result<T, LogError>;
-
-impl From<io::Error> for LogError {
-    fn from(error: io::Error) -> Self {
-        LogError::IoError(error)
-    }
-}
+use crate::storage::result::LogResult;
 
 pub trait Segment {
     fn open(dir: &str, path: &str) -> Self;

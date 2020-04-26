@@ -6,7 +6,8 @@ use std::process;
 
 use crate::storage::log::Log;
 use crate::storage::logheader::{LogHeader, LOG_HEADER_SIZE};
-use crate::storage::segment::{LogResult, Segment};
+use crate::storage::result::LogResult;
+use crate::storage::segment::Segment;
 
 pub struct FileSegment {
     file: File,
@@ -42,10 +43,10 @@ impl Segment for FileSegment {
         Ok(offset)
     }
 
+    /// Looks up the log at the given offset.
+    ///
+    /// Verifies the log CRC for corrupted data.
     fn lookup(&mut self, offset: u64) -> LogResult<Log> {
-        // TODO can this be moved up to segment? just provide lower level stuff here
-        // eg can test with in memory reader/writer
-
         self.file.seek(SeekFrom::Start(offset))?;
         let mut buffer = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer)?;
