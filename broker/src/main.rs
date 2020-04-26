@@ -10,7 +10,7 @@ use crate::storage::logstore::LogStore;
 fn main() {
     println!("Running Wombat broker");
 
-    let mut store = LogStore::<FileSegment>::new("");
+    let mut store = LogStore::<FileSegment>::new("segments");
 
     let header = LogHeader {
         offset: 0,
@@ -25,7 +25,7 @@ fn main() {
         val: b"TEST".to_vec(),
     };
 
-    store.append(log).unwrap();
+    println!("{}", store.append(log).unwrap());
 
     println!("{:?}", store.lookup(0).unwrap());
 }

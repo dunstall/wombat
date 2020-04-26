@@ -1,5 +1,7 @@
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::path::Path;
 use std::process;
 
 use crate::storage::log::Log;
@@ -11,11 +13,19 @@ pub struct FileSegment {
 }
 
 impl Segment for FileSegment {
-    fn open(path: &str) -> Self {
+    /// Opens a segment at dir/name.
+    ///
+    /// If dir does not exist it is created.
+    fn open(dir: &str, name: &str) -> Self {
+        fs::create_dir_all(dir).unwrap_or_else(|err| {
+            // Fatal error so crash.
+            eprintln!("error opening segment dir: {}", err);
+            process::exit(1);
+        });
         let file = OpenOptions::new()
             .append(true)
             .create(true)
-            .open(path)
+            .open(Path::new(dir).join(name))
             .unwrap_or_else(|err| {
                 // Fatal error so crash.
                 eprintln!("error opening segment: {}", err);

@@ -18,7 +18,7 @@ impl From<io::Error> for LogError {
 }
 
 pub trait Segment {
-    fn open(path: &str) -> Self;
+    fn open(dir: &str, path: &str) -> Self;
     fn append(&mut self, log: Log) -> LogResult<u64>;
     fn lookup(&mut self, offset: u64) -> LogResult<Log>;
     fn size(&mut self) -> LogResult<u64>;

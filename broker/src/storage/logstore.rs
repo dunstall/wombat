@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::string::String;
 
 use crate::storage::log::Log;
 use crate::storage::segment::{LogResult, Segment};
@@ -6,22 +7,23 @@ use crate::storage::segment::{LogResult, Segment};
 // Maximum segment size of 1GB.
 const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;
 
+// TODO test with in memory segment
+
 pub struct LogStore<T: Segment> {
     active_offset: u64,
     offsets: HashMap<u64, T>,
+    dir: String,
 }
 
 impl<T: Segment> LogStore<T> {
-    pub fn new(_dirs: &str) -> LogStore<T> {
-        // TODO load current segments in dirs.
-
-        let segment = T::open("test");
-        let mut offsets = HashMap::new();
-        offsets.insert(0, segment);
-        LogStore {
+    pub fn new(dir: &str) -> LogStore<T> {
+        let mut s = LogStore {
             active_offset: 0,
-            offsets: offsets,
-        }
+            offsets: HashMap::new(),
+            dir: dir.to_string(),
+        };
+        s.load_segments();
+        s
     }
 
     pub fn append(&mut self, log: Log) -> LogResult<u64> {
@@ -38,8 +40,13 @@ impl<T: Segment> LogStore<T> {
 
     fn update_active(&mut self) {
         self.active_offset += self.active_size();
-        let segment = T::open("test2");
+        let segment = T::open("TEST1", "test2");
         self.offsets.insert(self.active_offset, segment);
+    }
+
+    fn load_segments(&mut self) {
+        let segment = T::open(&self.dir, "0.seg");
+        self.offsets.insert(0, segment);
     }
 
     fn active_expired(&mut self) -> bool {
@@ -57,5 +64,14 @@ impl<T: Segment> LogStore<T> {
             None => panic!("active segment does not exist"),
             Some(active) => active,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn todo() {
+        // TODO
+        panic!("TODO");
     }
 }
