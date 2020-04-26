@@ -36,7 +36,7 @@ impl Segment for FileSegment {
     }
 
     /// Appends the given log to the segment and returns the offset.
-    fn append(&mut self, mut log: Log) -> Result<u64> {
+    fn append(&mut self, log: Log) -> Result<u64> {
         // Get the current file position as the offset.
         let offset = self.file.seek(SeekFrom::Current(0))?;
         self.file.write_all(&log.encode()?)?;

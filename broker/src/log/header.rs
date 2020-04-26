@@ -1,3 +1,4 @@
+use std::clone::Clone;
 use std::cmp::PartialEq;
 use std::io::Cursor;
 use std::vec::Vec;
@@ -9,13 +10,13 @@ use crate::log::result::{Error, Result};
 pub const LOG_HEADER_SIZE: usize = 28;
 
 /// Represents the header of a log.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Header {
     // TODO should not be public
     pub offset: u64,
     pub timestamp: i64,
-    pub key_size: u32,
-    pub val_size: u32,
+    pub key_size: u32,  // TODO 64
+    pub val_size: u32,  // TODO 64
     pub crc: u32,
 }
 
