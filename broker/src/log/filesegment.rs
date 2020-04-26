@@ -59,7 +59,7 @@ impl Segment for FileSegment {
         self.file.read_exact(key.as_mut_slice())?;
 
         let mut val = Vec::new();
-        key.resize(header.val_size as usize, 0);
+        val.resize(header.val_size as usize, 0);
         self.file.read_exact(val.as_mut_slice())?;
 
         let log = Log::new(header, key, val);
