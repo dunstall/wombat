@@ -25,6 +25,19 @@ impl Log {
     }
 
     pub fn verify_crc(&self) -> Result<()> {
+        if self.calculate_crc()? == self.header.crc {
+            Ok(())
+        } else {
+            Err(Error::LogCorrupted)
+        }
+    }
+
+    pub fn update_crc(&mut self) -> Result<()> {
+        self.header.crc = self.calculate_crc()?;
+        Ok(())
+    }
+
+    fn calculate_crc(&self) -> Result<u32> {
         let mut h = self.header.clone();
         h.crc = 0;
 
@@ -32,12 +45,7 @@ impl Log {
         digest.write(h.encode()?.as_mut_slice());
         digest.write(self.key.clone().as_mut_slice());
         digest.write(self.val.clone().as_mut_slice());
-
-        if digest.sum32() == self.header.crc {
-            Ok(())
-        } else {
-            Err(Error::LogCorrupted)
-        }
+        Ok(digest.sum32())
     }
 }
 
@@ -62,6 +70,24 @@ mod tests {
         let log = Log::new(h, key.clone(), val.clone());
 
         assert_eq!(expected, log.encode().unwrap());
+    }
+
+    #[test]
+    fn update_crc() {
+        let key = b"test-key".to_vec();
+        let val = b"test-value-123".to_vec();
+        let h = Header {
+            timestamp: 9873248,
+            key_size: key.len() as u32,
+            val_size: val.len() as u32,
+            crc: 0,
+        };
+        let mut log = Log::new(h, key, val);
+        log.update_crc().unwrap();
+        assert_eq!(0x19070da1, log.header.crc);
+
+        // Verify the updated CRC.
+        log.verify_crc().unwrap();
     }
 
     #[test]
