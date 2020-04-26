@@ -50,7 +50,6 @@ mod tests {
         let key = b"test-key".to_vec();
         let val = b"test-value-123".to_vec();
         let h = Header {
-            offset: 931,
             timestamp: 9873248,
             key_size: key.len() as u32,
             val_size: val.len() as u32,
@@ -70,11 +69,10 @@ mod tests {
         let key = b"test-key".to_vec();
         let val = b"test-value-123".to_vec();
         let h = Header {
-            offset: 931,
             timestamp: 9873248,
             key_size: key.len() as u32,
             val_size: val.len() as u32,
-            crc: 0x919f271,
+            crc: 0x19070da1,
         };
         let log = Log::new(h, key, val);
         log.verify_crc().unwrap();
@@ -86,7 +84,6 @@ mod tests {
         let key = b"test-key".to_vec();
         let val = b"test-value-123".to_vec();
         let h = Header {
-            offset: 931,
             timestamp: 9873248,
             key_size: key.len() as u32,
             val_size: val.len() as u32,

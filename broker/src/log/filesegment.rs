@@ -4,8 +4,8 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::process;
 
-use crate::log::log::Log;
 use crate::log::header::{Header, LOG_HEADER_SIZE};
+use crate::log::log::Log;
 use crate::log::result::Result;
 use crate::log::segment::Segment;
 
@@ -49,7 +49,7 @@ impl Segment for FileSegment {
     /// Verifies the log CRC for corrupted data.
     fn lookup(&mut self, offset: u64) -> Result<Log> {
         self.file.seek(SeekFrom::Start(offset))?;
-        let mut buffer : [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
+        let mut buffer: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer)?;
 
         let header = Header::decode(buffer.to_vec())?;

@@ -7,16 +7,15 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::log::result::{Error, Result};
 
-pub const LOG_HEADER_SIZE: usize = 28;
+pub const LOG_HEADER_SIZE: usize = 20;
 
 /// Represents the header of a log.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Header {
     // TODO should not be public
-    pub offset: u64,
     pub timestamp: i64,
-    pub key_size: u32,  // TODO 64
-    pub val_size: u32,  // TODO 64
+    pub key_size: u32, // TODO 64
+    pub val_size: u32, // TODO 64
     pub crc: u32,
 }
 
@@ -34,7 +33,6 @@ impl Header {
 
         let mut rdr = Cursor::new(enc);
         Ok(Header {
-            offset: rdr.read_u64::<LittleEndian>()?,
             timestamp: rdr.read_i64::<LittleEndian>()?,
             key_size: rdr.read_u32::<LittleEndian>()?,
             val_size: rdr.read_u32::<LittleEndian>()?,
@@ -47,17 +45,16 @@ impl Header {
         let mut enc = Vec::<u8>::new();
         enc.resize(LOG_HEADER_SIZE, 0);
 
-        enc[0..8].as_mut().write_u64::<LittleEndian>(self.offset)?;
-        enc[8..16]
+        enc[0..8]
             .as_mut()
             .write_i64::<LittleEndian>(self.timestamp)?;
-        enc[16..20]
+        enc[8..12]
             .as_mut()
             .write_u32::<LittleEndian>(self.key_size)?;
-        enc[20..24]
+        enc[12..16]
             .as_mut()
             .write_u32::<LittleEndian>(self.val_size)?;
-        enc[24..28].as_mut().write_u32::<LittleEndian>(self.crc)?;
+        enc[16..20].as_mut().write_u32::<LittleEndian>(self.crc)?;
 
         Ok(enc)
     }
@@ -70,15 +67,13 @@ mod test {
     #[test]
     fn encode() {
         let h = Header {
-            offset: 9999,
             timestamp: 1587894170,
             key_size: 444,
             val_size: 88024,
             crc: 0x8af97b81,
         };
         let expected: Vec<u8> = vec![
-            15, 39, 0, 0, 0, 0, 0, 0, 154, 87, 165, 94, 0, 0, 0, 0, 188, 1, 0, 0, 216, 87, 1, 0,
-            129, 123, 249, 138,
+            154, 87, 165, 94, 0, 0, 0, 0, 188, 1, 0, 0, 216, 87, 1, 0, 129, 123, 249, 138,
         ];
         assert_eq!(expected, h.encode().unwrap());
     }
@@ -86,11 +81,9 @@ mod test {
     #[test]
     fn decode() {
         let encoded: Vec<u8> = vec![
-            2, 0, 0, 0, 0, 0, 0, 0, 40, 97, 45, 24, 134, 13, 156, 95, 33, 0, 0, 0, 0, 42, 245, 42,
-            53, 99, 42, 85,
+            40, 97, 45, 24, 134, 13, 156, 95, 33, 0, 0, 0, 0, 42, 245, 42, 53, 99, 42, 85,
         ];
         let expected = Header {
-            offset: 2,
             timestamp: 6889396399552422184,
             key_size: 33,
             val_size: 720710144,
@@ -102,7 +95,6 @@ mod test {
     #[test]
     fn encode_and_decode() {
         let original = Header {
-            offset: 94208892458249824,
             timestamp: 890347582,
             key_size: 244,
             val_size: 8422,
