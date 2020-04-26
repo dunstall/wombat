@@ -1,5 +1,4 @@
 use std::io;
-use std::string::String;
 
 use crate::storage::log::Log;
 

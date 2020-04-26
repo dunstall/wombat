@@ -11,11 +11,12 @@ pub const LOG_HEADER_SIZE: usize = 28;
 /// Represents the header of a log.
 #[derive(Debug, PartialEq)]
 pub struct LogHeader {
-    offset: u64,
-    timestamp: i64,
+    // TODO should not be public
+    pub offset: u64,
+    pub timestamp: i64,
     pub key_size: u32,
     pub val_size: u32,
-    crc: u32,
+    pub crc: u32,
 }
 
 impl LogHeader {

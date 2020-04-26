@@ -1,14 +1,10 @@
 use std::fs::{File, OpenOptions};
-use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
-use std::os::unix::fs::PermissionsExt;
 use std::process;
-use std::result::Result;
-use std::string::String;
 
 use crate::storage::log::Log;
 use crate::storage::logheader::{LogHeader, LOG_HEADER_SIZE};
-use crate::storage::segment::{LogError, LogResult, Segment};
+use crate::storage::segment::{LogResult, Segment};
 
 pub struct FileSegment {
     file: File,

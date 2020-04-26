@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::storage::log::Log;
-use crate::storage::segment::Segment;
+use crate::storage::segment::{LogResult, Segment};
 
 // Maximum segment size of 1GB.
 const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;
@@ -12,10 +12,10 @@ pub struct LogStore<T: Segment> {
 }
 
 impl<T: Segment> LogStore<T> {
-    pub fn new(dirs: &str) -> LogStore<T> {
+    pub fn new(_dirs: &str) -> LogStore<T> {
         // TODO load current segments in dirs.
 
-        let segment = T::new("test");
+        let segment = T::open("test");
         let mut offsets = HashMap::new();
         offsets.insert(0, segment);
         LogStore {
@@ -24,22 +24,21 @@ impl<T: Segment> LogStore<T> {
         }
     }
 
-    pub fn append(&mut self, log: Log) {
+    pub fn append(&mut self, log: Log) -> LogResult<u64> {
         if self.active_expired() {
             self.update_active();
         }
         self.active().append(log)
     }
 
-    pub fn lookup(&self, offset: u64) -> Log {
-        // 1 find segment
-        // 2 segment.lookup
-        Log {}
+    pub fn lookup(&mut self, offset: u64) -> LogResult<Log> {
+        // TODO for now just use active only
+        self.active().lookup(offset)
     }
 
     fn update_active(&mut self) {
         self.active_offset += self.active_size();
-        let mut segment = T::new("test2");
+        let segment = T::open("test2");
         self.offsets.insert(self.active_offset, segment);
     }
 
@@ -48,7 +47,8 @@ impl<T: Segment> LogStore<T> {
     }
 
     fn active_size(&mut self) -> u64 {
-        self.active().size()
+        // self.active().size()
+        0
     }
 
     fn active(&mut self) -> &mut T {

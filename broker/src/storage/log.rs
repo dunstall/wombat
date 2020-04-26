@@ -1,14 +1,13 @@
-use std::cmp::PartialEq;
-use std::io::Cursor;
 use std::vec::Vec;
 
 use crate::storage::logheader::LogHeader;
 use crate::storage::segment::{LogError, LogResult};
 
+#[derive(Debug)]
 pub struct Log {
-    header: LogHeader,
-    key: Vec<u8>,
-    val: Vec<u8>,
+    pub header: LogHeader,
+    pub key: Vec<u8>,
+    pub val: Vec<u8>,
 }
 
 // TODO unit test
