@@ -5,7 +5,7 @@ use std::path::Path;
 use std::process;
 
 use crate::log::log::Log;
-use crate::log::logheader::{LogHeader, LOG_HEADER_SIZE};
+use crate::log::header::{Header, LOG_HEADER_SIZE};
 use crate::log::result::Result;
 use crate::log::segment::Segment;
 
@@ -51,7 +51,7 @@ impl Segment for FileSegment {
         let mut buffer = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer)?;
 
-        let header = LogHeader::decode(buffer.to_vec())?;
+        let header = Header::decode(buffer.to_vec())?;
 
         let mut key = Vec::new();
         key.resize(header.key_size as usize, 0);

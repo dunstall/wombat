@@ -4,7 +4,7 @@ mod log;
 
 use crate::log::filesegment::FileSegment;
 use crate::log::log::Log;
-use crate::log::logheader::LogHeader;
+use crate::log::header::Header;
 use crate::log::store::Store;
 
 fn main() {
@@ -12,7 +12,7 @@ fn main() {
 
     let mut store = Store::<FileSegment>::new("segments");
 
-    let header = LogHeader {
+    let header = Header {
         offset: 0,
         timestamp: 0,
         key_size: 4,

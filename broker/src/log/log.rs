@@ -1,18 +1,18 @@
 use std::vec::Vec;
 
-use crate::log::logheader::LogHeader;
+use crate::log::header::Header;
 use crate::log::result::{Error, Result};
 
 #[derive(Debug)]
 pub struct Log {
-    pub header: LogHeader,
+    pub header: Header,
     pub key: Vec<u8>,
     pub val: Vec<u8>,
 }
 
 // TODO unit test
 impl Log {
-    pub fn new(header: LogHeader, key: Vec<u8>, val: Vec<u8>) -> Log {
+    pub fn new(header: Header, key: Vec<u8>, val: Vec<u8>) -> Log {
         Log { header, key, val }
     }
 

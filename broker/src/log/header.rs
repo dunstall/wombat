@@ -10,7 +10,7 @@ pub const LOG_HEADER_SIZE: usize = 28;
 
 /// Represents the header of a log.
 #[derive(Debug, PartialEq)]
-pub struct LogHeader {
+pub struct Header {
     // TODO should not be public
     pub offset: u64,
     pub timestamp: i64,
@@ -19,20 +19,20 @@ pub struct LogHeader {
     pub crc: u32,
 }
 
-impl LogHeader {
+impl Header {
     /// Decodes the given data.
     ///
     /// # Return value
     ///
     /// Returns the first `LOG_HEADER_SIZE` bytes of the data decoded, or an error if the given
     /// data is too short.
-    pub fn decode(enc: Vec<u8>) -> Result<LogHeader> {
+    pub fn decode(enc: Vec<u8>) -> Result<Header> {
         if enc.len() < LOG_HEADER_SIZE {
             return Err(Error::DecodeError("log header too small"));
         }
 
         let mut rdr = Cursor::new(enc);
-        Ok(LogHeader {
+        Ok(Header {
             offset: rdr.read_u64::<LittleEndian>()?,
             timestamp: rdr.read_i64::<LittleEndian>()?,
             key_size: rdr.read_u32::<LittleEndian>()?,
@@ -68,7 +68,7 @@ mod test {
 
     #[test]
     fn encode() {
-        let h = LogHeader {
+        let h = Header {
             offset: 9999,
             timestamp: 1587894170,
             key_size: 444,
@@ -88,26 +88,26 @@ mod test {
             2, 0, 0, 0, 0, 0, 0, 0, 40, 97, 45, 24, 134, 13, 156, 95, 33, 0, 0, 0, 0, 42, 245, 42,
             53, 99, 42, 85,
         ];
-        let expected = LogHeader {
+        let expected = Header {
             offset: 2,
             timestamp: 6889396399552422184,
             key_size: 33,
             val_size: 720710144,
             crc: 1428841269,
         };
-        assert_eq!(expected, LogHeader::decode(encoded).unwrap());
+        assert_eq!(expected, Header::decode(encoded).unwrap());
     }
 
     #[test]
     fn encode_and_decode() {
-        let original = LogHeader {
+        let original = Header {
             offset: 94208892458249824,
             timestamp: 890347582,
             key_size: 244,
             val_size: 8422,
             crc: 3485728435,
         };
-        let decoded = LogHeader::decode(original.encode().unwrap()).unwrap();
+        let decoded = Header::decode(original.encode().unwrap()).unwrap();
         assert_eq!(original, decoded);
     }
 
@@ -117,6 +117,6 @@ mod test {
         let encoded: Vec<u8> = vec![
             2, 0, 0, 0, 0, 0, 0, 0, 40, 97, 45, 24, 134, 13, 156, 95, 33, 0,
         ];
-        LogHeader::decode(encoded).unwrap();
+        Header::decode(encoded).unwrap();
     }
 }
