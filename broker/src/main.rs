@@ -18,11 +18,12 @@ fn main() {
         val_size: 4,
         crc: 0,
     };
-    let log = Log {
+    let mut log = Log {
         header,
         key: b"TEST".to_vec(),
         val: b"TEST".to_vec(),
     };
+    log.update_crc().unwrap();
 
     println!("{}", store.append(log).unwrap());
 
