@@ -1,11 +1,11 @@
 extern crate byteorder;
 
-mod storage;
+mod log;
 
-use crate::storage::filesegment::FileSegment;
-use crate::storage::log::Log;
-use crate::storage::logheader::LogHeader;
-use crate::storage::logstore::LogStore;
+use crate::log::filesegment::FileSegment;
+use crate::log::log::Log;
+use crate::log::logheader::LogHeader;
+use crate::log::logstore::LogStore;
 
 fn main() {
     println!("Running Wombat broker");

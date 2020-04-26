@@ -4,10 +4,10 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::process;
 
-use crate::storage::log::Log;
-use crate::storage::logheader::{LogHeader, LOG_HEADER_SIZE};
-use crate::storage::result::LogResult;
-use crate::storage::segment::Segment;
+use crate::log::log::Log;
+use crate::log::logheader::{LogHeader, LOG_HEADER_SIZE};
+use crate::log::result::LogResult;
+use crate::log::segment::Segment;
 
 pub struct FileSegment {
     file: File,

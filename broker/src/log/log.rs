@@ -1,7 +1,7 @@
 use std::vec::Vec;
 
-use crate::storage::logheader::LogHeader;
-use crate::storage::result::{LogError, LogResult};
+use crate::log::logheader::LogHeader;
+use crate::log::result::{LogError, LogResult};
 
 #[derive(Debug)]
 pub struct Log {

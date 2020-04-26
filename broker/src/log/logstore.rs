@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::string::String;
 
-use crate::storage::log::Log;
-use crate::storage::result::LogResult;
-use crate::storage::segment::Segment;
+use crate::log::log::Log;
+use crate::log::result::LogResult;
+use crate::log::segment::Segment;
 
 // Maximum segment size of 1GB.
 const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;

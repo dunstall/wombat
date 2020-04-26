@@ -1,5 +1,5 @@
-use crate::storage::log::Log;
-use crate::storage::result::LogResult;
+use crate::log::log::Log;
+use crate::log::result::LogResult;
 
 pub trait Segment {
     fn open(dir: &str, path: &str) -> Self;
