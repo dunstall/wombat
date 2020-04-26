@@ -60,16 +60,3 @@ impl Segment for FileSegment {
         return Ok(self.file.seek(SeekFrom::End(0))?);
     }
 }
-
-#[cfg(test)]
-mod test {
-    // TODO tmp
-    use super::*;
-
-    #[test]
-    fn stuff() {
-        let mut s = FileSegment::open("foo.txt");
-        // s.append(Log {});
-        // println!("{}", s.size().unwrap());
-    }
-}
