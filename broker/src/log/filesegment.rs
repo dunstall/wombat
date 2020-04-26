@@ -26,6 +26,7 @@ impl Segment for FileSegment {
         let file = OpenOptions::new()
             .append(true)
             .create(true)
+            .read(true)
             .open(Path::new(dir).join(name))
             .unwrap_or_else(|err| {
                 // Fatal error so crash.
@@ -48,7 +49,7 @@ impl Segment for FileSegment {
     /// Verifies the log CRC for corrupted data.
     fn lookup(&mut self, offset: u64) -> Result<Log> {
         self.file.seek(SeekFrom::Start(offset))?;
-        let mut buffer = [0; LOG_HEADER_SIZE];
+        let mut buffer : [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer)?;
 
         let header = Header::decode(buffer.to_vec())?;
