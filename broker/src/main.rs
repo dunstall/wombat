@@ -5,12 +5,12 @@ mod log;
 use crate::log::filesegment::FileSegment;
 use crate::log::log::Log;
 use crate::log::logheader::LogHeader;
-use crate::log::logstore::LogStore;
+use crate::log::store::Store;
 
 fn main() {
     println!("Running Wombat broker");
 
-    let mut store = LogStore::<FileSegment>::new("segments");
+    let mut store = Store::<FileSegment>::new("segments");
 
     let header = LogHeader {
         offset: 0,

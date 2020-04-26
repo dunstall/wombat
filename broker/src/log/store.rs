@@ -10,15 +10,15 @@ const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;
 
 // TODO test with in memory segment
 
-pub struct LogStore<T: Segment> {
+pub struct Store<T: Segment> {
     active_offset: u64,
     offsets: HashMap<u64, T>,
     dir: String,
 }
 
-impl<T: Segment> LogStore<T> {
-    pub fn new(dir: &str) -> LogStore<T> {
-        let mut s = LogStore {
+impl<T: Segment> Store<T> {
+    pub fn new(dir: &str) -> Store<T> {
+        let mut s = Store {
             active_offset: 0,
             offsets: HashMap::new(),
             dir: dir.to_string(),
