@@ -1,24 +1,30 @@
 use std::cmp::PartialEq;
 use std::io::Cursor;
-use std::mem;
 use std::vec::Vec;
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::storage::segment::{LogError, LogResult};
 
-const LOG_HEADER_SIZE: usize = 28;
+pub const LOG_HEADER_SIZE: usize = 28;
 
+/// Represents the header of a log.
 #[derive(Debug, PartialEq)]
 pub struct LogHeader {
     offset: u64,
     timestamp: i64,
-    key_size: u32,
-    val_size: u32,
+    pub key_size: u32,
+    pub val_size: u32,
     crc: u32,
 }
 
 impl LogHeader {
+    /// Decodes the given data.
+    ///
+    /// # Return value
+    ///
+    /// Returns the first `LOG_HEADER_SIZE` bytes of the data decoded, or an error if the given
+    /// data is too short.
     pub fn decode(enc: Vec<u8>) -> LogResult<LogHeader> {
         if enc.len() < LOG_HEADER_SIZE {
             return Err(LogError::DecodeError("log header too small"));
@@ -34,6 +40,7 @@ impl LogHeader {
         })
     }
 
+    /// Encodes this header.
     pub fn encode(&self) -> LogResult<Vec<u8>> {
         let mut enc = Vec::<u8>::new();
         enc.resize(LOG_HEADER_SIZE, 0);
