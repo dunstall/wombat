@@ -8,13 +8,15 @@ use wombat::connection::WSConnection;
 fn main() {
     println!("producer running");
 
-    let mut conn = match WSConnection::connect() {
-        Ok(conn) => conn,
-        Err(_) => return,
-    };
+/*     let mut conn = WSConnection::new() */
 
-    loop {
-        conn.send(&[1, 2, 3]);
-        thread::sleep_ms(2000);
-    }
+    // let mut conn = match WSConnection::connect() {
+        // Ok(conn) => conn,
+        // Err(_) => return,
+    // };
+
+    // loop {
+        // conn.send(&[1, 2, 3]);
+        // thread::sleep_ms(2000);
+    /* } */
 }

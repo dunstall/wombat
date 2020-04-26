@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::net::TcpStream;
+use std::string::String;
 
 use websocket::client::sync::Client;
 use websocket::client::ClientBuilder;
@@ -15,9 +16,9 @@ pub struct WSConnection {
 }
 
 impl WSConnection {
-    pub fn connect() -> Result<WSConnection, Box<dyn Error>> {
+    pub fn connect(protocol: String) -> Result<WSConnection, Box<dyn Error>> {
         let client = ClientBuilder::new("ws://localhost:3110")?
-            .add_protocol("producer")
+            .add_protocol(protocol.clone())
             .connect_insecure()?;
         Ok(WSConnection { client: client })
     }

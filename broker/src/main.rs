@@ -1,4 +1,5 @@
 mod broker;
+mod storage;
 
 fn main() -> std::io::Result<()> {
     println!("Running Wombat broker");
