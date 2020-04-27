@@ -1,3 +1,4 @@
+use std::clone::Clone;
 use std::vec::Vec;
 
 use crc::{crc32, Hasher32};
@@ -5,7 +6,7 @@ use crc::{crc32, Hasher32};
 use crate::log::header::Header;
 use crate::log::result::{Error, Result};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Log {
     pub header: Header,
     pub key: Vec<u8>,

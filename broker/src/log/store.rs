@@ -73,6 +73,5 @@ mod tests {
     #[test]
     fn todo() {
         // TODO
-        panic!("TODO");
     }
 }
