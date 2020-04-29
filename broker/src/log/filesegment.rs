@@ -1,6 +1,4 @@
-use std::fs;
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::SeekFrom;
 use std::path::Path;
 use std::process;
 
@@ -10,6 +8,8 @@ use crate::log::result::Result;
 use crate::log::segment::Segment;
 
 use async_trait::async_trait;
+use tokio::fs::{create_dir_all, File, OpenOptions};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub struct FileSegment {
     file: File,
@@ -21,7 +21,7 @@ impl Segment for FileSegment {
     ///
     /// If dir does not exist it is created.
     async fn open(dir: &str, name: &str) -> Self {
-        fs::create_dir_all(dir).unwrap_or_else(|err| {
+        create_dir_all(dir).await.unwrap_or_else(|err| {
             // Fatal error so crash.
             eprintln!("error opening segment dir: {}", err);
             process::exit(1);
@@ -31,6 +31,7 @@ impl Segment for FileSegment {
             .create(true)
             .read(true)
             .open(Path::new(dir).join(name))
+            .await
             .unwrap_or_else(|err| {
                 // Fatal error so crash.
                 eprintln!("error opening segment: {}", err);
@@ -42,8 +43,8 @@ impl Segment for FileSegment {
     /// Appends the given log to the segment and returns the offset.
     async fn append(&mut self, log: Log) -> Result<u64> {
         // Get the current file position as the offset.
-        let offset = self.file.seek(SeekFrom::Current(0))?;
-        self.file.write_all(&log.encode()?)?;
+        let offset = self.file.seek(SeekFrom::Current(0)).await?;
+        self.file.write_all(&log.encode()?).await?;
         Ok(offset)
     }
 
@@ -51,19 +52,19 @@ impl Segment for FileSegment {
     ///
     /// Verifies the log CRC for corrupted data.
     async fn lookup(&mut self, offset: u64) -> Result<Log> {
-        self.file.seek(SeekFrom::Start(offset))?;
+        self.file.seek(SeekFrom::Start(offset)).await?;
         let mut buffer: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
-        self.file.read_exact(&mut buffer)?;
+        self.file.read_exact(&mut buffer).await?;
 
         let header = Header::decode(buffer.to_vec())?;
 
         let mut key = Vec::new();
         key.resize(header.key_size as usize, 0);
-        self.file.read_exact(key.as_mut_slice())?;
+        self.file.read_exact(key.as_mut_slice()).await?;
 
         let mut val = Vec::new();
         val.resize(header.val_size as usize, 0);
-        self.file.read_exact(val.as_mut_slice())?;
+        self.file.read_exact(val.as_mut_slice()).await?;
 
         let log = Log::new(header, key, val);
         log.verify_crc()?;
@@ -72,6 +73,6 @@ impl Segment for FileSegment {
     }
 
     async fn size(&mut self) -> Result<u64> {
-        return Ok(self.file.seek(SeekFrom::End(0))?);
+        return Ok(self.file.seek(SeekFrom::End(0)).await?);
     }
 }
