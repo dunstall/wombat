@@ -1,4 +1,5 @@
 extern crate byteorder;
+extern crate tokio;
 
 mod log;
 
@@ -7,10 +8,11 @@ use crate::log::header::Header;
 use crate::log::log::Log;
 use crate::log::store::Store;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     println!("Running Wombat broker");
 
-    let mut store = Store::<FileSegment>::new("segments");
+    let mut store = Store::<FileSegment>::new("segments").await;
 
     let header = Header {
         timestamp: 0,
@@ -25,7 +27,7 @@ fn main() {
     };
     log.update_crc().unwrap();
 
-    println!("{}", store.append(log).unwrap());
+    println!("{}", store.append(log).await.unwrap());
 
-    println!("{:?}", store.lookup(0).unwrap());
+    println!("{:?}", store.lookup(0).await.unwrap());
 }

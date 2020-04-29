@@ -17,36 +17,36 @@ pub struct Store<T: Segment> {
 }
 
 impl<T: Segment> Store<T> {
-    pub fn new(dir: &str) -> Store<T> {
+    pub async fn new(dir: &str) -> Store<T> {
         let mut s = Store {
             active_offset: 0,
             offsets: HashMap::new(),
             dir: dir.to_string(),
         };
-        s.load_segments();
+        s.load_segments().await;
         s
     }
 
-    pub fn append(&mut self, log: Log) -> Result<u64> {
+    pub async fn append(&mut self, log: Log) -> Result<u64> {
         if self.active_expired() {
-            self.update_active();
+            self.update_active().await;
         }
-        self.active().append(log)
+        self.active().append(log).await
     }
 
-    pub fn lookup(&mut self, offset: u64) -> Result<Log> {
+    pub async fn lookup(&mut self, offset: u64) -> Result<Log> {
         // TODO for now just use active only
-        self.active().lookup(offset)
+        self.active().lookup(offset).await
     }
 
-    fn update_active(&mut self) {
+    async fn update_active(&mut self) {
         self.active_offset += self.active_size();
-        let segment = T::open("TEST1", "test2");
+        let segment = T::open("TEST1", "test2").await;
         self.offsets.insert(self.active_offset, segment);
     }
 
-    fn load_segments(&mut self) {
-        let segment = T::open(&self.dir, "0.seg");
+    async fn load_segments(&mut self) {
+        let segment = T::open(&self.dir, "0.seg").await;
         self.offsets.insert(0, segment);
     }
 

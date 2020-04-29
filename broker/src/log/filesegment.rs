@@ -9,15 +9,18 @@ use crate::log::log::Log;
 use crate::log::result::Result;
 use crate::log::segment::Segment;
 
+use async_trait::async_trait;
+
 pub struct FileSegment {
     file: File,
 }
 
+#[async_trait]
 impl Segment for FileSegment {
     /// Opens a segment at dir/name.
     ///
     /// If dir does not exist it is created.
-    fn open(dir: &str, name: &str) -> Self {
+    async fn open(dir: &str, name: &str) -> Self {
         fs::create_dir_all(dir).unwrap_or_else(|err| {
             // Fatal error so crash.
             eprintln!("error opening segment dir: {}", err);
@@ -37,7 +40,7 @@ impl Segment for FileSegment {
     }
 
     /// Appends the given log to the segment and returns the offset.
-    fn append(&mut self, log: Log) -> Result<u64> {
+    async fn append(&mut self, log: Log) -> Result<u64> {
         // Get the current file position as the offset.
         let offset = self.file.seek(SeekFrom::Current(0))?;
         self.file.write_all(&log.encode()?)?;
@@ -47,7 +50,7 @@ impl Segment for FileSegment {
     /// Looks up the log at the given offset.
     ///
     /// Verifies the log CRC for corrupted data.
-    fn lookup(&mut self, offset: u64) -> Result<Log> {
+    async fn lookup(&mut self, offset: u64) -> Result<Log> {
         self.file.seek(SeekFrom::Start(offset))?;
         let mut buffer: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer)?;
@@ -68,7 +71,7 @@ impl Segment for FileSegment {
         Ok(log)
     }
 
-    fn size(&mut self) -> Result<u64> {
+    async fn size(&mut self) -> Result<u64> {
         return Ok(self.file.seek(SeekFrom::End(0))?);
     }
 }
