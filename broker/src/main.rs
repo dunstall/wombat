@@ -1,7 +1,10 @@
 extern crate byteorder;
 extern crate tokio;
 
+mod broker;
+mod connection;
 mod log;
+mod message;
 
 use crate::log::filesegment::FileSegment;
 use crate::log::header::Header;
@@ -30,4 +33,7 @@ async fn main() {
     println!("{}", store.append(log).await.unwrap());
 
     println!("{:?}", store.lookup(0).await.unwrap());
+
+    let b = broker::Broker::new();
+    b.listen("0.0.0.0:3110").await;
 }
