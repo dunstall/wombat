@@ -3,8 +3,8 @@ use std::net::SocketAddr;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
-use crate::message::Message;
 use crate::message::header::{Header, MESSAGE_HEADER_SIZE};
+use crate::message::Message;
 
 pub struct Connection {
     socket: TcpStream,

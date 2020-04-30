@@ -14,9 +14,7 @@ pub struct Message {
 
 impl Message {
     pub fn new(header: header::Header) -> Message {
-        Message {
-            header: header,
-        }
+        Message { header: header }
     }
 
     pub fn decode(enc: Vec<u8>) -> Result<Message> {
