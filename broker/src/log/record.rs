@@ -1,9 +1,11 @@
+pub mod header;
+
 use std::clone::Clone;
 use std::vec::Vec;
 
 use crc::{crc32, Hasher32};
 
-use crate::log::header::Header;
+use crate::log::record::header::Header;
 use crate::log::result::{Error, Result};
 
 #[derive(Clone, Debug)]

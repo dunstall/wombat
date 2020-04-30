@@ -2,7 +2,7 @@ use std::io::SeekFrom;
 use std::path::Path;
 use std::process;
 
-use crate::log::header::{Header, LOG_HEADER_SIZE};
+use crate::log::record::header::{Header, LOG_HEADER_SIZE};
 use crate::log::record::Record;
 use crate::log::result::Result;
 use crate::log::segment::Len;
