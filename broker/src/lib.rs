@@ -9,12 +9,12 @@ pub mod message;
 use crate::log::filesegment::FileSegment;
 use crate::log::header::Header;
 use crate::log::record::Record;
-use crate::log::store::Store;
+use crate::log::Log;
 
 pub async fn run() {
     println!("Running Wombat broker");
 
-    let mut store = Store::<FileSegment>::open("segments").await;
+    let mut log = Log::<FileSegment>::open("segments").await;
 
     let header = Header {
         timestamp: 0,
@@ -29,9 +29,9 @@ pub async fn run() {
     };
     record.update_crc().unwrap();
 
-    println!("{}", store.append(record).await.unwrap());
+    println!("{}", log.append(record).await.unwrap());
 
-    println!("{:?}", store.lookup(0).await.unwrap());
+    println!("{:?}", log.lookup(0).await.unwrap());
 
     let b = broker::Broker::new();
     b.listen("0.0.0.0:3110").await;
