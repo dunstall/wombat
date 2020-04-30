@@ -7,7 +7,7 @@ mod log;
 pub mod message;
 
 use crate::log::filesegment::FileSegment;
-use crate::log::header::Header;
+use crate::log::record::header::Header;
 use crate::log::record::Record;
 use crate::log::Log;
 

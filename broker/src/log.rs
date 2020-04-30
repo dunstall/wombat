@@ -1,14 +1,13 @@
 pub mod filesegment;
 pub mod offsets;
-pub mod header;
 pub mod record;
 pub mod result;
 pub mod segment;
 
 use std::string::String;
 
-use crate::log::record::Record;
 use crate::log::offsets::Offsets;
+use crate::log::record::Record;
 use crate::log::result::Result;
 use crate::log::segment::Segment;
 

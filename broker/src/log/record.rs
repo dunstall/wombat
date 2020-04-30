@@ -21,7 +21,7 @@ impl Record {
     }
 
     pub fn encode(&self) -> Result<Vec<u8>> {
-        let mut enc = self.header.encode()?;
+        let mut enc = self.header.encode()?.to_vec();
         enc.append(&mut self.key.clone());
         enc.append(&mut self.val.clone());
         Ok(enc)
@@ -45,7 +45,7 @@ impl Record {
         h.crc = 0;
 
         let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, 0u32);
-        digest.write(h.encode()?.as_mut_slice());
+        digest.write(&h.encode()?);
         digest.write(self.key.clone().as_mut_slice());
         digest.write(self.val.clone().as_mut_slice());
         Ok(digest.sum32())
@@ -66,7 +66,7 @@ mod tests {
             val_size: val.len() as u32,
             crc: 0x8af97b81,
         };
-        let mut expected: Vec<u8> = h.encode().unwrap();
+        let mut expected = h.encode().unwrap().to_vec();
         expected.append(&mut key.clone());
         expected.append(&mut val.clone());
 

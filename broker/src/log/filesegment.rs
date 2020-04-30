@@ -60,7 +60,7 @@ impl Segment for FileSegment {
         let mut buffer: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer).await?;
 
-        let header = Header::decode(buffer.to_vec())?;
+        let header = Header::decode(buffer)?;
 
         let mut key = Vec::new();
         key.resize(header.key_size as usize, 0);

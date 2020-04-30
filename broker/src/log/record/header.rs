@@ -1,15 +1,12 @@
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::clone::Clone;
 use std::cmp::PartialEq;
 use std::io::Cursor;
-use std::vec::Vec;
 
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-
-use crate::log::result::{Error, Result};
+use crate::log::result::Result;
 
 pub const LOG_HEADER_SIZE: usize = 20;
 
-/// Represents the header of a log.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Header {
     // TODO should not be public
@@ -20,18 +17,8 @@ pub struct Header {
 }
 
 impl Header {
-    /// Decodes the given data.
-    ///
-    /// # Return value
-    ///
-    /// Returns the first `LOG_HEADER_SIZE` bytes of the data decoded, or an error if the given
-    /// data is too short.
-    pub fn decode(enc: Vec<u8>) -> Result<Header> {
-        if enc.len() < LOG_HEADER_SIZE {
-            return Err(Error::DecodeError("log header too small"));
-        }
-
-        let mut rdr = Cursor::new(enc);
+    pub fn decode(buf: [u8; LOG_HEADER_SIZE]) -> Result<Header> {
+        let mut rdr = Cursor::new(buf);
         Ok(Header {
             timestamp: rdr.read_i64::<LittleEndian>()?,
             key_size: rdr.read_u32::<LittleEndian>()?,
@@ -40,23 +27,21 @@ impl Header {
         })
     }
 
-    /// Encodes this header.
-    pub fn encode(&self) -> Result<Vec<u8>> {
-        let mut enc = Vec::<u8>::new();
-        enc.resize(LOG_HEADER_SIZE, 0);
+    pub fn encode(&self) -> Result<[u8; LOG_HEADER_SIZE]> {
+        let mut buf: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
 
-        enc[0..8]
+        buf[0..8]
             .as_mut()
             .write_i64::<LittleEndian>(self.timestamp)?;
-        enc[8..12]
+        buf[8..12]
             .as_mut()
             .write_u32::<LittleEndian>(self.key_size)?;
-        enc[12..16]
+        buf[12..16]
             .as_mut()
             .write_u32::<LittleEndian>(self.val_size)?;
-        enc[16..20].as_mut().write_u32::<LittleEndian>(self.crc)?;
+        buf[16..20].as_mut().write_u32::<LittleEndian>(self.crc)?;
 
-        Ok(enc)
+        Ok(buf)
     }
 }
 
@@ -72,7 +57,7 @@ mod test {
             val_size: 88024,
             crc: 0x8af97b81,
         };
-        let expected: Vec<u8> = vec![
+        let expected: [u8; LOG_HEADER_SIZE] = [
             154, 87, 165, 94, 0, 0, 0, 0, 188, 1, 0, 0, 216, 87, 1, 0, 129, 123, 249, 138,
         ];
         assert_eq!(expected, h.encode().unwrap());
@@ -80,7 +65,7 @@ mod test {
 
     #[test]
     fn decode() {
-        let encoded: Vec<u8> = vec![
+        let encoded: [u8; LOG_HEADER_SIZE] = [
             40, 97, 45, 24, 134, 13, 156, 95, 33, 0, 0, 0, 0, 42, 245, 42, 53, 99, 42, 85,
         ];
         let expected = Header {
@@ -102,14 +87,5 @@ mod test {
         };
         let decoded = Header::decode(original.encode().unwrap()).unwrap();
         assert_eq!(original, decoded);
-    }
-
-    #[test]
-    #[should_panic]
-    fn decode_too_small() {
-        let encoded: Vec<u8> = vec![
-            2, 0, 0, 0, 0, 0, 0, 0, 40, 97, 45, 24, 134, 13, 156, 95, 33, 0,
-        ];
-        Header::decode(encoded).unwrap();
     }
 }
