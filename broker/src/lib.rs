@@ -14,7 +14,7 @@ use crate::log::store::Store;
 pub async fn run() {
     println!("Running Wombat broker");
 
-    let mut store = Store::<FileSegment>::new("segments").await;
+    let mut store = Store::<FileSegment>::open("segments").await;
 
     let header = Header {
         timestamp: 0,

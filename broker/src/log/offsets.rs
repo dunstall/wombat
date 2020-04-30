@@ -14,31 +14,33 @@ impl<T: Len> Offsets<T> {
         }
     }
 
-    pub fn add(&mut self, mut item: T) {
-        match self.items.iter().last() {
-            Some((k, v)) => self.items.insert(k + v.len(), item),
-            None => self.items.insert(0, item),
-        };
+    pub fn add(&mut self, item: T) {
+        self.items.insert(self.last_offset(), item);
     }
 
-    pub fn active(&mut self) -> Result<&T> {
-        match self.items.iter().last() {
-            Some((k, v)) => Ok(v),
-            None => Err(Error::LogCorrupted), // TODO empty
+    pub fn active(&mut self) -> Result<&mut T> {
+        match self.items.iter_mut().last() {
+            Some((_, v)) => Ok(v),
+            None => Err(Error::OffsetNotFound),
         }
     }
 
     /// Lookup the segment responsible for the given offset. If none exists returns an error.
-    pub fn lookup(&mut self, offset: u64) -> Result<&T> {
+    pub fn lookup(&mut self, offset: u64) -> Result<&mut T> {
         // Expected to be small so just iterate all. TODO(AD) Binary search.
-        for (off, item) in self.items.iter() {
+        for (off, item) in self.items.iter_mut() {
             if *off <= offset && offset < *off + item.len() {
                 return Ok(item);
             }
         }
+        Err(Error::OffsetNotFound)
+    }
 
-        // TODO Not found err
-        Err(Error::LogCorrupted)
+    fn last_offset(&self) -> u64 {
+        match self.items.iter().last() {
+            Some((k, v)) => k + v.len(),
+            None => 0,
+        }
     }
 }
 

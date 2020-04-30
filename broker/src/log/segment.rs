@@ -9,6 +9,10 @@ pub trait Len {
     fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    fn is_full(&self) -> bool {
+        false // TODO
+    }
 }
 
 #[async_trait]

@@ -5,6 +5,7 @@ pub enum Error {
     IoError(io::Error),
     DecodeError(&'static str),
     LogCorrupted,
+    OffsetNotFound,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

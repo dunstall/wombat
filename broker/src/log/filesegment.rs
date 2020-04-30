@@ -12,6 +12,9 @@ use async_trait::async_trait;
 use tokio::fs::{create_dir_all, File, OpenOptions};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+// Maximum segment size of 1GB.
+// const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;
+
 pub struct FileSegment {
     file: File,
 }
