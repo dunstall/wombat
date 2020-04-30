@@ -28,6 +28,7 @@ impl Record {
     }
 
     pub fn verify_crc(&self) -> Result<()> {
+        println!("{:x}", self.calculate_crc()?);
         if self.calculate_crc()? == self.header.crc {
             Ok(())
         } else {
@@ -62,8 +63,8 @@ mod tests {
         let val = b"test-value-123".to_vec();
         let h = Header {
             timestamp: 9873248,
-            key_size: key.len() as u32,
-            val_size: val.len() as u32,
+            key_size: key.len() as u64,
+            val_size: val.len() as u64,
             crc: 0x8af97b81,
         };
         let mut expected = h.encode().unwrap().to_vec();
@@ -81,13 +82,13 @@ mod tests {
         let val = b"test-value-123".to_vec();
         let h = Header {
             timestamp: 9873248,
-            key_size: key.len() as u32,
-            val_size: val.len() as u32,
+            key_size: key.len() as u64,
+            val_size: val.len() as u64,
             crc: 0,
         };
         let mut log = Record::new(h, key, val);
         log.update_crc().unwrap();
-        assert_eq!(0x19070da1, log.header.crc);
+        assert_eq!(0xa7be64b2, log.header.crc);
 
         // Verify the updated CRC.
         log.verify_crc().unwrap();
@@ -99,9 +100,9 @@ mod tests {
         let val = b"test-value-123".to_vec();
         let h = Header {
             timestamp: 9873248,
-            key_size: key.len() as u32,
-            val_size: val.len() as u32,
-            crc: 0x19070da1,
+            key_size: key.len() as u64,
+            val_size: val.len() as u64,
+            crc: 0xa7be64b2,
         };
         let log = Record::new(h, key, val);
         log.verify_crc().unwrap();
@@ -114,8 +115,8 @@ mod tests {
         let val = b"test-value-123".to_vec();
         let h = Header {
             timestamp: 9873248,
-            key_size: key.len() as u32,
-            val_size: val.len() as u32,
+            key_size: key.len() as u64,
+            val_size: val.len() as u64,
             // Bad CRC.
             crc: 0x1234567,
         };
