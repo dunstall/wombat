@@ -1,7 +1,7 @@
+use async_trait::async_trait;
+
 use crate::log::record::Record;
 use crate::log::result::Result;
-
-use async_trait::async_trait;
 
 pub trait Len {
     fn len(&self) -> u64;
@@ -10,9 +10,7 @@ pub trait Len {
         self.len() == 0
     }
 
-    fn is_full(&self) -> bool {
-        false // TODO
-    }
+    fn is_full(&self) -> bool;
 }
 
 #[async_trait]

@@ -59,6 +59,10 @@ mod tests {
         fn len(&self) -> u64 {
             self.len
         }
+
+        fn is_full(&self) -> bool {
+            false
+        }
     }
 
     #[test]

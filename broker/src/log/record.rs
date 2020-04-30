@@ -1,9 +1,8 @@
 pub mod header;
 
+use crc::{crc32, Hasher32};
 use std::clone::Clone;
 use std::vec::Vec;
-
-use crc::{crc32, Hasher32};
 
 use crate::log::record::header::Header;
 use crate::log::result::{Error, Result};
@@ -28,7 +27,6 @@ impl Record {
     }
 
     pub fn verify_crc(&self) -> Result<()> {
-        println!("{:x}", self.calculate_crc()?);
         if self.calculate_crc()? == self.header.crc {
             Ok(())
         } else {

@@ -1,54 +1,58 @@
+use async_trait::async_trait;
 use std::io::SeekFrom;
 use std::path::Path;
 use std::process;
+use tokio::fs::{create_dir_all, File, OpenOptions};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::log::record::header::{Header, LOG_HEADER_SIZE};
 use crate::log::record::Record;
 use crate::log::result::Result;
-use crate::log::segment::Len;
-use crate::log::segment::Segment;
+use crate::log::segment::{Len, Segment};
 
-use async_trait::async_trait;
-use tokio::fs::{create_dir_all, File, OpenOptions};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
-// Maximum segment size of 1GB.
-// const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;
+const MAX_SEGMENT_SIZE: u64 = 1_000_000_000;
 
 pub struct FileSegment {
     file: File,
+    size: u64,
 }
 
 #[async_trait]
 impl Segment for FileSegment {
-    /// Opens a segment at dir/name.
-    ///
-    /// If dir does not exist it is created.
+    /// Opens a segment at dir/name. If dir does not exist it is created.
     async fn open(dir: &str, name: &str) -> Self {
         create_dir_all(dir).await.unwrap_or_else(|err| {
-            // Fatal error so crash.
+            // Fatal error.
             eprintln!("error opening segment dir: {}", err);
             process::exit(1);
         });
-        let file = OpenOptions::new()
+        let mut file = OpenOptions::new()
             .append(true)
             .create(true)
             .read(true)
             .open(Path::new(dir).join(name))
             .await
             .unwrap_or_else(|err| {
-                // Fatal error so crash.
+                // Fatal error.
                 eprintln!("error opening segment: {}", err);
                 process::exit(1);
             });
-        FileSegment { file: file }
+        let size = file.seek(SeekFrom::Current(0)).await.unwrap_or_else(|err| {
+            // Fatal error.
+            eprintln!("error seeking segment file: {}", err);
+            process::exit(1);
+        });
+        FileSegment {
+            file: file,
+            size: size,
+        }
     }
 
     /// Appends the given record to the segment and returns the offset.
     async fn append(&mut self, record: Record) -> Result<u64> {
-        // Get the current file position as the offset.
-        let offset = self.file.seek(SeekFrom::Current(0)).await?;
+        let offset = self.size;
         self.file.write_all(&record.encode()?).await?;
+        self.size = self.file.seek(SeekFrom::Current(0)).await?;
         Ok(offset)
     }
 
@@ -79,6 +83,10 @@ impl Segment for FileSegment {
 
 impl Len for FileSegment {
     fn len(&self) -> u64 {
-        0 // TODO
+        self.size
+    }
+
+    fn is_full(&self) -> bool {
+        self.len() >= MAX_SEGMENT_SIZE
     }
 }
