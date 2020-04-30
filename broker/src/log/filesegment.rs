@@ -5,6 +5,7 @@ use std::process;
 use crate::log::header::{Header, LOG_HEADER_SIZE};
 use crate::log::log::Log;
 use crate::log::result::Result;
+use crate::log::segment::Len;
 use crate::log::segment::Segment;
 
 use async_trait::async_trait;
@@ -71,8 +72,10 @@ impl Segment for FileSegment {
 
         Ok(log)
     }
+}
 
-    async fn size(&mut self) -> Result<u64> {
-        return Ok(self.file.seek(SeekFrom::End(0)).await?);
+impl Len for FileSegment {
+    fn len(&self) -> u64 {
+        0 // TODO
     }
 }
