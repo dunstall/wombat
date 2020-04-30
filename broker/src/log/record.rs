@@ -7,15 +7,15 @@ use crate::log::header::Header;
 use crate::log::result::{Error, Result};
 
 #[derive(Clone, Debug)]
-pub struct Log {
+pub struct Record {
     pub header: Header,
     pub key: Vec<u8>,
     pub val: Vec<u8>,
 }
 
-impl Log {
-    pub fn new(header: Header, key: Vec<u8>, val: Vec<u8>) -> Log {
-        Log { header, key, val }
+impl Record {
+    pub fn new(header: Header, key: Vec<u8>, val: Vec<u8>) -> Record {
+        Record { header, key, val }
     }
 
     pub fn encode(&self) -> Result<Vec<u8>> {
@@ -29,7 +29,7 @@ impl Log {
         if self.calculate_crc()? == self.header.crc {
             Ok(())
         } else {
-            Err(Error::LogCorrupted)
+            Err(Error::RecordCorrupted)
         }
     }
 
@@ -68,7 +68,7 @@ mod tests {
         expected.append(&mut key.clone());
         expected.append(&mut val.clone());
 
-        let log = Log::new(h, key.clone(), val.clone());
+        let log = Record::new(h, key.clone(), val.clone());
 
         assert_eq!(expected, log.encode().unwrap());
     }
@@ -83,7 +83,7 @@ mod tests {
             val_size: val.len() as u32,
             crc: 0,
         };
-        let mut log = Log::new(h, key, val);
+        let mut log = Record::new(h, key, val);
         log.update_crc().unwrap();
         assert_eq!(0x19070da1, log.header.crc);
 
@@ -101,7 +101,7 @@ mod tests {
             val_size: val.len() as u32,
             crc: 0x19070da1,
         };
-        let log = Log::new(h, key, val);
+        let log = Record::new(h, key, val);
         log.verify_crc().unwrap();
     }
 
@@ -117,7 +117,7 @@ mod tests {
             // Bad CRC.
             crc: 0x1234567,
         };
-        let log = Log::new(h, key, val);
+        let log = Record::new(h, key, val);
         log.verify_crc().unwrap();
     }
 }

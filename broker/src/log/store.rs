@@ -1,6 +1,6 @@
 use std::string::String;
 
-use crate::log::log::Log;
+use crate::log::record::Record;
 use crate::log::offsets::Offsets;
 use crate::log::result::Result;
 use crate::log::segment::Segment;
@@ -20,15 +20,15 @@ impl<T: Segment> Store<T> {
         s
     }
 
-    pub async fn append(&mut self, log: Log) -> Result<u64> {
+    pub async fn append(&mut self, record: Record) -> Result<u64> {
         if self.offsets.active()?.is_full() {
             let segment = T::open(&self.dir, "test2").await;
             self.offsets.add(segment);
         }
-        self.offsets.active()?.append(log).await
+        self.offsets.active()?.append(record).await
     }
 
-    pub async fn lookup(&mut self, offset: u64) -> Result<Log> {
+    pub async fn lookup(&mut self, offset: u64) -> Result<Record> {
         self.offsets.lookup(offset)?.lookup(offset).await
     }
 

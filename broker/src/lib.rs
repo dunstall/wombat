@@ -8,7 +8,7 @@ pub mod message;
 
 use crate::log::filesegment::FileSegment;
 use crate::log::header::Header;
-use crate::log::log::Log;
+use crate::log::record::Record;
 use crate::log::store::Store;
 
 pub async fn run() {
@@ -22,14 +22,14 @@ pub async fn run() {
         val_size: 4,
         crc: 0,
     };
-    let mut log = Log {
+    let mut record = Record {
         header,
         key: b"TEST".to_vec(),
         val: b"TEST".to_vec(),
     };
-    log.update_crc().unwrap();
+    record.update_crc().unwrap();
 
-    println!("{}", store.append(log).await.unwrap());
+    println!("{}", store.append(record).await.unwrap());
 
     println!("{:?}", store.lookup(0).await.unwrap());
 

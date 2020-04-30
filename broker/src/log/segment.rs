@@ -1,4 +1,4 @@
-use crate::log::log::Log;
+use crate::log::record::Record;
 use crate::log::result::Result;
 
 use async_trait::async_trait;
@@ -18,6 +18,6 @@ pub trait Len {
 #[async_trait]
 pub trait Segment: Len {
     async fn open(dir: &str, path: &str) -> Self;
-    async fn append(&mut self, log: Log) -> Result<u64>;
-    async fn lookup(&mut self, offset: u64) -> Result<Log>;
+    async fn append(&mut self, record: Record) -> Result<u64>;
+    async fn lookup(&mut self, offset: u64) -> Result<Record>;
 }

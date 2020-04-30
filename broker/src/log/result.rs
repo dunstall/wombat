@@ -4,7 +4,7 @@ use std::io;
 pub enum Error {
     IoError(io::Error),
     DecodeError(&'static str),
-    LogCorrupted,
+    RecordCorrupted,
     OffsetNotFound,
 }
 

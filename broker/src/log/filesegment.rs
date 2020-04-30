@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process;
 
 use crate::log::header::{Header, LOG_HEADER_SIZE};
-use crate::log::log::Log;
+use crate::log::record::Record;
 use crate::log::result::Result;
 use crate::log::segment::Len;
 use crate::log::segment::Segment;
@@ -44,18 +44,18 @@ impl Segment for FileSegment {
         FileSegment { file: file }
     }
 
-    /// Appends the given log to the segment and returns the offset.
-    async fn append(&mut self, log: Log) -> Result<u64> {
+    /// Appends the given record to the segment and returns the offset.
+    async fn append(&mut self, record: Record) -> Result<u64> {
         // Get the current file position as the offset.
         let offset = self.file.seek(SeekFrom::Current(0)).await?;
-        self.file.write_all(&log.encode()?).await?;
+        self.file.write_all(&record.encode()?).await?;
         Ok(offset)
     }
 
-    /// Looks up the log at the given offset.
+    /// Looks up the record at the given offset.
     ///
-    /// Verifies the log CRC for corrupted data.
-    async fn lookup(&mut self, offset: u64) -> Result<Log> {
+    /// Verifies the record CRC for corrupted data.
+    async fn lookup(&mut self, offset: u64) -> Result<Record> {
         self.file.seek(SeekFrom::Start(offset)).await?;
         let mut buffer: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer).await?;
@@ -70,10 +70,10 @@ impl Segment for FileSegment {
         val.resize(header.val_size as usize, 0);
         self.file.read_exact(val.as_mut_slice()).await?;
 
-        let log = Log::new(header, key, val);
-        log.verify_crc()?;
+        let record = Record::new(header, key, val);
+        record.verify_crc()?;
 
-        Ok(log)
+        Ok(record)
     }
 }
 
