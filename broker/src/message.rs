@@ -9,15 +9,19 @@ use crate::message::result::Result;
 #[derive(Debug, PartialEq)]
 pub struct Message {
     header: header::Header,
+    payload: Vec<u8>,
 }
 
 impl Message {
-    pub fn new(header: header::Header) -> Message {
-        Message { header: header }
+    pub fn new(header: header::Header, payload: Vec<u8>) -> Message {
+        Message { header, payload }
     }
 
-    pub fn encode(&self) -> Result<[u8; header::MESSAGE_HEADER_SIZE]> {
-        Ok(self.header.encode()?)
+    pub fn encode(&self) -> Result<Vec<u8>> {
+        // TODO poor (use sendto)
+        let mut enc = self.header.encode()?.to_vec();
+        enc.append(&mut self.payload.clone());
+        Ok(enc)
     }
 }
 
@@ -27,8 +31,9 @@ mod test {
 
     #[test]
     fn encode() {
-        let m = Message::new(header::Header::new(types::Type::Produce, 242));
-        let expected: [u8; header::MESSAGE_HEADER_SIZE] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 242];
+        let payload = vec![1, 2, 3, 4];
+        let m = Message::new(header::Header::new(types::Type::Produce, 4), payload);
+        let expected = vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 1, 2, 3, 4];
         assert_eq!(expected, m.encode().unwrap());
     }
 }

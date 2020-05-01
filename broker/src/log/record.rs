@@ -20,6 +20,7 @@ impl Record {
     }
 
     pub fn encode(&self) -> Result<Vec<u8>> {
+        // TODO poor (use sendto)
         let mut enc = self.header.encode()?.to_vec();
         enc.append(&mut self.key.clone());
         enc.append(&mut self.val.clone());
