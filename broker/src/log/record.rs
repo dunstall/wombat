@@ -2,12 +2,13 @@ pub mod header;
 
 use crc::{crc32, Hasher32};
 use std::clone::Clone;
+use std::cmp::PartialEq;
 use std::vec::Vec;
 
 use crate::log::record::header::Header;
 use crate::log::result::{Error, Result};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub header: Header,
     pub key: Vec<u8>,
@@ -70,9 +71,9 @@ mod tests {
         expected.append(&mut key.clone());
         expected.append(&mut val.clone());
 
-        let log = Record::new(h, key.clone(), val.clone());
+        let record = Record::new(h, key.clone(), val.clone());
 
-        assert_eq!(expected, log.encode().unwrap());
+        assert_eq!(expected, record.encode().unwrap());
     }
 
     #[test]
@@ -85,12 +86,12 @@ mod tests {
             val_size: val.len() as u64,
             crc: 0,
         };
-        let mut log = Record::new(h, key, val);
-        log.update_crc().unwrap();
-        assert_eq!(0xa7be64b2, log.header.crc);
+        let mut record = Record::new(h, key, val);
+        record.update_crc().unwrap();
+        assert_eq!(0xa7be64b2, record.header.crc);
 
         // Verify the updated CRC.
-        log.verify_crc().unwrap();
+        record.verify_crc().unwrap();
     }
 
     #[test]
@@ -103,8 +104,8 @@ mod tests {
             val_size: val.len() as u64,
             crc: 0xa7be64b2,
         };
-        let log = Record::new(h, key, val);
-        log.verify_crc().unwrap();
+        let record = Record::new(h, key, val);
+        record.verify_crc().unwrap();
     }
 
     #[test]
@@ -119,7 +120,7 @@ mod tests {
             // Bad CRC.
             crc: 0x1234567,
         };
-        let log = Record::new(h, key, val);
-        log.verify_crc().unwrap();
+        let record = Record::new(h, key, val);
+        record.verify_crc().unwrap();
     }
 }
