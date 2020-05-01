@@ -9,18 +9,18 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn decode(enc: u8) -> Result<Type> {
-        if enc == Type::Produce as u8 {
+    pub fn decode(enc: u16) -> Result<Type> {
+        if enc == Type::Produce as u16 {
             Ok(Type::Produce)
-        } else if enc == Type::Consume as u8 {
+        } else if enc == Type::Consume as u16 {
             Ok(Type::Consume)
         } else {
             Err(Error::DecodeError("failed to decode type"))
         }
     }
 
-    pub fn encode(&self) -> u8 {
-        *self as u8
+    pub fn encode(&self) -> u16 {
+        *self as u16
     }
 }
 

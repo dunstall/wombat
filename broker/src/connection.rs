@@ -34,7 +34,7 @@ impl Connection {
             };
 
             // TODO for now just panic
-            let header = Header::decode(buf.to_vec()).unwrap();
+            let header = Header::decode(buf).unwrap();
             let message = Message::new(header);
 
             println!("Recv {:?} from {}", message, self.addr);

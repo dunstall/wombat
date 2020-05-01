@@ -5,6 +5,7 @@ use std::io::Cursor;
 
 use crate::log::result::Result;
 
+// TODO RECORD_HEADER_SIZE
 pub const LOG_HEADER_SIZE: usize = 28;
 
 #[derive(Clone, Debug, PartialEq)]
