@@ -18,6 +18,10 @@ impl Header {
         Header { kind, payload_size }
     }
 
+    pub fn payload_size(&self) -> usize {
+        self.payload_size as usize
+    }
+
     pub fn decode(buf: [u8; MESSAGE_HEADER_SIZE]) -> Result<Header> {
         let mut rdr = Cursor::new(buf);
         Ok(Header {

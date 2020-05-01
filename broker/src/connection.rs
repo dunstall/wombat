@@ -20,6 +20,8 @@ impl Connection {
     }
 
     pub async fn handle(&mut self) {
+        // TODO have one buffer allocated once (for payload too)?
+
         let mut buf = [0; MESSAGE_HEADER_SIZE];
         loop {
             let n = match self.socket.read_exact(&mut buf).await {
@@ -35,7 +37,15 @@ impl Connection {
 
             // TODO for now just panic
             let header = Header::decode(buf).unwrap();
-            let message = Message::new(header, vec![]);
+
+            let mut payload = Vec::new();
+            payload.resize(header.payload_size() as usize, 0);
+            self.socket
+                .read_exact(payload.as_mut_slice())
+                .await
+                .unwrap();
+
+            let message = Message::new(header, payload);
 
             println!("Recv {:?} from {}", message, self.addr);
 

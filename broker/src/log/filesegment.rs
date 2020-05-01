@@ -60,6 +60,8 @@ impl Segment for FileSegment {
     ///
     /// Verifies the record CRC for corrupted data.
     async fn lookup(&mut self, offset: u64) -> Result<Record> {
+        // TODO have one buffer allocated once?
+
         self.file.seek(SeekFrom::Start(offset)).await?;
         let mut buffer: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
         self.file.read_exact(&mut buffer).await?;
