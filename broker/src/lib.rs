@@ -14,10 +14,7 @@ pub async fn run() {
     println!("Running Wombat broker");
 
     let mut log = Log::open(Path::new("segments"), 100000).await.unwrap();
-    let record = Record::new(
-        b"TEST".to_vec(),
-        b"TEST".to_vec(),
-    );
+    let record = Record::new(b"TEST".to_vec(), b"TEST".to_vec());
 
     println!("{}", log.append(record).await.unwrap());
 
