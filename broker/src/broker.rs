@@ -16,9 +16,9 @@ impl Broker {
         let mut listener = TcpListener::bind(addr).await.unwrap();
 
         loop {
-            let (socket, addr) = listener.accept().await.unwrap();
+            let (socket, _addr) = listener.accept().await.unwrap();
             tokio::spawn(async move {
-                let mut conn = Connection::new(socket, addr);
+                let mut conn = Connection::new(socket);
                 conn.handle().await;
             });
         }
