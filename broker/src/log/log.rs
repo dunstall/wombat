@@ -56,11 +56,62 @@ mod tests {
         );
     }
 
-    // TODO Test persist - Create new log from old
+    #[tokio::test]
+    async fn open_dir_empty() {
+        let dir = TempDir::new("wombatlog").unwrap();
+        let mut log = Log::open(&dir.path(), 0).await.unwrap();
 
-    // TODO Open dir exists but empty
+        let record = Record::new(b"testkey".to_vec(), b"testval".to_vec());
+        assert_eq!(0, log.append(record).await.unwrap());
+        assert_eq!(
+            Record::new(b"testkey".to_vec(), b"testval".to_vec()),
+            log.lookup(0).await.unwrap()
+        );
+    }
 
-    // TODO Open dir contains segments
+    #[tokio::test]
+    async fn open_existing_log() {
+        let dir = TempDir::new("wombatlog").unwrap();
+        let mut log = Log::open(&dir.path(), 2000).await.unwrap();
+
+        for offset in (0..1000).step_by(37) {
+            // Ensure each record is unique.
+            let val = format!("{:0>10}", offset.to_string());
+            let record = Record::new(b"testkey".to_vec(), val.as_bytes().to_vec());
+
+            assert_eq!(offset, log.append(record).await.unwrap());
+        }
+
+        // Create a new log object and read the values written before.
+        let mut log = Log::open(&dir.path(), 2000).await.unwrap();
+        for offset in (0..1000).step_by(37) {
+            // Ensure each record is unique.
+            let val = format!("{:0>10}", offset.to_string());
+            let record = Record::new(b"testkey".to_vec(), val.as_bytes().to_vec());
+
+            assert_eq!(record, log.lookup(offset).await.unwrap());
+        }
+    }
+
+    #[tokio::test]
+    async fn lookup_random() {
+        let dir = TempDir::new("wombatlog").unwrap();
+        let mut log = Log::open(&dir.path(), 2000).await.unwrap();
+
+        for offset in (0..1000).step_by(37) {
+            // Ensure each record is unique.
+            let val = format!("{:0>10}", offset.to_string());
+            let record = Record::new(b"testkey".to_vec(), val.as_bytes().to_vec());
+
+            assert_eq!(offset, log.append(record).await.unwrap());
+        }
+
+        let offset = 370;
+        let val = format!("{:0>10}", offset.to_string());
+        let record = Record::new(b"testkey".to_vec(), val.as_bytes().to_vec());
+
+        assert_eq!(record, log.lookup(offset).await.unwrap());
+    }
 
     // TODO Multi segment
 
