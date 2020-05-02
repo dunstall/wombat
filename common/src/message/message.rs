@@ -21,6 +21,14 @@ impl Message {
         }
     }
 
+    pub fn kind(&self) -> Type {
+        self.kind
+    }
+
+    pub fn payload(&self) -> &Vec<u8> {
+        &self.payload
+    }
+
     pub async fn read_from(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<Message> {
         let kind = Type::decode(reader.read_u16().await?)?;
         let payload_len = reader.read_u64().await?;
@@ -30,7 +38,9 @@ impl Message {
         reader.read_exact(payload.as_mut_slice()).await?;
 
         Ok(Message {
-            kind, payload_len, payload,
+            kind,
+            payload_len,
+            payload,
         })
     }
 
@@ -65,9 +75,6 @@ mod test {
     async fn read_from() {
         let mut buf = Cursor::new(vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1]);
         let msg = Message::read_from(&mut buf).await.unwrap();
-        assert_eq!(
-            Message::new(Type::Produce, vec![3, 2, 1]),
-            msg,
-        );
+        assert_eq!(Message::new(Type::Produce, vec![3, 2, 1]), msg);
     }
 }
