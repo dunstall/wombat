@@ -1,11 +1,7 @@
 [package]
-name = "wombat"
+name = "wombatclient"
 version = "0.1.0"
 authors = ["Andy Dunstall <andydunstall@hotmail.com>"]
 edition = "2018"
-description = "Distributed message system Rust client"
-readme = "README.md"
-license = "MIT"
 
 [dependencies]
-websocket = "0.24.0"
