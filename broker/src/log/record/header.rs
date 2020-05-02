@@ -1,88 +1,57 @@
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use std::clone::Clone;
-use std::cmp::PartialEq;
-use std::io::Cursor;
+use std::marker::Unpin;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-use crate::log::result::Result;
+use crate::log::LogResult;
 
-// TODO RECORD_HEADER_SIZE
-pub const LOG_HEADER_SIZE: usize = 28;
-
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, std::cmp::PartialEq)]
 pub struct Header {
-    // TODO should not be public
-    pub timestamp: i64,
-    pub key_size: u64,
-    pub val_size: u64,
-    pub crc: u32,
+    key_len: u64,
+    val_len: u64,
+    crc: u32,
 }
 
 impl Header {
-    // TODO new (then make members private)
+    pub fn new(key_len: u64, val_len: u64) -> Header {
+        Header {
+            key_len,
+            val_len,
+            crc: 0,
+        }
+    }
 
-    pub fn decode(buf: [u8; LOG_HEADER_SIZE]) -> Result<Header> {
-        let mut rdr = Cursor::new(buf);
+    pub async fn read_from(reader: &mut (impl AsyncRead + Unpin)) -> LogResult<Header> {
+        let key_len = reader.read_u64().await?;
+        let val_len = reader.read_u64().await?;
+        let crc = reader.read_u32().await?;
         Ok(Header {
-            timestamp: rdr.read_i64::<BigEndian>()?,
-            key_size: rdr.read_u64::<BigEndian>()?,
-            val_size: rdr.read_u64::<BigEndian>()?,
-            crc: rdr.read_u32::<BigEndian>()?,
+            key_len,
+            val_len,
+            crc,
         })
     }
 
-    pub fn encode(&self) -> Result<[u8; LOG_HEADER_SIZE]> {
-        let mut buf: [u8; LOG_HEADER_SIZE] = [0; LOG_HEADER_SIZE];
-        buf[0..8].as_mut().write_i64::<BigEndian>(self.timestamp)?;
-        buf[8..16].as_mut().write_u64::<BigEndian>(self.key_size)?;
-        buf[16..24].as_mut().write_u64::<BigEndian>(self.val_size)?;
-        buf[24..28].as_mut().write_u32::<BigEndian>(self.crc)?;
-        Ok(buf)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn encode() {
-        let h = Header {
-            timestamp: 1587894170,
-            key_size: 444,
-            val_size: 88024,
-            crc: 0x8af97b81,
-        };
-        let expected: [u8; LOG_HEADER_SIZE] = [
-            0, 0, 0, 0, 94, 165, 87, 154, 0, 0, 0, 0, 0, 0, 1, 188, 0, 0, 0, 0, 0, 1, 87, 216, 138,
-            249, 123, 129,
-        ];
-        assert_eq!(expected, h.encode().unwrap());
+    pub fn key_len(&self) -> usize {
+        self.key_len as usize
     }
 
-    #[test]
-    fn decode() {
-        let encoded: [u8; LOG_HEADER_SIZE] = [
-            40, 97, 45, 24, 134, 13, 156, 95, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 42, 245, 42,
-            53, 99, 42, 85,
-        ];
-        let expected = Header {
-            timestamp: 2909656417609555039,
-            key_size: 553648128,
-            val_size: 2815274,
-            crc: 895691349,
-        };
-        assert_eq!(expected, Header::decode(encoded).unwrap());
+    pub fn val_len(&self) -> usize {
+        self.val_len as usize
     }
 
-    #[test]
-    fn encode_and_decode() {
-        let original = Header {
-            timestamp: 890347582,
-            key_size: 244,
-            val_size: 8422,
-            crc: 3485728435,
-        };
-        let decoded = Header::decode(original.encode().unwrap()).unwrap();
-        assert_eq!(original, decoded);
+    pub fn set_crc(&mut self, crc: u32) {
+        self.crc = crc;
+    }
+
+    // Returns the CRC of all fields excluding the CRC.
+    pub fn calc_crc(&self) -> u32 {
+        // TODO
+        0
+    }
+
+    pub async fn write_to(&self, writer: &mut (impl AsyncWrite + Unpin)) -> LogResult<()> {
+        writer.write_u64(self.key_len).await?;
+        writer.write_u64(self.val_len).await?;
+        writer.write_u32(self.crc).await?;
+        Ok(())
     }
 }

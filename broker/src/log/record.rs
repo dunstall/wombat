@@ -1,126 +1,61 @@
-pub mod header;
+mod header;
 
 use crc::{crc32, Hasher32};
-use std::clone::Clone;
-use std::cmp::PartialEq;
+use std::marker::Unpin;
 use std::vec::Vec;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-use crate::log::record::header::Header;
-use crate::log::result::{Error, Result};
+use crate::log::LogResult;
+use header::Header;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, std::cmp::PartialEq)]
 pub struct Record {
-    pub header: Header,
-    pub key: Vec<u8>,
-    pub val: Vec<u8>,
+    header: Header,
+    key: Vec<u8>,
+    val: Vec<u8>,
 }
 
 impl Record {
-    pub fn new(header: Header, key: Vec<u8>, val: Vec<u8>) -> Record {
-        Record { header, key, val }
+    pub fn new(key: Vec<u8>, val: Vec<u8>) -> Record {
+        let mut record = Record {
+            header: Header::new(key.len() as u64, val.len() as u64),
+            key,
+            val,
+        };
+        record.update_crc();
+        record
     }
 
-    pub fn encode(&self) -> Result<Vec<u8>> {
-        // TODO poor (use sendto)
-        let mut enc = self.header.encode()?.to_vec();
-        enc.append(&mut self.key.clone());
-        enc.append(&mut self.val.clone());
-        Ok(enc)
+    pub async fn read_from(mut reader: &mut (impl AsyncRead + Unpin)) -> LogResult<Record> {
+        let header = Header::read_from(&mut reader).await?;
+
+        let mut key = Vec::new();
+        key.resize(header.key_len(), 0);
+        reader.read_exact(key.as_mut_slice()).await?;
+
+        let mut val = Vec::new();
+        val.resize(header.val_len(), 0);
+        reader.read_exact(val.as_mut_slice()).await?;
+
+        Ok(Record { header, key, val })
     }
 
-    pub fn verify_crc(&self) -> Result<()> {
-        if self.calculate_crc()? == self.header.crc {
-            Ok(())
-        } else {
-            Err(Error::RecordCorrupted)
-        }
-    }
-
-    pub fn update_crc(&mut self) -> Result<()> {
-        self.header.crc = self.calculate_crc()?;
+    pub async fn write_to(&self, writer: &mut (impl AsyncWrite + Unpin)) -> LogResult<()> {
+        self.header.write_to(writer).await?;
+        writer.write_all(&self.key).await?;
+        writer.write_all(&self.val).await?;
+        writer.flush().await?;
         Ok(())
     }
 
-    fn calculate_crc(&self) -> Result<u32> {
-        let mut h = self.header.clone();
-        h.crc = 0;
-
-        let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, 0u32);
-        digest.write(&h.encode()?);
-        digest.write(self.key.clone().as_mut_slice());
-        digest.write(self.val.clone().as_mut_slice());
-        Ok(digest.sum32())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn encode() {
-        let key = b"test-key".to_vec();
-        let val = b"test-value-123".to_vec();
-        let h = Header {
-            timestamp: 9873248,
-            key_size: key.len() as u64,
-            val_size: val.len() as u64,
-            crc: 0x8af97b81,
-        };
-        let mut expected = h.encode().unwrap().to_vec();
-        expected.append(&mut key.clone());
-        expected.append(&mut val.clone());
-
-        let record = Record::new(h, key.clone(), val.clone());
-
-        assert_eq!(expected, record.encode().unwrap());
+    fn update_crc(&mut self) {
+        self.header.set_crc(self.calc_crc());
     }
 
-    #[test]
-    fn update_crc() {
-        let key = b"test-key".to_vec();
-        let val = b"test-value-123".to_vec();
-        let h = Header {
-            timestamp: 9873248,
-            key_size: key.len() as u64,
-            val_size: val.len() as u64,
-            crc: 0,
-        };
-        let mut record = Record::new(h, key, val);
-        record.update_crc().unwrap();
-        assert_eq!(0xa7be64b2, record.header.crc);
-
-        // Verify the updated CRC.
-        record.verify_crc().unwrap();
-    }
-
-    #[test]
-    fn verify_crc_ok() {
-        let key = b"test-key".to_vec();
-        let val = b"test-value-123".to_vec();
-        let h = Header {
-            timestamp: 9873248,
-            key_size: key.len() as u64,
-            val_size: val.len() as u64,
-            crc: 0xa7be64b2,
-        };
-        let record = Record::new(h, key, val);
-        record.verify_crc().unwrap();
-    }
-
-    #[test]
-    #[should_panic]
-    fn verify_crc_fail() {
-        let key = b"test-key".to_vec();
-        let val = b"test-value-123".to_vec();
-        let h = Header {
-            timestamp: 9873248,
-            key_size: key.len() as u64,
-            val_size: val.len() as u64,
-            // Bad CRC.
-            crc: 0x1234567,
-        };
-        let record = Record::new(h, key, val);
-        record.verify_crc().unwrap();
+    fn calc_crc(&self) -> u32 {
+        let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, self.header.calc_crc());
+        digest.write(self.key.as_slice());
+        digest.write(self.val.as_slice());
+        digest.sum32()
     }
 }
