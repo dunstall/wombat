@@ -1,6 +1,6 @@
 use std::cmp::PartialEq;
 
-use crate::message::result::{MessageError, MessageResult};
+use crate::packet::result::{MessageError, MessageResult};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Type {
