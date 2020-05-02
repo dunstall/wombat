@@ -29,15 +29,17 @@ impl Record {
     pub async fn read_from(mut reader: &mut (impl AsyncRead + Unpin)) -> LogResult<Record> {
         let header = Header::read_from(&mut reader).await?;
 
-        let mut key = Vec::new();
-        key.resize(header.key_len(), 0);
+        let mut key: Vec<u8> = vec![0; header.key_len() as usize];
         reader.read_exact(key.as_mut_slice()).await?;
 
-        let mut val = Vec::new();
-        val.resize(header.val_len(), 0);
+        let mut val: Vec<u8> = vec![0; header.val_len() as usize];
         reader.read_exact(val.as_mut_slice()).await?;
 
         Ok(Record { header, key, val })
+    }
+
+    pub fn val(&self) -> &Vec<u8> {
+        &self.val
     }
 
     pub async fn write_to(&self, writer: &mut (impl AsyncWrite + Unpin)) -> LogResult<()> {

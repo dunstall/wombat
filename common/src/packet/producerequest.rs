@@ -4,6 +4,7 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use crate::packet::result::MessageResult;
 
 #[derive(Debug, std::cmp::PartialEq)]
+// TODO key and value
 pub struct ProduceRequest {
     payload: Vec<u8>,
 }
@@ -17,9 +18,7 @@ impl ProduceRequest {
         &self.payload
     }
 
-    pub async fn read_from(
-        reader: &mut (impl AsyncRead + Unpin),
-    ) -> MessageResult<ProduceRequest> {
+    pub async fn read_from(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<ProduceRequest> {
         let payload_len = reader.read_u64().await?;
         let mut payload = vec![0; payload_len as usize];
         reader.read_exact(&mut payload).await?;
@@ -32,7 +31,6 @@ impl ProduceRequest {
         Ok(())
     }
 }
-
 
 #[cfg(test)]
 mod tests {

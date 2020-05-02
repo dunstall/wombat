@@ -1,3 +1,3 @@
 mod packet;
 
-pub use packet::{ConsumeRequest, ConsumeResponse, ProduceRequest, Header, Type};
+pub use packet::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
