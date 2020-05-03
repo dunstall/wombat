@@ -3,7 +3,7 @@ use std::path::Path;
 use tokio::fs;
 use tokio::fs::{File, OpenOptions};
 
-use crate::log::{LogResult, Record};
+use crate::partition::log::{LogResult, Record};
 
 // Not thread safe as read and write in multiple chunks so may interleave.
 pub struct Log {

@@ -5,7 +5,7 @@ use std::marker::Unpin;
 use std::vec::Vec;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-use crate::log::LogResult;
+use crate::partition::log::LogResult;
 use header::{Header, HEADER_SIZE};
 
 #[derive(Debug, std::cmp::PartialEq)]

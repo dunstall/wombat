@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::log::Log;
-use crate::log::Record;
+use crate::partition::log::Log;
+use crate::partition::log::Record;
 
 pub struct Partition {
     log: Log,
