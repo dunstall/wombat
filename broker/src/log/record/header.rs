@@ -3,6 +3,8 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::log::LogResult;
 
+pub const HEADER_SIZE: u64 = 20;
+
 #[derive(Debug, std::cmp::PartialEq)]
 pub struct Header {
     key_len: u64,

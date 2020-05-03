@@ -6,7 +6,7 @@ use std::vec::Vec;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::log::LogResult;
-use header::Header;
+use header::{Header, HEADER_SIZE};
 
 #[derive(Debug, std::cmp::PartialEq)]
 pub struct Record {
@@ -44,6 +44,10 @@ impl Record {
 
     pub fn val(&self) -> &Vec<u8> {
         &self.val
+    }
+
+    pub fn len(&self) -> u64 {
+        HEADER_SIZE + self.key.len() as u64 + self.val.len() as u64
     }
 
     pub async fn write_to(&self, writer: &mut (impl AsyncWrite + Unpin)) -> LogResult<()> {

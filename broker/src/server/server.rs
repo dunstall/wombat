@@ -1,5 +1,5 @@
 use tokio;
-use tokio::net::{TcpListener, TcpStream, ToSocketAddrs};
+use tokio::net::{TcpListener, ToSocketAddrs};
 
 use crate::server::connection::Connection;
 use crate::server::result::ServerResult;

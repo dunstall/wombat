@@ -13,36 +13,42 @@ async fn main() {
     loop {
         println!("offset {}", offset);
 
-        let numbers: Vec<u8> = (0..rng.gen_range(0, 0xff))
+        let key: Vec<u8> = (0..rng.gen_range(0, 0xff))
+            .map(|_| rng.gen_range(0, 0xff))
+            .collect();
+        let val: Vec<u8> = (0..rng.gen_range(0, 0xff))
             .map(|_| rng.gen_range(0, 0xff))
             .collect();
 
-        println!("produce {}", numbers.len());
+        println!("produce {}", key.len());
 
         Header::new(Type::Produce)
             .write_to(&mut stream)
             .await
             .unwrap();
-        let prod_req = ProduceRequest::new(numbers.clone());
+        let prod_req = ProduceRequest::new("mytopic", val.clone(), key.clone());
         prod_req.write_to(&mut stream).await.unwrap();
 
         Header::new(Type::Consume)
             .write_to(&mut stream)
             .await
             .unwrap();
-        let cons_req = ConsumeRequest::new(offset);
+        let cons_req = ConsumeRequest::new("mytopic", offset, 0);
         cons_req.write_to(&mut stream).await.unwrap();
 
         let header = Header::read_from(&mut stream).await.unwrap();
         match header.kind() {
             Type::Consume => {
                 let resp = ConsumeResponse::read_from(&mut stream).await.unwrap();
-                assert_eq!(offset, resp.offset());
-                // TODO no clone
-                assert_eq!(numbers, resp.payload().clone());
+                // TODO(AD) no clone
+                // assert_eq!(offset, resp.offset());
+                // assert_eq!(key, resp.key().clone());
+                // assert_eq!(key, resp.val().clone());
                 offset = resp.next_offset();
+                println!("{}", offset);
+
             }
-            _ => (),
+            _ => println!("bad type"),
         }
     }
 }

@@ -15,4 +15,5 @@ crc = "1.8.1"
 tokio = { version = "0.2", features = ["full"] }
 
 [dev-dependencies]
+rand = "0.7.3"
 tempdir = "0.3"

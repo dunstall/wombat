@@ -10,6 +10,7 @@ pub struct Log {
     file: File,
 }
 
+// TODO(AD) Multi segment and expiry
 impl Log {
     pub async fn open(dir: &Path, max_segment_size: u64) -> LogResult<Log> {
         fs::create_dir_all(dir).await?;
