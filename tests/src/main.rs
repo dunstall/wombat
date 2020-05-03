@@ -5,6 +5,8 @@ use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
 
 #[tokio::main]
 async fn main() {
+    // TODO(AD) Multiple async threads on different partitions.
+
     let mut stream = TcpStream::connect("127.0.0.1:3110").await.unwrap();
     let mut rng = rand::thread_rng();
     let mut offset: u64 = 0;
@@ -24,7 +26,7 @@ async fn main() {
             .write_to(&mut stream)
             .await
             .unwrap();
-        let prod_req = ProduceRequest::new("mytopic", val.clone(), key.clone());
+        let prod_req = ProduceRequest::new("mytopic", vec![], key.clone());
         prod_req.write_to(&mut stream).await.unwrap();
 
         Header::new(Type::Consume)
