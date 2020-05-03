@@ -1,7 +1,8 @@
 use std::marker::Unpin;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 use crate::packet::result::MessageResult;
+use crate::packet::utils;
 
 #[derive(Debug, std::cmp::PartialEq)]
 pub struct ProduceRequest {
@@ -33,33 +34,16 @@ impl ProduceRequest {
 
     pub async fn read_from(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<ProduceRequest> {
         Ok(ProduceRequest {
-            topic: String::from_utf8(ProduceRequest::read_item(reader).await?)?,
-            key: ProduceRequest::read_item(reader).await?,
-            val: ProduceRequest::read_item(reader).await?,
+            topic: String::from_utf8(utils::read_var(reader).await?)?,
+            key: utils::read_var(reader).await?,
+            val: utils::read_var(reader).await?,
         })
     }
 
     pub async fn write_to(&self, writer: &mut (impl AsyncWrite + Unpin)) -> MessageResult<()> {
-        self.write_item(self.topic.as_bytes(), writer).await?;
-        self.write_item(&self.key, writer).await?;
-        self.write_item(&self.val, writer).await?;
-        Ok(())
-    }
-
-    async fn read_item(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<Vec<u8>> {
-        let len = reader.read_u64().await?;
-        let mut item = vec![0; len as usize];
-        reader.read_exact(&mut item).await?;
-        Ok(item)
-    }
-
-    pub async fn write_item(
-        &self,
-        item: &[u8],
-        writer: &mut (impl AsyncWrite + Unpin),
-    ) -> MessageResult<()> {
-        writer.write_u64(item.len() as u64).await?;
-        writer.write_all(item).await?;
+        utils::write_var(self.topic.as_bytes(), writer).await?;
+        utils::write_var(&self.key, writer).await?;
+        utils::write_var(&self.val, writer).await?;
         Ok(())
     }
 }

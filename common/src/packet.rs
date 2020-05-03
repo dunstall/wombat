@@ -4,6 +4,7 @@ mod header;
 mod producerequest;
 mod result;
 mod types;
+mod utils;
 
 pub use consumerequest::ConsumeRequest;
 pub use consumeresponse::ConsumeResponse;
