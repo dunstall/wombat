@@ -4,30 +4,62 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use crate::packet::result::MessageResult;
 
 #[derive(Debug, std::cmp::PartialEq)]
-// TODO key and value
 pub struct ProduceRequest {
-    payload: Vec<u8>,
+    topic: String,
+    key: Vec<u8>,
+    val: Vec<u8>,
 }
 
 impl ProduceRequest {
-    pub fn new(payload: Vec<u8>) -> ProduceRequest {
-        ProduceRequest { payload: payload }
+    pub fn new(topic: &str, key: Vec<u8>, val: Vec<u8>) -> ProduceRequest {
+        ProduceRequest {
+            topic: topic.to_string(),
+            key,
+            val,
+        }
     }
 
-    pub fn payload(&self) -> &Vec<u8> {
-        &self.payload
+    pub fn topic(&self) -> &String {
+        &self.topic
+    }
+
+    pub fn key(&self) -> &Vec<u8> {
+        &self.key
+    }
+
+    pub fn val(&self) -> &Vec<u8> {
+        &self.val
     }
 
     pub async fn read_from(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<ProduceRequest> {
-        let payload_len = reader.read_u64().await?;
-        let mut payload = vec![0; payload_len as usize];
-        reader.read_exact(&mut payload).await?;
-        Ok(ProduceRequest { payload: payload })
+        Ok(ProduceRequest {
+            topic: String::from_utf8(ProduceRequest::read_item(reader).await?)?,
+            key: ProduceRequest::read_item(reader).await?,
+            val: ProduceRequest::read_item(reader).await?,
+        })
     }
 
     pub async fn write_to(&self, writer: &mut (impl AsyncWrite + Unpin)) -> MessageResult<()> {
-        writer.write_u64(self.payload.len() as u64).await?;
-        writer.write_all(&self.payload).await?;
+        self.write_item(self.topic.as_bytes(), writer).await?;
+        self.write_item(&self.key, writer).await?;
+        self.write_item(&self.val, writer).await?;
+        Ok(())
+    }
+
+    async fn read_item(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<Vec<u8>> {
+        let len = reader.read_u64().await?;
+        let mut item = vec![0; len as usize];
+        reader.read_exact(&mut item).await?;
+        Ok(item)
+    }
+
+    pub async fn write_item(
+        &self,
+        item: &[u8],
+        writer: &mut (impl AsyncWrite + Unpin),
+    ) -> MessageResult<()> {
+        writer.write_u64(item.len() as u64).await?;
+        writer.write_all(item).await?;
         Ok(())
     }
 }
@@ -40,16 +72,29 @@ mod tests {
 
     #[tokio::test]
     async fn write_to() {
-        let mut buf = Cursor::new(vec![0; 12]);
-        let h = ProduceRequest::new(vec![1, 2, 3, 4]);
+        let mut buf = Cursor::new(vec![0; 39]);
+        let h = ProduceRequest::new("mytopic", vec![1, 2, 3, 4], vec![5, 6, 7, 8]);
         h.write_to(&mut buf).await.unwrap();
-        assert_eq!(&buf.get_ref()[0..12], &[0, 0, 0, 0, 0, 0, 0, 4, 1, 2, 3, 4]);
+        assert_eq!(
+            &buf.get_ref()[0..39],
+            vec![
+                0, 0, 0, 0, 0, 0, 0, 7, 109, 121, 116, 111, 112, 105, 99, 0, 0, 0, 0, 0, 0, 0, 4,
+                1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 4, 5, 6, 7, 8
+            ]
+            .as_slice()
+        );
     }
 
     #[tokio::test]
     async fn read_from() {
-        let mut buf = Cursor::new(vec![0, 0, 0, 0, 0, 0, 0, 4, 1, 2, 3, 4]);
+        let mut buf = Cursor::new(vec![
+            0, 0, 0, 0, 0, 0, 0, 7, 109, 121, 116, 111, 112, 105, 99, 0, 0, 0, 0, 0, 0, 0, 4, 1, 2,
+            3, 4, 0, 0, 0, 0, 0, 0, 0, 4, 5, 6, 7, 8,
+        ]);
         let r = ProduceRequest::read_from(&mut buf).await.unwrap();
-        assert_eq!(ProduceRequest::new(vec![1, 2, 3, 4]), r);
+        assert_eq!(
+            ProduceRequest::new("mytopic", vec![1, 2, 3, 4], vec![5, 6, 7, 8]),
+            r
+        );
     }
 }
