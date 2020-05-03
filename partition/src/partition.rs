@@ -1,3 +1,4 @@
+use crc::{crc32, Hasher32};
 use std::path::Path;
 
 use crate::log::Log;
@@ -18,7 +19,13 @@ impl Partition {
     }
 
     pub fn map_to_partition(key: &Vec<u8>) -> u32 {
-        0 // TODO(AD)
+        const N_PARTITIONS: u32 = 10;
+
+        // TODO(AD) Look into better hash function. Use CRC32 for simplicity.
+        let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, 0);
+        digest.write(key.as_slice());
+        // Use of modulus is ok as the number of partitions is fixed.
+        digest.sum32() % N_PARTITIONS
     }
 
     pub async fn get(&mut self, offset: u64) -> (u64, Vec<u8>, Vec<u8>) {
@@ -39,8 +46,6 @@ impl Partition {
 
 #[cfg(test)]
 mod tests {
-    // TODO Move log into this module - so logs tests into here.
-
     use rand::Rng;
     use tempdir::TempDir;
 
@@ -51,10 +56,8 @@ mod tests {
         let dir = TempDir::new("wombatlog").unwrap();
         let not_exist_path = dir.path().join("does_not_exist");
 
-        for n in 0..5 {
-            let mut partition = Partition::open(&not_exist_path, "mytopic", n).await;
-            put_and_get(&mut partition).await;
-        }
+        let mut partition = Partition::open(&not_exist_path, "mytopic", 1).await;
+        put_and_get(&mut partition).await;
     }
 
     #[tokio::test]
@@ -62,17 +65,23 @@ mod tests {
         let dir = TempDir::new("wombatlog").unwrap();
         let not_exist_path = dir.path().join("does_not_exist");
 
-        for n in 0..5 {
-            let mut partition = Partition::open(&not_exist_path, "mytopic", n).await;
+        let mut partition = Partition::open(&not_exist_path, "mytopic", 3).await;
 
-            let mut written = put(&mut partition).await;
+        let mut written = put(&mut partition).await;
 
-            // Recreate the partition and load.
-            let mut partition = Partition::open(&not_exist_path, "mytopic", n).await;
-            get(&mut partition, &mut written).await;
-        }
+        // Recreate the partition and load.
+        let mut partition = Partition::open(&not_exist_path, "mytopic", 3).await;
+        get(&mut partition, &mut written).await;
     }
 
+    #[test]
+    fn map_to_partition() {
+        assert_eq!(0, Partition::map_to_partition(&vec![]));
+        assert_eq!(5, Partition::map_to_partition(&vec![0xff, 0xaa]));
+        assert_eq!(7, Partition::map_to_partition(&vec![0xff, 0xab]));
+    }
+
+    // TODO Test partitions independent
     // TODO Test expire old segments
     // TODO Test corrupt log
 
