@@ -14,6 +14,6 @@ impl Partition {
     }
 
     pub async fn write(&mut self, key: &Vec<u8>, val: &Vec<u8>) -> u64 {
-        0  // return offset
+        0 // return offset
     }
 }
