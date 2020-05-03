@@ -17,7 +17,7 @@ impl Log {
             .append(true)
             .create(true)
             .read(true)
-            .open(dir.join("foo.segment"))
+            .open(dir.join("segment"))
             .await?;
         Ok(Log { file })
     }

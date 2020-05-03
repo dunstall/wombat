@@ -2,5 +2,5 @@ use wombatbroker;
 
 #[tokio::main]
 async fn main() {
-    wombatbroker::run().await;
+    wombatbroker::run(3110, 100).await;
 }

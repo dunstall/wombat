@@ -1,10 +1,17 @@
-mod broker;
-mod connection;
 mod log;
+mod partition;
+mod server;
 
-pub async fn run() {
-    println!("Running Wombat broker");
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    let b = broker::Broker::new();
-    b.listen("0.0.0.0:3110").await;
+pub async fn run(port: u16, n_partitions: u32) {
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), port);
+    let mut server = server::Server::new();
+    std::process::exit(match server.listen(addr).await {
+        Ok(_) => 0,
+        Err(err) => {
+            eprintln!("error: {:?}", err);
+            1
+        }
+    });
 }
