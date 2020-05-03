@@ -2,8 +2,8 @@ use std::path::Path;
 use tokio;
 use tokio::net::TcpStream;
 
-use crate::partition::Partition;
-use wombatcommon::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
+use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
+use wombatpartition::Partition;
 
 pub struct Connection {
     socket: TcpStream,

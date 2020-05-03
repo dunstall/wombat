@@ -1,9 +1,7 @@
-use rand::{thread_rng, Rng};
-use std::time;
+use rand::Rng;
 use tokio::net::TcpStream;
-use tokio::time::delay_for;
 
-use wombatcommon::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
+use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
 
 #[tokio::main]
 async fn main() {

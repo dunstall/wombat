@@ -1,4 +1,3 @@
-mod partition;
 mod server;
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};

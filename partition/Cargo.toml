@@ -1,16 +1,11 @@
 [package]
-name = "wombatbroker"
+name = "wombatpartition"
 version = "0.1.0"
 authors = ["Andy Dunstall <andydunstall@hotmail.com>"]
 edition = "2018"
-description = "Distributed message system server"
-readme = "README.md"
-license = "MIT"
 
 [dependencies]
-async-trait = "0.1.30"
-byteorder = "1.3.4"
-wombatcommon = { path = "../common" }
+wombatcore = { path = "../core" }
 crc = "1.8.1"
 tokio = { version = "0.2", features = ["full"] }
 

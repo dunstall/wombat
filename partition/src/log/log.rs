@@ -3,7 +3,7 @@ use std::path::Path;
 use tokio::fs;
 use tokio::fs::{File, OpenOptions};
 
-use crate::partition::log::{LogResult, Record};
+use crate::log::{LogResult, Record};
 
 pub struct Log {
     file: File,
