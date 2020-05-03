@@ -1,7 +1,7 @@
-use crate::connection::Connection;
-
 use tokio;
 use tokio::net::{TcpListener, ToSocketAddrs};
+
+use crate::connection::Connection;
 
 pub struct Broker;
 

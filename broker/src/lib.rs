@@ -1,6 +1,3 @@
-extern crate byteorder;
-extern crate tokio;
-
 mod broker;
 mod connection;
 mod log;
