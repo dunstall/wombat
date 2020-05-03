@@ -28,8 +28,8 @@ impl ConsumeRequest {
         self.offset
     }
 
-    pub fn partition(&self) -> u64 {
-        self.offset
+    pub fn partition(&self) -> u32 {
+        self.partition
     }
 
     pub async fn read_from(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<ConsumeRequest> {
