@@ -11,7 +11,7 @@ impl Broker {
     }
 
     pub async fn listen<A: ToSocketAddrs>(&self, addr: A) {
-        // TODO Listener trait - then have own TcpListener that returns Connection
+        println!("listen");
 
         let mut listener = TcpListener::bind(addr).await.unwrap();
 

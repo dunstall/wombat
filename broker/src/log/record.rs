@@ -38,6 +38,10 @@ impl Record {
         Ok(Record { header, key, val })
     }
 
+    pub fn key(&self) -> &Vec<u8> {
+        &self.key
+    }
+
     pub fn val(&self) -> &Vec<u8> {
         &self.val
     }

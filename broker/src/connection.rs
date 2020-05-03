@@ -35,7 +35,11 @@ impl Connection {
                     let req = ConsumeRequest::read_from(&mut self.socket).await.unwrap();
                     let record = log.lookup(req.offset()).await.unwrap();
                     // TODO remove clone
-                    let resp = ConsumeResponse::new(record.val().clone());
+                    let resp = ConsumeResponse::new(
+                        req.offset(),
+                        req.offset() + 20 + record.key().len() as u64 + record.val().len() as u64,
+                        record.val().clone(),
+                    );
                     resp.write_to(&mut self.socket).await.unwrap();
                 }
             }
