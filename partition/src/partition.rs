@@ -81,6 +81,8 @@ mod tests {
         assert_eq!(7, Partition::map_to_partition(&vec![0xff, 0xab]));
     }
 
+    // TODO Test get request on empty
+    // TODO Test get request offset not found
     // TODO Test partitions independent
     // TODO Test expire old segments
     // TODO Test corrupt log
