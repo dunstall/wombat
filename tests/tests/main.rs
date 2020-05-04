@@ -3,8 +3,8 @@ use tokio::net::TcpStream;
 
 use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
 
-#[tokio::main]
-async fn main() {
+#[tokio::test]
+async fn f() {
     // TODO(AD) Multiple async threads on different partitions.
 
     let mut stream = TcpStream::connect("127.0.0.1:3110").await.unwrap();
@@ -46,7 +46,6 @@ async fn main() {
                 // assert_eq!(key, resp.val().clone());
                 offset = resp.next_offset();
                 println!("{}", offset);
-
             }
             _ => println!("bad type"),
         }
