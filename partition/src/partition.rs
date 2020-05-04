@@ -1,4 +1,3 @@
-use crc::{crc32, Hasher32};
 use std::path::Path;
 
 use crate::log::Log;
@@ -16,16 +15,6 @@ impl Partition {
         Partition {
             log: Log::open(&path).await.unwrap(),
         }
-    }
-
-    pub fn map_to_partition(key: &Vec<u8>) -> u32 {
-        const N_PARTITIONS: u32 = 10;
-
-        // TODO(AD) Look into better hash function. Use CRC32 for simplicity.
-        let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, 0);
-        digest.write(key.as_slice());
-        // Use of modulus is ok as the number of partitions is fixed.
-        digest.sum32() % N_PARTITIONS
     }
 
     pub async fn get(&mut self, offset: u64) -> (u64, Vec<u8>, Vec<u8>) {
@@ -72,13 +61,6 @@ mod tests {
         // Recreate the partition and load.
         let mut partition = Partition::open(&not_exist_path, "mytopic", 3).await;
         get(&mut partition, &mut written).await;
-    }
-
-    #[test]
-    fn map_to_partition() {
-        assert_eq!(0, Partition::map_to_partition(&vec![]));
-        assert_eq!(5, Partition::map_to_partition(&vec![0xff, 0xaa]));
-        assert_eq!(7, Partition::map_to_partition(&vec![0xff, 0xab]));
     }
 
     // TODO Test get request on empty
