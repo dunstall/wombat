@@ -1,7 +1,7 @@
 use rand::Rng;
 use tokio::net::TcpStream;
 
-use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
+use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
 
 #[tokio::test]
 async fn end_to_end() {
@@ -40,7 +40,7 @@ async fn send_produce_request(socket: &mut TcpStream) {
 
     Header::new(Type::Produce).write_to(socket).await.unwrap();
     // TODO(AD) For now use empty key to get partition 0.
-    let prod_req = ProduceRequest::new("mytopic", vec![], key);
+    let prod_req = ProduceRecord::new("mytopic", vec![], key);
     prod_req.write_to(socket).await.unwrap();
 }
 
