@@ -1,7 +1,7 @@
 mod consumerequest;
 mod consumeresponse;
 mod header;
-mod producerequest;
+mod producerecord;
 mod result;
 mod types;
 mod utils;
@@ -9,5 +9,5 @@ mod utils;
 pub use consumerequest::ConsumeRequest;
 pub use consumeresponse::ConsumeResponse;
 pub use header::Header;
-pub use producerequest::ProduceRequest;
+pub use producerecord::ProduceRecord;
 pub use types::Type;
