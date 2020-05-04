@@ -2,7 +2,7 @@ use std::path::Path;
 use tokio;
 use tokio::net::TcpStream;
 
-use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRequest, Type};
+use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
 use wombatpartition::Partition;
 
 pub struct Connection {
@@ -29,9 +29,8 @@ impl Connection {
     }
 
     async fn handle_produce(&mut self) {
-        let req = ProduceRequest::read_from(&mut self.socket).await.unwrap();
-        let partition_n = Partition::map_to_partition(req.key());
-        let mut partition = Partition::open(Path::new("tmp"), req.topic(), partition_n).await;
+        let req = ProduceRecord::read_from(&mut self.socket).await.unwrap();
+        let mut partition = Partition::open(Path::new("tmp"), req.topic(), req.partition()).await;
         partition.put(req.key().clone(), req.val().clone()).await; // TODO remove clone
     }
 
