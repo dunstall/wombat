@@ -10,7 +10,7 @@ pub struct Partitioner {
 
 impl Partitioner {
     pub fn new() -> Partitioner {
-        Partitioner{
+        Partitioner {
             next: HashMap::new(),
         }
     }
@@ -42,10 +42,10 @@ mod tests {
     fn next() {
         let mut partitioner = Partitioner::new();
         for n in 0..100 {
-            assert_eq!(n%N_PARTITIONS + 1, partitioner.next("mytopic"));
+            assert_eq!(n % N_PARTITIONS + 1, partitioner.next("mytopic"));
         }
         for n in 0..100 {
-            assert_eq!(n%N_PARTITIONS + 1, partitioner.next("mytopic2"));
+            assert_eq!(n % N_PARTITIONS + 1, partitioner.next("mytopic2"));
         }
     }
 

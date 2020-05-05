@@ -6,4 +6,5 @@ edition = "2018"
 
 [dependencies]
 crc = "1.8.1"
+tokio = { version = "0.2", features = ["full"] }
 wombatcore = { path = "../core" }
