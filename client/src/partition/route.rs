@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 
-use crate::partition::Partition;
+use crate::partition::partition::Partition;
 use wombatcore::ProduceRecord;
 
 pub struct Route {
@@ -28,7 +28,7 @@ impl Route {
     }
 
     pub fn route(&mut self, record: ProduceRecord) {
-        self.send.send(record).unwrap();  // Never blocks.
+        self.send.send(record).unwrap(); // Never blocks.
     }
 
     fn run(&mut self, recv: Receiver<ProduceRecord>) {

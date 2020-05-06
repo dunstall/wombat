@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 
-use crate::loadbalancer::LoadBalancer;
-use crate::route::Route;
+use crate::partition::loadbalancer::LoadBalancer;
+use crate::partition::route::Route;
 use wombatcore::ProduceRecord;
 
 // Handles routing a record to the correct partition.
-pub struct PartitionRouter {
+pub struct Router {
     lb: LoadBalancer,
     routes: HashMap<String, Route>,
 }
 
-impl PartitionRouter {
-    pub fn new() -> PartitionRouter {
-        PartitionRouter {
+impl Router {
+    pub fn new() -> Router {
+        Router {
             lb: LoadBalancer::new(),
             routes: HashMap::new(),
         }
@@ -39,6 +39,7 @@ impl PartitionRouter {
     fn add(&mut self, topic: &str, partition: u32) {
         let queue = Route::new(topic.to_string(), partition);
         // TODO(AD) Object with topic and partition as key to ensure unique.
-        self.routes.insert(topic.to_string() + &partition.to_string(), queue);
+        self.routes
+            .insert(topic.to_string() + &partition.to_string(), queue);
     }
 }

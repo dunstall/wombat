@@ -1,16 +1,16 @@
-use crate::partitionrouter::PartitionRouter;
+use crate::partition::Router;
 use crate::result::WombatResult;
 use wombatcore::ProduceRecord;
 
 pub struct Producer {
-    router: PartitionRouter,
+    router: Router,
 }
 
 impl Producer {
     // TODO(AD) Responsible for handling configuration.
     pub async fn new(server: &str) -> WombatResult<Producer> {
         Ok(Producer {
-            router: PartitionRouter::new(),
+            router: Router::new(),
         })
     }
 

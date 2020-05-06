@@ -2,7 +2,7 @@ use crate::partition::connection::Connection;
 use wombatcore::ProduceRecord;
 
 pub struct Partition {
-    connection: Connection
+    connection: Connection,
 }
 
 // TODO this must have the thread - as send just queues and evenautlly sends
@@ -11,7 +11,7 @@ pub struct Partition {
 impl Partition {
     pub fn new() -> Partition {
         Partition {
-            connection: Connection{}
+            connection: Connection {},
         }
     }
 
