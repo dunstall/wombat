@@ -4,10 +4,16 @@ use crate::partition::loadbalancer::LoadBalancer;
 use crate::partition::route::Route;
 use wombatcore::ProduceRecord;
 
+#[derive(Hash, Eq, PartialEq, Debug)]
+struct PartitionIndex {
+    topic: String,
+    partition: u32,
+}
+
 // Handles routing a record to the correct partition.
 pub struct Router {
     lb: LoadBalancer,
-    routes: HashMap<String, Route>,
+    routes: HashMap<PartitionIndex, Route>,
 }
 
 impl Router {
@@ -28,18 +34,41 @@ impl Router {
             record.set_partition(partition);
         }
 
-        // TODO(AD) send to correct route - add if not exists
-        if let Some(route) = self.routes.get_mut("test") {
-            route.route(record);
+        self.get_route(record.topic(), record.partition()).route(record);
+        println!("ROUTE2");
+    }
+
+    fn add_route(&mut self, topic: &str, partition: u32) {
+        self.routes.insert(
+            PartitionIndex {
+                topic: topic.to_string(),
+                partition,
+            },
+            Route::new(topic.to_string(), partition),
+        );
+    }
+
+    fn get_route(&mut self, topic: &str, partition: u32) -> &mut Route {
+        if !self.route_exists(topic, partition) {
+            self.add_route(topic, partition);
+        }
+
+        let index = PartitionIndex {
+            topic: topic.to_string(),
+            partition,
+        };
+        if let Some(route) = self.routes.get_mut(&index) {
+            route
         } else {
-            // TODO(AD) add route
+            // Already added so this can never happen.
+            panic!("route should exist");
         }
     }
 
-    fn add(&mut self, topic: &str, partition: u32) {
-        let queue = Route::new(topic.to_string(), partition);
-        // TODO(AD) Object with topic and partition as key to ensure unique.
-        self.routes
-            .insert(topic.to_string() + &partition.to_string(), queue);
+    fn route_exists(&mut self, topic: &str, partition: u32) -> bool {
+        self.routes.contains_key(&PartitionIndex {
+            topic: topic.to_string(),
+            partition,
+        })
     }
 }

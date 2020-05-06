@@ -10,7 +10,6 @@ pub struct Route {
     partition: u32,
     queue: VecDeque<ProduceRecord>,
     send: Sender<ProduceRecord>,
-    // recv: Receiver<ProduceRecord>,
 }
 
 impl Route {
