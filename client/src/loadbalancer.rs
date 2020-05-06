@@ -4,13 +4,13 @@ use std::collections::HashMap;
 // TODO(AD) Configurable.
 const N_PARTITIONS: u32 = 15;
 
-pub struct Partitioner {
+pub struct LoadBalancer {
     next: HashMap<String, u32>,
 }
 
-impl Partitioner {
-    pub fn new() -> Partitioner {
-        Partitioner {
+impl LoadBalancer {
+    pub fn new() -> LoadBalancer {
+        LoadBalancer {
             next: HashMap::new(),
         }
     }
@@ -40,20 +40,20 @@ mod tests {
 
     #[test]
     fn next() {
-        let mut partitioner = Partitioner::new();
+        let mut lb = LoadBalancer::new();
         for n in 0..100 {
-            assert_eq!(n % N_PARTITIONS + 1, partitioner.next("mytopic"));
+            assert_eq!(n % N_PARTITIONS + 1, lb.next("mytopic"));
         }
         for n in 0..100 {
-            assert_eq!(n % N_PARTITIONS + 1, partitioner.next("mytopic2"));
+            assert_eq!(n % N_PARTITIONS + 1, lb.next("mytopic2"));
         }
     }
 
     #[test]
     fn map_to_partition() {
-        let mut partitioner = Partitioner::new();
-        assert_eq!(0, partitioner.from_key(&vec![]));
-        assert_eq!(2, partitioner.from_key(&vec![0xff, 0xab]));
-        assert_eq!(5, partitioner.from_key(&vec![0xff, 0xaa]));
+        let mut lb = LoadBalancer::new();
+        assert_eq!(0, lb.from_key(&vec![]));
+        assert_eq!(2, lb.from_key(&vec![0xff, 0xab]));
+        assert_eq!(5, lb.from_key(&vec![0xff, 0xaa]));
     }
 }
