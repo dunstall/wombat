@@ -8,3 +8,6 @@ edition = "2018"
 crc = "1.8.1"
 tokio = { version = "0.2", features = ["full"] }
 wombatcore = { path = "../core" }
+
+[dev-dependencies]
+rand = "0.7.3"

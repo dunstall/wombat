@@ -6,6 +6,7 @@ pub struct Producer {
     router: Router,
 }
 
+// TODO(AD) Remove tokio from client - use OS threads rather than async
 impl Producer {
     // TODO(AD) Responsible for handling configuration.
     pub fn new(server: &str) -> WombatResult<Producer> {
