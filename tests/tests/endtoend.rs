@@ -29,6 +29,7 @@ async fn single_partition() {
     }
 
     // TODO(AD) Producer is async. Must have mechanism to wait for all sent.
+    // Use close() method (which can also be called in drop to join all threads.
     tokio::time::delay_for(std::time::Duration::from_millis(3000)).await;
 
     let mut consumer = Consumer::new("172.17.0.2:3110", "mytopic", 0, 1)
