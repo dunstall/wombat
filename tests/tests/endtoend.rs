@@ -1,16 +1,15 @@
 use crc::{crc32, Hasher32};
 use rand::Rng;
 use std::collections::HashSet;
-use tokio::net::TcpStream;
 
 use wombatclient::{Consumer, Producer};
-use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
+use wombatcore::ProduceRecord;
 
 #[tokio::test]
 #[ignore]
 async fn single_partition() {
     let mut rng = rand::thread_rng();
-    let mut producer = Producer::new("localhost:3110").unwrap();
+    let mut producer = Producer::new("172.17.0.2:3110").unwrap();
 
     let mut sent = HashSet::new();
 
@@ -32,7 +31,7 @@ async fn single_partition() {
     // TODO(AD) Producer is async. Must have mechanism to wait for all sent.
     tokio::time::delay_for(std::time::Duration::from_millis(3000)).await;
 
-    let mut consumer = Consumer::new("localhost:3110", "mytopic", 0, 1)
+    let mut consumer = Consumer::new("172.17.0.2:3110", "mytopic", 0, 1)
         .await
         .unwrap();
     for _ in 0..100 {
