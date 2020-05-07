@@ -24,7 +24,7 @@ impl Router {
         }
     }
 
-    pub fn route(&mut self, mut record: ProduceRecord) {
+    pub async fn route(&mut self, mut record: ProduceRecord) {
         if record.partition() == 0 {
             let partition = if record.key().is_empty() {
                 self.lb.next(record.topic())
@@ -34,8 +34,9 @@ impl Router {
             record.set_partition(partition);
         }
 
-        self.get_route(record.topic(), record.partition()).route(record);
-        println!("ROUTE2");
+        self.get_route(record.topic(), record.partition())
+            .route(record)
+            .await;
     }
 
     fn add_route(&mut self, topic: &str, partition: u32) {

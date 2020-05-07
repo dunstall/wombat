@@ -3,7 +3,7 @@ use wombatcore::ProduceRecord;
 
 #[tokio::main]
 async fn main() {
-    let mut producer = Producer::new("localhost:3110").await.unwrap();
+    let mut producer = Producer::new("localhost:3110").unwrap();
     loop {
         let record = ProduceRecord::new("mytopic", vec![], b"test-val".to_vec());
         producer.send(record).await.unwrap();
