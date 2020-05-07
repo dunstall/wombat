@@ -1,10 +1,14 @@
 # System Integration & Performance Testing
 
-## Tests
-* End to end: a single client listening on all partitions on a single topic and verify all data sent is received. Messages upto 2 x 0xff bytes
-* Big messages: same as above with messages upto 0x1fffff (2 MB).
-* Multi Client: multiple client threads on a single machine, with 1 partition each (TODO This will be replaced once client coordination added)
+## Running
+First start the server:
+```
+docker build . -t wombatbroker -f build/Dockerfile
+docker run -it wombatbroker
+```
 
-Future tests
-* Multiple clients distributed over many machines/containers with multiple topics and consumer groups
-* Multiple servers distributed over many machines/containers
+Then run system tests:
+```
+docker build . -t wombattests -f build/Dockerfile.test
+docker run -it wombattests
+```
