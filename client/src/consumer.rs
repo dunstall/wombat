@@ -3,6 +3,7 @@ use tokio::net::TcpStream;
 use crate::result::WombatResult;
 use wombatcore::{ConsumeRequest, ConsumeResponse, Header, Type};
 
+// TODO(AD) Must document public client API before 0.1.0
 pub struct Consumer {
     socket: TcpStream,
     offset: u64,
@@ -11,6 +12,9 @@ pub struct Consumer {
 }
 
 impl Consumer {
+    // TODO(AD) offset and partition will be removed in 0.3.0. The offset will
+    // be the last committed offset and partition will be assigned by consumer
+    // group.
     pub async fn new(
         server: &str,
         topic: &str,
@@ -29,7 +33,6 @@ impl Consumer {
         Header::new(Type::Consume)
             .write_to(&mut self.socket)
             .await?;
-        // TODO(AD) Request multiple partitions and topics on one message.
         let req = ConsumeRequest::new(&self.topic, self.offset, self.partition);
         req.write_to(&mut self.socket).await?;
 
