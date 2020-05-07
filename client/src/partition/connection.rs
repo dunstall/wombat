@@ -8,9 +8,9 @@ pub struct Connection {
 
 // TODO(AD) Batch records.
 impl Connection {
-    pub async fn new() -> Connection {
+    pub async fn new(server: &str) -> Connection {
         Connection {
-            socket: TcpStream::connect("127.0.0.1:3110").await.unwrap(),
+            socket: TcpStream::connect(server).await.unwrap(),
         }
     }
 

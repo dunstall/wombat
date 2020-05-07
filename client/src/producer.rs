@@ -11,7 +11,7 @@ impl Producer {
     // TODO(AD) Responsible for handling configuration.
     pub fn new(server: &str) -> WombatResult<Producer> {
         Ok(Producer {
-            router: Router::new(),
+            router: Router::new(server),
         })
     }
 

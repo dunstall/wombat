@@ -4,19 +4,17 @@ use crate::partition::connection::Connection;
 use wombatcore::ProduceRecord;
 
 pub struct Route {
-    topic: String,
-    partition: u32,
     send: Sender<ProduceRecord>,
+    server: String,
 }
 
 impl Route {
-    pub fn new(topic: String, partition: u32) -> Route {
+    pub fn new(server: &str) -> Route {
         let (send, recv) = channel::<ProduceRecord>(2000);
 
         let mut q = Route {
-            topic,
-            partition,
             send,
+            server: server.to_string(),
         };
         q.run(recv);
         q
@@ -30,8 +28,9 @@ impl Route {
         // This will stop when send is dropped.
         // TODO(AD) Join?
         // TODO(AD) Use 'real' thread
+        let server = self.server.clone();
         tokio::spawn(async move {
-            let mut partition = Connection::new().await;
+            let mut partition = Connection::new(&server).await;
             loop {
                 let record = recv.recv().await.unwrap();
                 partition.send(record).await;

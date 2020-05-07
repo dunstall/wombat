@@ -14,13 +14,15 @@ struct PartitionIndex {
 pub struct Router {
     lb: LoadBalancer,
     routes: HashMap<PartitionIndex, Route>,
+    server: String,
 }
 
 impl Router {
-    pub fn new() -> Router {
+    pub fn new(server: &str) -> Router {
         Router {
             lb: LoadBalancer::new(),
             routes: HashMap::new(),
+            server: server.to_string(),
         }
     }
 
@@ -45,7 +47,7 @@ impl Router {
                 topic: topic.to_string(),
                 partition,
             },
-            Route::new(topic.to_string(), partition),
+            Route::new(&self.server),
         );
     }
 
