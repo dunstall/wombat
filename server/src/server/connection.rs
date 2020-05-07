@@ -5,6 +5,7 @@ use tokio::net::TcpStream;
 use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
 use wombatpartition::Partition;
 
+// TODO(AD) COnnection per partition to client so open at start only.
 pub struct Connection {
     socket: TcpStream,
 }
@@ -35,14 +36,14 @@ impl Connection {
     }
 
     async fn handle_consume(&mut self) {
+        let req = ConsumeRequest::read_from(&mut self.socket).await.unwrap();
+        let mut partition = Partition::open(Path::new("tmp"), req.topic(), req.partition()).await;
+        let (next_offset, key, val) = partition.get(req.offset()).await;
+
         Header::new(Type::Consume)
             .write_to(&mut self.socket)
             .await
             .unwrap();
-
-        let req = ConsumeRequest::read_from(&mut self.socket).await.unwrap();
-        let mut partition = Partition::open(Path::new("tmp"), req.topic(), req.partition()).await;
-        let (next_offset, key, val) = partition.get(req.offset()).await;
         let resp = ConsumeResponse::new(next_offset, key, val);
         resp.write_to(&mut self.socket).await.unwrap();
     }

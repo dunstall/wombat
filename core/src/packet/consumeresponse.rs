@@ -5,7 +5,8 @@ use crate::packet::result::MessageResult;
 use crate::packet::utils;
 
 #[derive(Debug, std::cmp::PartialEq)]
-pub struct ConsumeResponse {  // TODO ConsumerRecord
+pub struct ConsumeResponse {
+    // TODO ConsumerRecord
     next_offset: u64,
     key: Vec<u8>,
     val: Vec<u8>,

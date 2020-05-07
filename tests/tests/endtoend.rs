@@ -1,43 +1,45 @@
+use crc::{crc32, Hasher32};
 use rand::Rng;
+use std::collections::HashSet;
 use tokio::net::TcpStream;
 
-use wombatclient::Producer;
+use wombatclient::{Consumer, Producer};
 use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
 
 #[tokio::test]
-async fn end_to_end() {
-    let mut producer = Producer::new("localhost:3110").unwrap();
+async fn single_partition() {
     let mut rng = rand::thread_rng();
+    let mut producer = Producer::new("localhost:3110").unwrap();
 
-    let mut socket = TcpStream::connect("127.0.0.1:3110").await.unwrap();
-    let mut offset: u64 = 0;
-    loop {
-        println!("offset {}", offset);
+    let mut sent = HashSet::new();
 
+    for _ in 0..100 {
         let val: Vec<u8> = (0..rng.gen_range(0, 0xff))
             .map(|_| rng.gen_range(0, 0xff))
             .collect();
-        let record = ProduceRecord::new("mytopic", vec![], val);
+
+        let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, 0);
+        digest.write(val.as_slice());
+        sent.insert(digest.sum32());
+
+        let mut record = ProduceRecord::new("mytopic", vec![], val);
+        // Manually set to partition 0.
+        record.set_partition(1);
         producer.send(record).await.unwrap();
-
-        send_consume_request(offset, &mut socket).await;
-
-        let header = Header::read_from(&mut socket).await.unwrap();
-        match header.kind() {
-            Type::Consume => {
-                let resp = ConsumeResponse::read_from(&mut socket).await.unwrap();
-                // TODO(AD) Verify the data received - use a set of CRC32s of the messages sent
-                offset = resp.next_offset();
-                println!("{}", offset);
-            }
-            _ => panic!("unrecognized message type"),
-        }
     }
-}
 
-async fn send_consume_request(offset: u64, socket: &mut TcpStream) {
-    Header::new(Type::Consume).write_to(socket).await.unwrap();
-    // TODO(AD) Request multiple partitions on one message.
-    let cons_req = ConsumeRequest::new("mytopic", offset, 0);
-    cons_req.write_to(socket).await.unwrap();
+    // TODO(AD) Producer is async. Must have mechanism to wait for all sent.
+    tokio::time::delay_for(std::time::Duration::from_millis(3000)).await;
+
+    let mut consumer = Consumer::new("localhost:3110", "mytopic", 0, 1)
+        .await
+        .unwrap();
+    for _ in 0..100 {
+        let record = consumer.poll().await.unwrap();
+        let mut digest = crc32::Digest::new_with_initial(crc32::IEEE, 0);
+        digest.write(record.val().as_slice());
+        sent.remove(&digest.sum32());
+    }
+
+    assert_eq!(0, sent.len());
 }
