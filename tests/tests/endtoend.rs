@@ -7,6 +7,7 @@ use wombatclient::{Consumer, Producer};
 use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
 
 #[tokio::test]
+#[ignore]
 async fn single_partition() {
     let mut rng = rand::thread_rng();
     let mut producer = Producer::new("localhost:3110").unwrap();
