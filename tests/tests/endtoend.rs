@@ -1,16 +1,25 @@
 use rand::Rng;
 use tokio::net::TcpStream;
 
+use wombatclient::Producer;
 use wombatcore::{ConsumeRequest, ConsumeResponse, Header, ProduceRecord, Type};
 
 #[tokio::test]
 async fn end_to_end() {
+    let mut producer = Producer::new("localhost:3110").unwrap();
+    let mut rng = rand::thread_rng();
+
     let mut socket = TcpStream::connect("127.0.0.1:3110").await.unwrap();
     let mut offset: u64 = 0;
     loop {
         println!("offset {}", offset);
 
-        send_produce_request(&mut socket).await;
+        let val: Vec<u8> = (0..rng.gen_range(0, 0xff))
+            .map(|_| rng.gen_range(0, 0xff))
+            .collect();
+        let record = ProduceRecord::new("mytopic", vec![], val);
+        producer.send(record).await.unwrap();
+
         send_consume_request(offset, &mut socket).await;
 
         let header = Header::read_from(&mut socket).await.unwrap();
@@ -31,27 +40,4 @@ async fn send_consume_request(offset: u64, socket: &mut TcpStream) {
     // TODO(AD) Request multiple partitions on one message.
     let cons_req = ConsumeRequest::new("mytopic", offset, 0);
     cons_req.write_to(socket).await.unwrap();
-}
-
-async fn send_produce_request(socket: &mut TcpStream) {
-    let (key, val) = generate_message(0xff);
-
-    println!("produce {}", key.len());
-
-    Header::new(Type::Produce).write_to(socket).await.unwrap();
-    // TODO(AD) For now use empty key to get partition 0.
-    let prod_req = ProduceRecord::new("mytopic", vec![], key);
-    prod_req.write_to(socket).await.unwrap();
-}
-
-fn generate_message(max_len: u64) -> (Vec<u8>, Vec<u8>) {
-    let mut rng = rand::thread_rng();
-    let key: Vec<u8> = (0..rng.gen_range(0, 0xff))
-        .map(|_| rng.gen_range(0, 0xff))
-        .collect();
-    let val: Vec<u8> = (0..rng.gen_range(0, max_len))
-        .map(|_| rng.gen_range(0, 0xff))
-        .collect();
-
-    (key, val)
 }

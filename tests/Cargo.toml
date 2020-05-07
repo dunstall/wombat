@@ -7,4 +7,5 @@ edition = "2018"
 [dependencies]
 rand = "0.7.3"
 tokio = { version = "0.2", features = ["full"] }
+wombatclient = { path = "../client" }
 wombatcore = { path = "../core" }
