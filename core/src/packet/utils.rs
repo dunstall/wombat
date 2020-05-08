@@ -3,6 +3,8 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::packet::result::MessageResult;
 
+// TODO more explanation
+
 // Reads a vector of unknown size from reader.
 pub async fn read_var(reader: &mut (impl AsyncRead + Unpin)) -> MessageResult<Vec<u8>> {
     let len = reader.read_u64().await?;

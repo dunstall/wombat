@@ -42,5 +42,6 @@ async fn single_partition() {
         sent.remove(&digest.sum32());
     }
 
+    // Verify all sent records were received.
     assert_eq!(0, sent.len());
 }

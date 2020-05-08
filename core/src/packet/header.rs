@@ -9,6 +9,8 @@ pub struct Header {
     kind: Type,
 }
 
+// TODO(AD) Just add this to record? Doesnt add anything
+
 impl Header {
     pub fn new(kind: Type) -> Header {
         Header { kind }
