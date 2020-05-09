@@ -1,7 +1,2 @@
 # Vim
 *.swp
-
-# Cargo
-/target
-# This includes library so should not have a Cargo.lock
-Cargo.lock
