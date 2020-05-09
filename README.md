@@ -1,8 +1,6 @@
 # Wombat
 Distributed messaging system in Rust
 
-[![Build Status](https://travis-ci.org/dunstall/wombat.svg?branch=develop)](https://travis-ci.org/dunstall/wombat)
-
 # In progress
 Release plan
 * v0.1.0 (13/07/2020): Run a single consumer and producer against a single broker. System tests run locally.
