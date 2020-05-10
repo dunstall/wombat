@@ -49,13 +49,13 @@ func ReadConsumeRecord(reader io.Reader) (ConsumeRecord, error) {
   }
 
 	b = make([]byte, 8)
-	_, err := reader.Read(b) // TODO(AD) Read until full or err
+	_, err = reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
 		return r, err
 	}
 	r.next_offset = binary.BigEndian.Uint64(b)
 
-	_, err := reader.Read(b) // TODO(AD) Read until full or err
+	_, err = reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
 		return r, err
 	}
@@ -65,7 +65,7 @@ func ReadConsumeRecord(reader io.Reader) (ConsumeRecord, error) {
 		return r, err
 	}
 
-	_, err := reader.Read(b) // TODO(AD) Read until full or err
+	_, err = reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
 		return r, err
 	}
