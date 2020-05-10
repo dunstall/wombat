@@ -44,15 +44,16 @@ func (r *ConsumeRequest) Encode() []byte {
 	b = append(b, topic_buf...)
 	b = append(b, []byte(r.topic)...)
 
+	// Offset
+	offset_buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(offset_buf, r.offset)
+	b = append(b, offset_buf...)
+
 	// Partition
 	partition_buf := make([]byte, 4)
 	binary.BigEndian.PutUint32(partition_buf, r.partition)
 	b = append(b, partition_buf...)
 
-	// Partition
-	offset_buf := make([]byte, 8)
-	binary.BigEndian.PutUint64(offset_buf, r.offset)
-	b = append(b, offset_buf...)
 
 	return b
 }
