@@ -1,8 +1,0 @@
-FROM rust:1.41
-
-WORKDIR /usr/local/wombat
-COPY . .
-WORKDIR /usr/local/wombat/tests
-
-RUN cargo test --no-run
-CMD cargo test -- --ignored
