@@ -54,6 +54,5 @@ func (r *ConsumeRequest) Encode() []byte {
 	binary.BigEndian.PutUint32(partition_buf, r.partition)
 	b = append(b, partition_buf...)
 
-
 	return b
 }

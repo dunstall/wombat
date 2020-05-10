@@ -24,7 +24,7 @@ func (p *Producer) Send(record record.ProduceRecord) error {
 	p.updatePartition(&record)
 
 	// TODO(AD) For now have a single connection. Actually need one per
-	// partition/topic.
+	// partition/topic for broker distribution.
 
 	// TODO(AD) Ack
 	return p.conn.send(record)

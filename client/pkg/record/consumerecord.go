@@ -2,7 +2,6 @@ package record
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 )
 
@@ -40,50 +39,38 @@ func ReadConsumeRecord(reader io.Reader) (ConsumeRecord, error) {
 	r := ConsumeRecord{}
 
 	b := make([]byte, 2)
-  // TODO not blocking
-	t, err := reader.Read(b)  // TODO check len and err
+	_, err := reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
-    fmt.Println("error of read")
 		return r, err
 	}
 
-  fmt.Println(t)
-
-	_ = binary.BigEndian.Uint16(b) // TODO
-	// TODO check type
+	if binary.BigEndian.Uint16(b) != consumeRecordType {
+    // TODO(AD) Unrecognized error.
+  }
 
 	b = make([]byte, 8)
-	_, err = reader.Read(b)  // TODO check len and err
+	_, err := reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
 		return r, err
 	}
 	r.next_offset = binary.BigEndian.Uint64(b)
-  fmt.Println(r.next_offset)
 
-	_, err = reader.Read(b)  // TODO check len and err
+	_, err := reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
 		return r, err
 	}
 	r.key = make([]byte, binary.BigEndian.Uint64(b))
-  fmt.Println(len(r.key))
-  n, err := reader.Read(r.key)
-	if n != len(r.key) { // TODO read until filled
-		return r, fmt.Errorf("failed to read consume record")
-	}
+	_, err = reader.Read(r.key)
 	if err != nil {
 		return r, err
 	}
 
-	_, err = reader.Read(b)  // TODO check len and err
+	_, err := reader.Read(b) // TODO(AD) Read until full or err
 	if err != nil {
 		return r, err
 	}
 	r.val = make([]byte, binary.BigEndian.Uint64(b))
-  fmt.Println(len(r.val))
-	n, err = reader.Read(r.val)
-	if n != len(r.val) { // TODO read until filled
-		return r, fmt.Errorf("failed to read consume record")
-	}
+	_, err = reader.Read(r.val)
 	if err != nil && err != io.EOF {
 		return r, err
 	}
