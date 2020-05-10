@@ -2,7 +2,7 @@ FROM rust:1.41 AS build
 
 WORKDIR /usr/local/wombat
 COPY . .
-WORKDIR /usr/local/wombat/server
+WORKDIR /usr/local/wombat/broker/server
 
 RUN cargo build --release
 
