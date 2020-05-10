@@ -4,6 +4,10 @@ import (
 	"encoding/binary"
 )
 
+const (
+	produceRecordType = 0
+)
+
 type ProduceRecord struct {
 	topic     string // TODO byte?
 	partition uint32
@@ -41,9 +45,13 @@ func (r *ProduceRecord) SetPartition(partition uint32) {
 }
 
 func (r *ProduceRecord) Encode() []byte {
+	b := make([]byte, 2)
+	binary.BigEndian.PutUint16(b, uint16(produceRecordType))
+
 	// Topic
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(len(r.topic)))
+	topic_buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(topic_buf, uint64(len(r.topic)))
+	b = append(b, topic_buf...)
 	b = append(b, []byte(r.topic)...)
 
 	// Partition
