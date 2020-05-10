@@ -5,10 +5,10 @@ import (
 )
 
 type Partition struct {
-	topic string
-	n     uint32
+	Topic string
+	N     uint32
 }
 
 func (p Partition) String() string {
-	return p.topic + "-" + strconv.Itoa(int(p.n))
+	return p.Topic + "-" + strconv.Itoa(int(p.N))
 }

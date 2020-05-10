@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/dunstall/wombatclient/pkg/record"
@@ -39,7 +38,7 @@ func (c *Consumer) Poll(partition Partition) (record.ConsumeRecord, error) {
 		return record.ConsumeRecord{}, err
 	}
 
-	request := record.NewConsumeRequest(partition.topic, partition.n, offset)
+	request := record.NewConsumeRequest(partition.Topic, partition.N, offset)
 	if err := c.conn.send(request); err != nil {
 		return record.ConsumeRecord{}, err
 	}
