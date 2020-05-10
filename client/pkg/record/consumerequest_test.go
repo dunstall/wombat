@@ -5,24 +5,19 @@ import (
 	"testing"
 )
 
-func TestEncodeProduceRecord(t *testing.T) {
-	r := NewProduceRecord("mytopic", []byte{1, 2, 3, 4}, []byte{5, 6, 7, 8})
-	r.SetPartition(0xffaa)
+func TestEncodeConsumeRequest(t *testing.T) {
+	r := NewConsumeRequest("mytopic", 0xffaa, 0xaabbccddaabbccdd)
 
 	buf := r.Encode()
 	expected := []byte{
-		0, 0, // Type
+		0, 1, // Type
 
 		0, 0, 0, 0, 0, 0, 0, 7, // Topic size
 		109, 121, 116, 111, 112, 105, 99, // Topic
 
 		0, 0, 0xff, 0xaa, // Partition
 
-		0, 0, 0, 0, 0, 0, 0, 4, // Key size
-		1, 2, 3, 4, // Key
-
-		0, 0, 0, 0, 0, 0, 0, 4, // Value size
-		5, 6, 7, 8, // Value
+		0xaa, 0xbb, 0xcc, 0xdd, 0xaa, 0xbb, 0xcc, 0xdd, // Offset
 	}
 	if !reflect.DeepEqual(buf, expected) {
 		t.Errorf("r.Encode() = %v, expected %v", buf, expected)

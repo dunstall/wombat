@@ -9,7 +9,7 @@ const (
 )
 
 type ProduceRecord struct {
-	topic     string // TODO byte?
+	topic     string
 	partition uint32
 	key       []byte
 	val       []byte
