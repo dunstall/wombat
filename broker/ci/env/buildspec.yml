@@ -10,7 +10,7 @@ phases:
   build:
     commands:
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - docker build -t env broker/ci
+      - docker build -t env broker/ci/env
       - echo "Tag ${IMAGE_REPO}:${COMMIT_HASH}"
       - docker tag env "${IMAGE_REPO}:${COMMIT_HASH}"
       - echo "Tag ${IMAGE_REPO}:latest"
