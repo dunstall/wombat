@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	offsetRegistry = "/offsets"
+	offsetRegistry = "/offset"
 )
 
 type offsets struct {

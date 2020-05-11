@@ -25,7 +25,7 @@ func TestSinglePartition(t *testing.T) {
 	}
 
   c, err := consumer.New(
-    "localhost:3110", []string{"192.168.48.6:2181"}, time.Second*5,
+    "mygroup", "localhost:3110", []string{"192.168.48.6:2181"}, time.Second*5,
   )
   if err != nil {
     t.Error(err)
@@ -42,4 +42,6 @@ func TestSinglePartition(t *testing.T) {
       t.Error(err)
     }
   }
+
+  time.Sleep(time.Second * 100)
 }
