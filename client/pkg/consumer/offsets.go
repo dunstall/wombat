@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	// TODO(AD) ZK should be hidden
-	zk "github.com/samuel/go-zookeeper/zk"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 const (

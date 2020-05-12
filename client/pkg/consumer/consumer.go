@@ -11,18 +11,23 @@ type Consumer struct {
 	offsets offsets
 }
 
-func New(group string, broker string, zkServers []string, sessionTimeout time.Duration) (Consumer, error) {
+func New(group string, topic string, broker string, zkServers []string, sessionTimeout time.Duration) (Consumer, error) {
+	sync, err := NewZooKeeper(zkServers, sessionTimeout)
+	if err != nil {
+		return Consumer{}, err
+	}
+
 	conn, err := connect(broker)
 	if err != nil {
 		return Consumer{}, err
 	}
 
-	offsets, err := newOffsets(zkServers, sessionTimeout, group)
+	offsets, err := newOffsets(sync, group)
 	if err != nil {
 		return Consumer{}, err
 	}
 
-	_, err = join(zkServers, sessionTimeout, group)
+	_, err = newCoordinator(sync, group)
 	if err != nil {
 		return Consumer{}, err
 	}
