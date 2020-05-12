@@ -46,13 +46,13 @@ type ZooKeeper struct {
 //
 // Returns an error only if the configuration is bad as the actual connection
 // occurs in the background.
-func NewZooKeeper(servers []string, sessionTimeout time.Duration) (ZooKeeper, error) {
+func NewZooKeeper(servers []string, sessionTimeout time.Duration) (*ZooKeeper, error) {
 	// This does not actually connect to the server - the actual connection is a
 	// background process. Only returns an error if the config is bad.
 	conn, zkEvents, err := zk.Connect(servers, sessionTimeout)
 	if err != nil {
 		glog.Errorf("bad server config: %s", err)
-		return ZooKeeper{}, fmt.Errorf("bad server config: %s", err)
+		return nil, fmt.Errorf("bad server config: %s", err)
 	}
 
 	cfg := ZooKeeper{
@@ -63,7 +63,7 @@ func NewZooKeeper(servers []string, sessionTimeout time.Duration) (ZooKeeper, er
 	}
 	go cfg.manage()
 
-	return cfg, nil
+	return &cfg, nil
 }
 
 // Events returns a channel of events about the ZooKeeper connection.
@@ -87,6 +87,29 @@ func (cfg *ZooKeeper) AddNode(path string, val []byte, isEphemeral bool) error {
 		return err
 	}
 	glog.Infof("added node %s -> %s (ephemeral = %t)", path, val, isEphemeral)
+	return nil
+}
+
+func (cfg *ZooKeeper) GetNode(path string) ([]byte, error) {
+	b, _, err := cfg.conn.Get(path)
+	if err != nil {
+		glog.Errorf("zookeeper get node error: %s", err)
+		return b, err
+	}
+	glog.Infof("get node %s -> %s", path, b)
+	return b, nil
+}
+
+func (cfg *ZooKeeper) SetNode(path string, val []byte, isEphemeral bool) error {
+	_, err := cfg.conn.Set(path, val, -1)
+	if err == zk.ErrNoNode {
+		return cfg.AddNode(path, val, isEphemeral)
+	}
+	if err != nil {
+		glog.Errorf("zookeeper set node error: %s", err)
+		return err
+	}
+	glog.Infof("set node %s -> %s (ephemeral = %t)", path, val, isEphemeral)
 	return nil
 }
 

@@ -3,9 +3,9 @@ package consumer
 import (
 	"encoding/binary"
 	"fmt"
-	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
+	// TODO(AD) ZK should be hidden
+	zk "github.com/samuel/go-zookeeper/zk"
 )
 
 const (
@@ -13,21 +13,16 @@ const (
 )
 
 type offsets struct {
-	zkConn *zk.Conn
-	group  string
+	sync  *ZooKeeper
+	group string
 }
 
-func newOffsets(servers []string, sessionTimeout time.Duration, group string) (offsets, error) {
-	zkConn, _, err := zk.Connect(servers, sessionTimeout)
-	if err != nil {
-		return offsets{}, fmt.Errorf("bad server config: %s", err)
-	}
-
-	o := offsets{zkConn, group}
-	if err = o.addRegistry(); err != nil {
+func newOffsets(sync *ZooKeeper, group string) (offsets, error) {
+	o := offsets{sync, group}
+	if err := o.addRegistry(); err != nil {
 		return offsets{}, fmt.Errorf("failed to create registry: %s", err)
 	}
-	if err = o.addGroup(); err != nil {
+	if err := o.addGroup(); err != nil {
 		return offsets{}, fmt.Errorf("failed to create registry: %s", err)
 	}
 
@@ -35,7 +30,7 @@ func newOffsets(servers []string, sessionTimeout time.Duration, group string) (o
 }
 
 func (o *offsets) lookup(partition Partition) (uint64, error) {
-	b, _, err := o.zkConn.Get(o.nodePath(partition))
+	b, err := o.sync.GetNode(o.nodePath(partition))
 	if err == zk.ErrNoNode {
 		return 0, nil
 	}
@@ -49,44 +44,15 @@ func (o *offsets) lookup(partition Partition) (uint64, error) {
 func (o *offsets) commit(partition Partition, offset uint64) error {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, offset)
-
-	_, err := o.zkConn.Set(
-		o.nodePath(partition), b, -1,
-	)
-	if err == zk.ErrNoNode {
-		_, err = o.zkConn.Create(
-			o.nodePath(partition), b, 0, zk.WorldACL(zk.PermRead|zk.PermWrite),
-		)
-	}
-	return err
+	return o.sync.SetNode(o.nodePath(partition), b, false)
 }
 
 func (o *offsets) addGroup() error {
-	_, err := o.zkConn.Create(
-		offsetRegistry+"/"+o.group,
-		[]byte{},
-		0,
-		zk.WorldACL(zk.PermRead|zk.PermWrite|zk.PermCreate|zk.PermDelete),
-	)
-	// Ignore if the root has been created by another node.
-	if err != nil && err != zk.ErrNodeExists {
-		return err
-	}
-	return nil
+	return o.sync.AddRegistry(offsetRegistry + "/" + o.group)
 }
 
 func (o *offsets) addRegistry() error {
-	_, err := o.zkConn.Create(
-		offsetRegistry,
-		[]byte{},
-		0,
-		zk.WorldACL(zk.PermRead|zk.PermWrite|zk.PermCreate|zk.PermDelete),
-	)
-	// Ignore if the root has been created by another node.
-	if err != nil && err != zk.ErrNodeExists {
-		return err
-	}
-	return nil
+	return o.sync.AddRegistry(offsetRegistry)
 }
 
 func (o *offsets) nodePath(partition Partition) string {
