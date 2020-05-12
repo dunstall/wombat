@@ -67,6 +67,7 @@ func NewZooKeeper(servers []string, sessionTimeout time.Duration) (*ZooKeeper, e
 }
 
 // Events returns a channel of events about the ZooKeeper connection.
+// TODO Must handle
 func (cfg *ZooKeeper) Events() <-chan Event {
 	return cfg.events
 }

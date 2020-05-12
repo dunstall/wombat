@@ -9,6 +9,7 @@ import (
 type Consumer struct {
 	conn    connection
 	offsets offsets
+	coord   coordinator
 }
 
 func New(group string, topic string, broker string, zkServers []string, sessionTimeout time.Duration) (Consumer, error) {
@@ -27,7 +28,7 @@ func New(group string, topic string, broker string, zkServers []string, sessionT
 		return Consumer{}, err
 	}
 
-	_, err = newCoordinator(sync, group)
+	coord, err := newCoordinator(sync, group)
 	if err != nil {
 		return Consumer{}, err
 	}
@@ -35,6 +36,7 @@ func New(group string, topic string, broker string, zkServers []string, sessionT
 	return Consumer{
 		conn,
 		offsets,
+		coord,
 	}, nil
 }
 
@@ -42,6 +44,12 @@ func New(group string, topic string, broker string, zkServers []string, sessionT
 func (c *Consumer) Poll(partition Partition) (record.ConsumeRecord, error) {
 	// TODO(AD) Request in background on poll - should assign partitions with client
 	// coordination.
+
+	select {
+	case <-c.coord.updates():
+		c.coord.rebalance()
+	default:
+	}
 
 	offset, err := c.offsets.lookup(partition)
 	if err != nil {

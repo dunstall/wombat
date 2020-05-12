@@ -10,10 +10,15 @@ import (
 
 type coordinator struct {
 	sync *ZooKeeper
+	// TODO must close and stop monitor thread
+	updated chan bool
 }
 
 func newCoordinator(sync *ZooKeeper, group string) (coordinator, error) {
-	coord := coordinator{sync}
+	coord := coordinator{
+		sync,
+		make(chan bool),
+	}
 	_, err := coord.register(group)
 	if err != nil {
 		return coord, err
@@ -22,6 +27,8 @@ func newCoordinator(sync *ZooKeeper, group string) (coordinator, error) {
 	if err = coord.rebalance(); err != nil {
 		return coord, err
 	}
+
+	go coord.monitor(group)
 
 	// TODO(AD) Start thread to watch /group/<group> and rebalance on update - the
 	// actual rebalance must be in the main thread so just have channel indicating
@@ -51,7 +58,23 @@ func (coord *coordinator) register(group string) (string, error) {
 }
 
 func (coord *coordinator) rebalance() error {
-  // TODO(AD)
+	// TODO(AD)
 	fmt.Println("REBALANCE")
 	return nil
+}
+
+func (coord *coordinator) updates() <-chan bool {
+	return coord.updated
+}
+
+func (coord *coordinator) monitor(group string) {
+	for {
+		ch, err := coord.sync.WatchRegistry("/group/" + group)
+		if err != nil {
+			// TODO(AD)
+		}
+
+		<-ch
+		coord.updated <- true
+	}
 }
