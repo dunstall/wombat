@@ -17,7 +17,7 @@ func New(group string, broker string, zkServers []string, sessionTimeout time.Du
 		return Consumer{}, err
 	}
 
-	offsets, err := newOffsets(zkServers, sessionTimeout)
+	offsets, err := newOffsets(zkServers, sessionTimeout, group)
 	if err != nil {
 		return Consumer{}, err
 	}

@@ -14,16 +14,20 @@ const (
 
 type offsets struct {
 	zkConn *zk.Conn
+	group  string
 }
 
-func newOffsets(servers []string, sessionTimeout time.Duration) (offsets, error) {
+func newOffsets(servers []string, sessionTimeout time.Duration, group string) (offsets, error) {
 	zkConn, _, err := zk.Connect(servers, sessionTimeout)
 	if err != nil {
 		return offsets{}, fmt.Errorf("bad server config: %s", err)
 	}
 
-	o := offsets{zkConn}
+	o := offsets{zkConn, group}
 	if err = o.addRegistry(); err != nil {
+		return offsets{}, fmt.Errorf("failed to create registry: %s", err)
+	}
+	if err = o.addGroup(); err != nil {
 		return offsets{}, fmt.Errorf("failed to create registry: %s", err)
 	}
 
@@ -57,6 +61,20 @@ func (o *offsets) commit(partition Partition, offset uint64) error {
 	return err
 }
 
+func (o *offsets) addGroup() error {
+	_, err := o.zkConn.Create(
+		offsetRegistry+"/"+o.group,
+		[]byte{},
+		0,
+		zk.WorldACL(zk.PermRead|zk.PermWrite|zk.PermCreate|zk.PermDelete),
+	)
+	// Ignore if the root has been created by another node.
+	if err != nil && err != zk.ErrNodeExists {
+		return err
+	}
+	return nil
+}
+
 func (o *offsets) addRegistry() error {
 	_, err := o.zkConn.Create(
 		offsetRegistry,
@@ -72,5 +90,5 @@ func (o *offsets) addRegistry() error {
 }
 
 func (o *offsets) nodePath(partition Partition) string {
-	return offsetRegistry + "/" + partition.String()
+	return offsetRegistry + "/" + o.group + "/" + partition.String()
 }
