@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	consumerRegistryPath = "/consumer"
+	consumerRegistryPath = "/group"
 )
 
 type consumerRegistry struct {
@@ -30,9 +30,9 @@ func join(servers []string, sessionTimeout time.Duration, consumerGroup string) 
 	}
 
 	// TODO if exists must create new ID?
-	fmt.Println("create at", r.nodePath())
+	fmt.Println("create at", r.nodePath(consumerGroup))
 	_, err = r.zkConn.Create(
-		r.nodePath(), []byte(consumerGroup), zk.FlagEphemeral, zk.WorldACL(zk.PermRead|zk.PermWrite),
+		r.nodePath(consumerGroup), []byte(consumerGroup), zk.FlagEphemeral, zk.WorldACL(zk.PermRead|zk.PermWrite),
 	)
 	return r, err
 }
@@ -51,6 +51,6 @@ func (r *consumerRegistry) addRegistry() error { // TODO(AD) Dup
 	return nil
 }
 
-func (r *consumerRegistry) nodePath() string {
-	return consumerRegistryPath + "/" + r.id
+func (r *consumerRegistry) nodePath(group string) string {
+	return consumerRegistryPath + "/" + group + "/" + r.id
 }
