@@ -58,6 +58,9 @@ func (coord *coordinator) register(group string) (string, error) {
 }
 
 func (coord *coordinator) rebalance() error {
+	// TODO(AD) Either use Kafka range based - or look into something else like consistent hashing?
+	// or just something simpler with zk - want to minimize rebalance
+
 	// TODO(AD)
 	fmt.Println("REBALANCE")
 	return nil
