@@ -1,12 +1,12 @@
 package consumer
 
 import (
-  "fmt"
-  "os"
-  "io/ioutil"
+	"fmt"
+	"io/ioutil"
+	"os"
 
-	"github.com/dunstall/wombatclient/pkg/record"
 	"github.com/dunstall/wombatclient/pkg/consumer/conf"
+	"github.com/dunstall/wombatclient/pkg/record"
 )
 
 type Consumer struct {
@@ -17,21 +17,21 @@ type Consumer struct {
 
 // TODO(AD) Add subscribe that adds topics to zk
 func New(confPath string) (Consumer, error) {
-  file, err := os.Open(confPath)
-  if err != nil {
-    return Consumer{}, err
-  }
-  defer file.Close()
+	file, err := os.Open(confPath)
+	if err != nil {
+		return Consumer{}, err
+	}
+	defer file.Close()
 
-  b, err := ioutil.ReadAll(file)
-  if err != nil {
-    return Consumer{}, err
-  }
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return Consumer{}, err
+	}
 
-  conf, err := conf.ParseConf(b)
-  if err != nil {
-    return Consumer{}, err
-  }
+	conf, err := conf.ParseConf(b)
+	if err != nil {
+		return Consumer{}, err
+	}
 
 	sync, err := NewZooKeeper(conf.ZooKeeper(), conf.Timeout())
 	if err != nil {
