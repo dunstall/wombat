@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -17,18 +16,7 @@ type Consumer struct {
 
 // TODO(AD) Add subscribe that adds topics to zk
 func New(confPath string) (Consumer, error) {
-	file, err := os.Open(confPath)
-	if err != nil {
-		return Consumer{}, err
-	}
-	defer file.Close()
-
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		return Consumer{}, err
-	}
-
-	conf, err := conf.ParseConf(b)
+	conf, err := loadConf(confPath)
 	if err != nil {
 		return Consumer{}, err
 	}
@@ -85,4 +73,19 @@ func (c *Consumer) Poll(partition Partition) (record.ConsumeRecord, error) {
 
 func (c *Consumer) Commit(record record.ConsumeRecord, partition Partition) error {
 	return c.offsets.commit(partition, record.NextOffset())
+}
+
+func loadConf(path string) (conf.Conf, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return conf.Conf{}, err
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return conf.Conf{}, err
+	}
+
+	return conf.ParseConf(b)
 }
