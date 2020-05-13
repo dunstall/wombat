@@ -102,6 +102,15 @@ func (cfg *ZooKeeper) GetNode(path string) ([]byte, error) {
 	return b, nil
 }
 
+func (cfg *ZooKeeper) DeleteNode(path string) error {
+	if err := cfg.conn.Delete(path, -1); err != nil {
+		glog.Errorf("zookeeper delete node error: %s: %s", path, err)
+		return err
+	}
+	glog.Infof("delete node %s", path)
+	return nil
+}
+
 func (cfg *ZooKeeper) SetNode(path string, val []byte, isEphemeral bool) error {
 	_, err := cfg.conn.Set(path, val, -1)
 	if err == zk.ErrNoNode {
@@ -137,6 +146,11 @@ func (cfg *ZooKeeper) WatchRegistry(path string) (<-chan zk.Event, error) {
 	glog.Infof("zookeeper watching %s", path)
 	_, _, ch, err := cfg.conn.ChildrenW(path)
 	return ch, err
+}
+
+func (cfg *ZooKeeper) GetRegistry(path string) ([]string, error) {
+	c, _, err := cfg.conn.Children(path)
+	return c, err
 }
 
 func (cfg *ZooKeeper) Close() {

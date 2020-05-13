@@ -56,7 +56,7 @@ func (c *Consumer) Poll(partition Partition) (record.ConsumeRecord, error) {
 
 	select {
 	case <-c.coord.updates():
-		c.coord.rebalance()
+		c.coord.rebalance(c.conf.Group())
 	default:
 	}
 

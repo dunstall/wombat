@@ -2,6 +2,8 @@ package consumer
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 
 	"github.com/google/uuid"
 	// TODO(AD) ZK should be hidden
@@ -11,20 +13,23 @@ import (
 type coordinator struct {
 	sync *ZooKeeper
 	// TODO must close and stop monitor thread
-	updated chan bool
+	updated  chan bool
+	id       string
+	assigned map[string][]string
 }
 
 func newCoordinator(sync *ZooKeeper, group string) (coordinator, error) {
 	coord := coordinator{
-		sync,
-		make(chan bool),
+		sync:     sync,
+		updated:  make(chan bool),
+		assigned: make(map[string][]string),
 	}
 	_, err := coord.register(group)
 	if err != nil {
 		return coord, err
 	}
 
-	if err = coord.rebalance(); err != nil {
+	if err = coord.rebalance(group); err != nil {
 		return coord, err
 	}
 
@@ -46,6 +51,7 @@ func (coord *coordinator) register(group string) (string, error) {
 	}
 
 	id := uuid.New().String()
+	coord.id = id
 	if err := coord.sync.AddNode("/group/"+group+"/"+id, []byte{}, true); err != nil {
 		// If this node exists try again with a new ID.
 		if err == zk.ErrNodeExists {
@@ -58,23 +64,92 @@ func (coord *coordinator) register(group string) (string, error) {
 }
 
 func (coord *coordinator) addTopic(group string, topic string) error {
-	if err := coord.sync.AddRegistry("/topic"); err != nil {
+
+	if err := coord.sync.AddRegistry("/partition"); err != nil {
 		return err
 	}
-	if err := coord.sync.AddRegistry("/topic/" + group); err != nil {
+	if err := coord.sync.AddRegistry("/partition/" + group); err != nil {
+		return err
+	}
+	if err := coord.sync.AddRegistry("/partition/" + group + "/" + topic); err != nil {
 		return err
 	}
 
-	if err := coord.sync.AddNode("/topic/"+group+"/"+topic, []byte{}, false); err != nil {
-		// If this node exists do nothing.
-		if err != zk.ErrNodeExists {
-			return err
-		}
-	}
 	return nil
 }
 
-func (coord *coordinator) rebalance() error {
+func (coord *coordinator) rebalance(group string) error {
+
+	// /partitions/[group]/[topic]/[partition] -> [consumer UUID]
+
+	// TODO remove any owned partitions
+	// for partition in assigned
+	// add ephemeral partition -> UUID
+
+	for topic, partitions := range coord.assigned {
+		for _, partition := range partitions {
+			if err := coord.sync.DeleteNode("/partition/" + group + "/" + topic + "/" + partition); err != nil {
+				// TODO
+			}
+		}
+		// TODO remove
+	}
+
+	topics, err := coord.sync.GetRegistry("/partition/" + group)
+	if err != nil {
+		return err
+	}
+
+	consumers, err := coord.sync.GetRegistry("/group/" + group)
+	if err != nil {
+		return err
+	}
+	// fmt.Println(consumers)
+
+	partitions := []string{
+		"1", "2", "3", "4", "5",
+		"6", "7", "8", "9", "10",
+		"11", "12", "13", "14", "15",
+	}
+	// fmt.Println(partitions)
+
+	sort.Strings(consumers)
+
+	// fmt.Println(consumers)
+	// fmt.Println("index", sort.SearchStrings(consumers, coord.id))
+	j := sort.SearchStrings(consumers, coord.id)
+	// TODO 1 get all consumers in the group
+
+	for _, topic := range topics {
+		fmt.Println(topic)
+
+		n := len(partitions) / len(consumers)
+		// fmt.Println("n", len(partitions)/len(consumers))
+
+		// TODO add to zk
+		fmt.Println("from", n*j)
+		fmt.Println("to", n*(j+1))
+
+		coord.assigned[topic] = []string{}
+		for i := n * j; i != n*(j+1); i++ {
+			if err := coord.sync.AddNode("/partition/"+group+"/"+topic+"/"+strconv.Itoa(i), []byte(coord.id), true); err != nil {
+				if err == zk.ErrNodeExists {
+					// TODO sleep and retry
+				}
+
+				coord.assigned[topic] = append(coord.assigned[topic], strconv.Itoa(i))
+			}
+		}
+
+		// for _, partition := range coord.assigned {
+		// // TODO remove
+		// }
+
+		// TODO if already taken , sleep and rebalance again
+
+		// TODO assign range and take ownership
+	}
+
 	// TODO(AD) Either use Kafka range based - or look into something else like consistent hashing?
 	// or just something simpler with zk - want to minimize rebalance
 
