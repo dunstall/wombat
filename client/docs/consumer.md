@@ -46,12 +46,15 @@ commited data.
 
 
 ## Rebalance
-TODO(AD)
-* Either use Kafkas range partitioning or try consistent hashing to try to
-minimize rebalance (though no data transfered so not really an issue)
+Use range partitioning to assign partitions to each node. The rebalance is
+very cheap for the consumer group as no data is transfered. This uses the
+algorithm described in Kafka.
+
+Require a thread per partition assigned to pull data TODO
 
 Partition registry:
 ```
   /partitions/[group]/[topic]/[partition] -> [consumer UUID]
 ```
 
+TODO(AD) Use consistent hashing on broker rebalance (see Cassandra etc)
