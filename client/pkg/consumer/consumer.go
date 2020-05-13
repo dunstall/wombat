@@ -1,9 +1,12 @@
 package consumer
 
 import (
-	"time"
+  "fmt"
+  "os"
+  "io/ioutil"
 
 	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/dunstall/wombatclient/pkg/consumer/conf"
 )
 
 type Consumer struct {
@@ -12,23 +15,40 @@ type Consumer struct {
 	coord   coordinator
 }
 
-func New(group string, topic string, broker string, zkServers []string, sessionTimeout time.Duration) (Consumer, error) {
-	sync, err := NewZooKeeper(zkServers, sessionTimeout)
+// TODO(AD) Add subscribe that adds topics to zk
+func New(confPath string) (Consumer, error) {
+  file, err := os.Open(confPath)
+  if err != nil {
+    return Consumer{}, err
+  }
+  defer file.Close()
+
+  b, err := ioutil.ReadAll(file)
+  if err != nil {
+    return Consumer{}, err
+  }
+
+  conf, err := conf.ParseConf(b)
+  if err != nil {
+    return Consumer{}, err
+  }
+
+	sync, err := NewZooKeeper(conf.ZooKeeper(), conf.Timeout())
 	if err != nil {
 		return Consumer{}, err
 	}
 
-	conn, err := connect(broker)
+	conn, err := connect(conf.Broker())
 	if err != nil {
 		return Consumer{}, err
 	}
 
-	offsets, err := newOffsets(sync, group)
+	offsets, err := newOffsets(sync, conf.Group())
 	if err != nil {
 		return Consumer{}, err
 	}
 
-	coord, err := newCoordinator(sync, group)
+	coord, err := newCoordinator(sync, conf.Group())
 	if err != nil {
 		return Consumer{}, err
 	}

@@ -14,8 +14,8 @@ type Conf struct {
 	timeout   time.Duration
 }
 
-func ParseConf(data []byte) (Conf, error) {
-	iniConf, err := ini.Load(data)
+func ParseConf(b []byte) (Conf, error) {
+	iniConf, err := ini.Load(b)
 	if err != nil {
 		return Conf{}, err
 	}
