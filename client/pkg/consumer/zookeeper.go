@@ -72,6 +72,7 @@ func (cfg *ZooKeeper) Events() <-chan Event {
 	return cfg.events
 }
 
+// TODO(AD) Add flag for if allowed to already exist.
 func (cfg *ZooKeeper) AddNode(path string, val []byte, isEphemeral bool) error {
 	var flags int32 = 0
 	if isEphemeral {
@@ -84,7 +85,7 @@ func (cfg *ZooKeeper) AddNode(path string, val []byte, isEphemeral bool) error {
 		zk.WorldACL(zk.PermRead|zk.PermWrite),
 	)
 	if err != nil {
-		glog.Errorf("zookeeper add node error: %s", err)
+		glog.Errorf("zookeeper add node error: %s: %s", path, err)
 		return err
 	}
 	glog.Infof("added node %s -> %s (ephemeral = %t)", path, val, isEphemeral)
@@ -94,7 +95,7 @@ func (cfg *ZooKeeper) AddNode(path string, val []byte, isEphemeral bool) error {
 func (cfg *ZooKeeper) GetNode(path string) ([]byte, error) {
 	b, _, err := cfg.conn.Get(path)
 	if err != nil {
-		glog.Errorf("zookeeper get node error: %s", err)
+		glog.Errorf("zookeeper get node error: %s: %s", path, err)
 		return b, err
 	}
 	glog.Infof("get node %s -> %s", path, b)
@@ -107,13 +108,14 @@ func (cfg *ZooKeeper) SetNode(path string, val []byte, isEphemeral bool) error {
 		return cfg.AddNode(path, val, isEphemeral)
 	}
 	if err != nil {
-		glog.Errorf("zookeeper set node error: %s", err)
+		glog.Errorf("zookeeper set node error: %s: %s", path, err)
 		return err
 	}
 	glog.Infof("set node %s -> %s (ephemeral = %t)", path, val, isEphemeral)
 	return nil
 }
 
+// TODO(AD) Add whole path. eg /a/b/c -> add /a then /a/b then /a/b/c
 func (cfg *ZooKeeper) AddRegistry(path string) error {
 	// Add empty znode for nodes root.
 	_, err := cfg.conn.Create(
@@ -124,7 +126,7 @@ func (cfg *ZooKeeper) AddRegistry(path string) error {
 	)
 	// Ignore if the root has been created by another node.
 	if err != nil && err != zk.ErrNodeExists {
-		glog.Errorf("zookeeper add root error: %s", err)
+		glog.Errorf("zookeeper add root error: %s: %s", path, err)
 		return err
 	}
 	glog.Infof("added root %s", path)

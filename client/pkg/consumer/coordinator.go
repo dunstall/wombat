@@ -57,6 +57,23 @@ func (coord *coordinator) register(group string) (string, error) {
 	return id, nil
 }
 
+func (coord *coordinator) addTopic(group string, topic string) error {
+	if err := coord.sync.AddRegistry("/topic"); err != nil {
+		return err
+	}
+	if err := coord.sync.AddRegistry("/topic/" + group); err != nil {
+		return err
+	}
+
+	if err := coord.sync.AddNode("/topic/"+group+"/"+topic, []byte{}, false); err != nil {
+		// If this node exists do nothing.
+		if err != zk.ErrNodeExists {
+			return err
+		}
+	}
+	return nil
+}
+
 func (coord *coordinator) rebalance() error {
 	// TODO(AD) Either use Kafka range based - or look into something else like consistent hashing?
 	// or just something simpler with zk - want to minimize rebalance

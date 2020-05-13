@@ -12,9 +12,9 @@ type Consumer struct {
 	conn    connection
 	offsets offsets
 	coord   coordinator
+	conf    conf.Conf
 }
 
-// TODO(AD) Add subscribe that adds topics to zk
 func New(confPath string) (Consumer, error) {
 	conf, err := loadConf(confPath)
 	if err != nil {
@@ -45,6 +45,7 @@ func New(confPath string) (Consumer, error) {
 		conn,
 		offsets,
 		coord,
+		conf,
 	}, nil
 }
 
@@ -73,6 +74,10 @@ func (c *Consumer) Poll(partition Partition) (record.ConsumeRecord, error) {
 
 func (c *Consumer) Commit(record record.ConsumeRecord, partition Partition) error {
 	return c.offsets.commit(partition, record.NextOffset())
+}
+
+func (c *Consumer) Subscribe(topic string) error {
+	return c.coord.addTopic(c.conf.Group(), topic)
 }
 
 func loadConf(path string) (conf.Conf, error) {
