@@ -89,12 +89,20 @@ func (coord *coordinator) updates() <-chan bool {
 
 func (coord *coordinator) monitor(group string) {
 	for {
-		ch, err := coord.sync.WatchRegistry("/group/" + group)
+		chGroup, err := coord.sync.WatchRegistry("/group/" + group)
+		if err != nil {
+			// TODO(AD)
+		}
+		chTopic, err := coord.sync.WatchRegistry("/topic/" + group)
 		if err != nil {
 			// TODO(AD)
 		}
 
-		<-ch
-		coord.updated <- true
+		select {
+		case <-chGroup:
+			coord.updated <- true
+		case <-chTopic:
+			coord.updated <- true
+		}
 	}
 }
