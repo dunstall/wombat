@@ -62,6 +62,21 @@ func (mr *MockRegistryMockRecorder) Get(path interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRegistry)(nil).Get), path)
 }
 
+// GetRoot mocks base method
+func (m *MockRegistry) GetRoot(path string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRoot", path)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoot indicates an expected call of GetRoot
+func (mr *MockRegistryMockRecorder) GetRoot(path interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoot", reflect.TypeOf((*MockRegistry)(nil).GetRoot), path)
+}
+
 // Set mocks base method
 func (m *MockRegistry) Set(path string, data []byte) error {
 	m.ctrl.T.Helper()
