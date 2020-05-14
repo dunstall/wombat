@@ -1,5 +1,13 @@
 package registry
 
+import (
+  "errors"
+)
+
+var (
+	ErrNodeExists = errors.New("node exists")
+)
+
 type Event struct{}
 
 type Registry interface {

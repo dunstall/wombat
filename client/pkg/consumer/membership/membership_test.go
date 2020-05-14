@@ -1,6 +1,7 @@
 package membership
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dunstall/wombatclient/pkg/consumer/registry"
@@ -53,8 +54,58 @@ func TestNewIDAlreadyInUse(t *testing.T) {
 	}
 }
 
+// TODO(AD) Rebalance first
+// func TestInitialRebalance(t *testing.T) {
+// }
+
+// TODO(AD) Rebalance not first
+
+func TestAddTopicOk(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_registry.NewMockRegistry(ctrl)
+	r.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+	group := "mygroup"
+	m, err := New(group, "", r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	topic := "mytopic"
+	r.EXPECT().Create(
+		gomock.Eq("/partition/"+group+"/"+topic),
+		gomock.Eq([]byte{}),
+		gomock.Eq(false),
+	).Return(nil)
+
+	if m.AddTopic(topic) != nil {
+		t.Error(err)
+	}
+}
+
+func TestAddTopicErr(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_registry.NewMockRegistry(ctrl)
+	r.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+	group := "mygroup"
+	m, err := New(group, "", r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	topic := "mytopic"
+	r.EXPECT().Create(
+		gomock.Eq("/partition/"+group+"/"+topic),
+		gomock.Eq([]byte{}),
+		gomock.Eq(false),
+	).Return(fmt.Errorf("dummy"))
+
+	if m.AddTopic(topic) == nil {
+		t.Error("expected error")
+	}
+}
+
 // TODO(AD) RequiresRebalance
-
-// TODO(AD) Rebalance
-
-// TODO(AD) AddTopic
