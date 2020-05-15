@@ -15,6 +15,8 @@ type Registry interface {
 	// does not exist.
 	Create(path string, data []byte, isEphemeral bool) error
 
+	CreateErrIfExist(path string, data []byte, isEphemeral bool) error
+
 	Get(path string) ([]byte, error)
 
 	GetRoot(path string) ([]string, error)

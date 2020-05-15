@@ -47,6 +47,20 @@ func (mr *MockRegistryMockRecorder) Create(path, data, isEphemeral interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegistry)(nil).Create), path, data, isEphemeral)
 }
 
+// CreateErrIfExist mocks base method
+func (m *MockRegistry) CreateErrIfExist(path string, data []byte, isEphemeral bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateErrIfExist", path, data, isEphemeral)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateErrIfExist indicates an expected call of CreateErrIfExist
+func (mr *MockRegistryMockRecorder) CreateErrIfExist(path, data, isEphemeral interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateErrIfExist", reflect.TypeOf((*MockRegistry)(nil).CreateErrIfExist), path, data, isEphemeral)
+}
+
 // Get mocks base method
 func (m *MockRegistry) Get(path string) ([]byte, error) {
 	m.ctrl.T.Helper()
