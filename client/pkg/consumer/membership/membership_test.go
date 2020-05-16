@@ -302,5 +302,3 @@ func TestAddTopicErr(t *testing.T) {
 		t.Error("expected error")
 	}
 }
-
-// TODO(AD) RequiresRebalance

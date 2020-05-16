@@ -44,6 +44,7 @@ func (m *Membership) AddTopic(topic string) error {
 
 // Rebalance the partitions among the consumer group. If cannot reach zookeeper
 // an error is returned so should sleep and retry.
+// TODO(AD) Caller must watch the registry and call on update
 func (m *Membership) Rebalance() error {
 	if err := m.clearAssigned(); err != nil {
 		return err
@@ -75,10 +76,6 @@ func (m *Membership) Rebalance() error {
 	}
 
 	return nil
-}
-
-func (m *Membership) RequiresRebalance() <-chan bool {
-	return make(chan bool)
 }
 
 func (m *Membership) clearAssigned() error {
