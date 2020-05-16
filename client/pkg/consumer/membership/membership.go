@@ -50,28 +50,19 @@ func (m *Membership) Rebalance() error {
 		return err
 	}
 
-	consumers, err := m.consumers()
-	if err != nil {
-		return err
-	}
-	index := sort.SearchStrings(consumers, m.id)
-
-	// TODO(AD) Hard code 15 partitions for now - this should be configurable
-	// per topic (with global default)
-	nAssigned := nPartitions / len(consumers)
-
-	var from uint32 = uint32(nAssigned*index + 1)
-	var to uint32 = uint32(nAssigned*(index+1) + 1)
-
 	topics, err := m.topics()
 	if err != nil {
 		return err
 	}
+
+	consumers, err := m.consumers()
+	if err != nil {
+		return err
+	}
+
 	for _, topic := range topics {
-		for partition := from; partition != to; partition++ {
-			if err := m.assign(Chunk{topic, partition}); err != nil {
-				return err
-			}
+		if err := m.assignPartitions(topic, consumers); err != nil {
+			return err
 		}
 	}
 
@@ -107,11 +98,32 @@ func (m *Membership) consumers() ([]string, error) {
 	return consumers, nil
 }
 
-func (m *Membership) assign(c Chunk) error {
+func (m *Membership) assignPartitions(topic string, consumers []string) error {
+	from, to := m.partitionRange(consumers)
+	for partition := from; partition != to; partition++ {
+		if err := m.assignPartition(Chunk{topic, partition}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Membership) assignPartition(c Chunk) error {
 	p := path.Join("/", "partition", m.group, c.Topic, strconv.Itoa(int(c.Partition)))
 	if err := m.registry.CreateErrIfExist(p, []byte(m.id), true); err != nil {
 		return err
 	}
 	m.assigned = append(m.assigned, c)
 	return nil
+}
+
+func (m *Membership) partitionRange(consumers []string) (uint32, uint32) {
+	index := sort.SearchStrings(consumers, m.id)
+	// TODO(AD) Hard code 15 partitions for now - this should be configurable
+	// per topic (with global default)
+	nAssigned := nPartitions / len(consumers)
+
+	var from uint32 = uint32(nAssigned*index + 1)
+	var to uint32 = uint32(nAssigned*(index+1) + 1)
+	return from, to
 }
