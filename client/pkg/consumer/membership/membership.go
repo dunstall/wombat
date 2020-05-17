@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dunstall/wombatclient/pkg/consumer/registry"
+	"github.com/golang/glog"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
@@ -80,6 +81,7 @@ func (m *Membership) GetOffset(c Chunk) (uint64, error) {
 	p := path.Join("/", "offset", m.group, c.Topic, strconv.Itoa(int(c.Partition)))
 	b, err := m.registry.Get(p)
 	if err == zk.ErrNoNode {
+		glog.Infof("offset %s not found - default to 0", p)
 		return 0, nil
 	}
 	if err != nil {

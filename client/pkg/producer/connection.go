@@ -19,3 +19,7 @@ func (c *connection) send(record record.ProduceRecord) error {
 	_, err := c.sock.Write(record.Encode())
 	return err
 }
+
+func (c *connection) close() error {
+	return c.sock.Close()
+}

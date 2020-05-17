@@ -63,6 +63,7 @@ workflows:
     jobs:
       - broker-build
       - broker-unit-test
+      # TODO(AD) Add system tests (see redis)
       - approval:
           type: approval
           requires:

@@ -118,19 +118,32 @@ func (mr *MockRegistryMockRecorder) Delete(path interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRegistry)(nil).Delete), path)
 }
 
-// Watch mocks base method
-func (m *MockRegistry) Watch(root string) (<-chan bool, error) {
+// Events mocks base method
+func (m *MockRegistry) Events() <-chan bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", root)
+	ret := m.ctrl.Call(m, "Events")
 	ret0, _ := ret[0].(<-chan bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
+}
+
+// Events indicates an expected call of Events
+func (mr *MockRegistryMockRecorder) Events() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRegistry)(nil).Events))
+}
+
+// Watch mocks base method
+func (m *MockRegistry) Watch(path string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Watch", path)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Watch indicates an expected call of Watch
-func (mr *MockRegistryMockRecorder) Watch(root interface{}) *gomock.Call {
+func (mr *MockRegistryMockRecorder) Watch(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockRegistry)(nil).Watch), root)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockRegistry)(nil).Watch), path)
 }
 
 // Close mocks base method
