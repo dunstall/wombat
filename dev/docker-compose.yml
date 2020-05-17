@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  server.1.zookeeper:
+    build:
+      context: ./zookeeper
+      args:
+        ZOOKEEPER_ID: 1
+    networks:
+      zk-net:
+        aliases:
+         - server.1.zookeeper
+
+  server.2.zookeeper:
+    build:
+      context: ./zookeeper
+      args:
+        ZOOKEEPER_ID: 2
+    networks:
+      zk-net:
+        aliases:
+         - server.2.zookeeper
+
+  server.3.zookeeper:
+    build:
+      context: ./zookeeper
+      args:
+        ZOOKEEPER_ID: 3
+    networks:
+      zk-net:
+        aliases:
+         - server.3.zookeeper
+
+  server.4.zookeeper:
+    build:
+      context: ./zookeeper
+      args:
+        ZOOKEEPER_ID: 4
+    networks:
+      zk-net:
+        aliases:
+         - server.4.zookeeper
+
+  server.5.zookeeper:
+    build:
+      context: ./zookeeper
+      args:
+        ZOOKEEPER_ID: 5
+    networks:
+      zk-net:
+        aliases:
+         - server.5.zookeeper
+
+networks:
+  zk-net:
+    driver: bridge

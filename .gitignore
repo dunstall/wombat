@@ -1,1 +1,4 @@
-/target
+# Vim
+*.swp
+
+tmp/

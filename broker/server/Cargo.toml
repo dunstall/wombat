@@ -1,0 +1,11 @@
+[package]
+name = "wombatbroker"
+version = "0.1.0"
+authors = ["Andy Dunstall <andydunstall@hotmail.com>"]
+edition = "2018"
+
+[dependencies]
+wombatcore = { path = "../core" }
+wombatpartition = { path = "../partition" }
+# TODO(AD) Limit features
+tokio = { version = "0.2", features = ["full"] }
