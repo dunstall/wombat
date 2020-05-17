@@ -78,13 +78,10 @@ func TestFirstRebalance(t *testing.T) {
 	r.EXPECT().GetRoot("/partition/"+group).Return(topics, nil)
 	r.EXPECT().GetRoot("/group/"+group).Return(consumers, nil)
 
-	// Should be assigned the middle third of partitions for each topic.
-	var expectedFrom uint32 = 6
-	var expectedTo uint32 = 11
 	expectedAssigned := []Chunk{}
 	sort.Strings(topics)
 	for _, t := range topics {
-		for p := expectedFrom; p != expectedTo; p++ {
+		for _, p := range partitionRange(id, consumers, nPartitions) {
 			expectedAssigned = append(expectedAssigned, Chunk{t, p})
 		}
 	}
@@ -120,12 +117,11 @@ func TestRebalanceAfterTopicUpdate(t *testing.T) {
 
 	// Just assign expected initial chunks - this is tested above.
 	topicsInitial := []string{"topic3", "topic2", "topic1"}
-	var from uint32 = 6
-	var to uint32 = 11
 	sort.Strings(topicsInitial)
 	initialAssigned := []Chunk{}
+	consumers := []string{"id-3", id, "id-1"}
 	for _, t := range topicsInitial {
-		for p := from; p != to; p++ {
+		for _, p := range partitionRange(id, consumers, nPartitions) {
 			initialAssigned = append(initialAssigned, Chunk{t, p})
 		}
 	}
@@ -139,17 +135,14 @@ func TestRebalanceAfterTopicUpdate(t *testing.T) {
 	}
 
 	topicsNew := []string{"topic3", "topic2", "topic1", "topic-new1", "topic-new2"}
-	consumers := []string{"id-3", id, "id-1"}
 
 	r.EXPECT().GetRoot("/partition/"+group).Return(topicsNew, nil)
 	r.EXPECT().GetRoot("/group/"+group).Return(consumers, nil)
 
-	var expectedFrom uint32 = 6
-	var expectedTo uint32 = 11
-	sort.Strings(topicsNew)
 	expectedAssigned := []Chunk{}
+	sort.Strings(topicsNew)
 	for _, t := range topicsNew {
-		for p := expectedFrom; p != expectedTo; p++ {
+		for _, p := range partitionRange(id, consumers, nPartitions) {
 			expectedAssigned = append(expectedAssigned, Chunk{t, p})
 		}
 	}
@@ -185,12 +178,11 @@ func TestRebalanceAfterConsumerUpdate(t *testing.T) {
 
 	// Just assign expected initial chunks - this is tested above.
 	topicsInitial := []string{"topic3", "topic2", "topic1"}
-	var from uint32 = 6
-	var to uint32 = 11
 	sort.Strings(topicsInitial)
 	initialAssigned := []Chunk{}
+	consumers := []string{"id-3", id, "id-1"}
 	for _, t := range topicsInitial {
-		for p := from; p != to; p++ {
+		for _, p := range partitionRange(id, consumers, nPartitions) {
 			initialAssigned = append(initialAssigned, Chunk{t, p})
 		}
 	}
@@ -209,12 +201,11 @@ func TestRebalanceAfterConsumerUpdate(t *testing.T) {
 	r.EXPECT().GetRoot("/partition/"+group).Return(topics, nil)
 	r.EXPECT().GetRoot("/group/"+group).Return(consumersNew, nil)
 
-	var expectedFrom uint32 = 4
-	var expectedTo uint32 = 7
 	sort.Strings(topics)
+
 	expectedAssigned := []Chunk{}
 	for _, t := range topics {
-		for p := expectedFrom; p != expectedTo; p++ {
+		for _, p := range partitionRange(id, consumersNew, nPartitions) {
 			expectedAssigned = append(expectedAssigned, Chunk{t, p})
 		}
 	}
@@ -231,27 +222,6 @@ func TestRebalanceAfterConsumerUpdate(t *testing.T) {
 
 	if !reflect.DeepEqual(expectedAssigned, m.Assigned()) {
 		t.Errorf("m.Assigned() = %v, expected %v", m.Assigned(), expectedAssigned)
-	}
-}
-
-func TestInitialRebalanceNoTopics(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	r := mock_registry.NewMockRegistry(ctrl)
-	r.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-
-	group := "mygroup"
-	m, err := New(group, "", r)
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Return no topics.
-	r.EXPECT().GetRoot("/partition/"+group).Return([]string{}, nil)
-	r.EXPECT().GetRoot("/group/"+group).Return([]string{"a", "b", "c"}, nil)
-
-	if err = m.Rebalance(); err != nil {
-		t.Error(err)
 	}
 }
 
@@ -294,5 +264,28 @@ func TestAddTopicErr(t *testing.T) {
 
 	if m.AddTopic(topic) == nil {
 		t.Error("expected error")
+	}
+}
+
+func TestPartitionRange(t *testing.T) {
+	tests := []struct {
+		id          string
+		consumer    []string
+		nPartitions int
+		expected    []uint32
+	}{
+		{"1", []string{"1"}, 1, []uint32{1}},
+		{"1", []string{"1", "2"}, 2, []uint32{1}},
+		{"1", []string{"1", "2"}, 3, []uint32{1, 3}},
+		{"2", []string{"1", "2"}, 3, []uint32{2}},
+		{"1", []string{"1", "2", "3"}, 7, []uint32{1, 4, 7}},
+		{"2", []string{"1", "2", "3"}, 7, []uint32{2, 5}},
+		{"3", []string{"1", "2", "3"}, 7, []uint32{3, 6}},
+	}
+	for _, test := range tests {
+		res := partitionRange(test.id, test.consumer, test.nPartitions)
+		if !reflect.DeepEqual(res, test.expected) {
+			t.Errorf("partitionRange(%s, %v, %d) = %v, expected %v", test.id, test.consumer, test.nPartitions, res, test.expected)
+		}
 	}
 }

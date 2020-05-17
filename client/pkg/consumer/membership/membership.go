@@ -1,7 +1,6 @@
 package membership
 
 import (
-	"fmt"
 	"path"
 	"sort"
 	"strconv"
@@ -53,24 +52,20 @@ func (m *Membership) AddTopic(topic string) error {
 // an error is returned so should sleep and retry.
 // TODO(AD) Caller must watch the registry and call on update
 func (m *Membership) Rebalance() error {
-	fmt.Println("clearAssigned")
 	if err := m.clearAssigned(); err != nil {
 		return err
 	}
 
-	fmt.Println("topics")
 	topics, err := m.topics()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("cnosumers")
 	consumers, err := m.consumers()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("assignPartitions")
 	for _, topic := range topics {
 		if err := m.assignPartitions(topic, consumers); err != nil {
 			return err
@@ -105,13 +100,12 @@ func (m *Membership) consumers() ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-	sort.Strings(consumers)
 	return consumers, nil
 }
 
 func (m *Membership) assignPartitions(topic string, consumers []string) error {
-	from, to := m.partitionRange(consumers)
-	for partition := from; partition != to; partition++ {
+	partitions := partitionRange(m.id, consumers, nPartitions)
+	for _, partition := range partitions {
 		if err := m.assignPartition(Chunk{topic, partition}); err != nil {
 			return err
 		}
@@ -128,13 +122,14 @@ func (m *Membership) assignPartition(c Chunk) error {
 	return nil
 }
 
-func (m *Membership) partitionRange(consumers []string) (uint32, uint32) {
-	index := sort.SearchStrings(consumers, m.id)
+func partitionRange(id string, consumers []string, nPartitions int) []uint32 {
+	sort.Strings(consumers)
+	index := sort.SearchStrings(consumers, id)
+	partitions := []uint32{}
 	// TODO(AD) Hard code 15 partitions for now - this should be configurable
 	// per topic (with global default)
-	nAssigned := nPartitions / len(consumers)
-
-	var from uint32 = uint32(nAssigned*index + 1)
-	var to uint32 = uint32(nAssigned*(index+1) + 1)
-	return from, to
+	for p := index + 1; p <= nPartitions; p += len(consumers) {
+		partitions = append(partitions, uint32(p))
+	}
+	return partitions
 }

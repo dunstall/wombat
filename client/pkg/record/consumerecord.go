@@ -45,8 +45,8 @@ func ReadConsumeRecord(reader io.Reader) (ConsumeRecord, error) {
 	}
 
 	if binary.BigEndian.Uint16(b) != consumeRecordType {
-    // TODO(AD) Unrecognized error.
-  }
+		// TODO(AD) Unrecognized error.
+	}
 
 	b = make([]byte, 8)
 	_, err = reader.Read(b) // TODO(AD) Read until full or err

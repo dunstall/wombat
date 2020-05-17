@@ -14,7 +14,7 @@ import (
 )
 
 var (
-  addrs = []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
+	addrs = []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
 )
 
 func TestCreateEphemeralNode(t *testing.T) {
