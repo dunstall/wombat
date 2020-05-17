@@ -90,6 +90,20 @@ func (mr *MockRegistryMockRecorder) GetRoot(path interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoot", reflect.TypeOf((*MockRegistry)(nil).GetRoot), path)
 }
 
+// Set mocks base method
+func (m *MockRegistry) Set(path string, data []byte, isEphemeral bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", path, data, isEphemeral)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set
+func (mr *MockRegistryMockRecorder) Set(path, data, isEphemeral interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockRegistry)(nil).Set), path, data, isEphemeral)
+}
+
 // Delete mocks base method
 func (m *MockRegistry) Delete(path string) error {
 	m.ctrl.T.Helper()

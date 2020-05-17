@@ -20,6 +20,10 @@ type Registry interface {
 
 	GetRoot(path string) ([]string, error)
 
+	// Sets the value of the node at the given path. If the node does not exist
+	// it will create it with the isEphemeral flag.
+	Set(path string, data []byte, isEphemeral bool) error
+
 	Delete(path string) error
 
 	// Watch returns a channel of notification about updates to the nodes in the
