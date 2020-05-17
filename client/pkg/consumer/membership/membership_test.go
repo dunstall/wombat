@@ -92,7 +92,7 @@ func TestFirstRebalance(t *testing.T) {
 	for _, c := range expectedAssigned {
 		p := path.Join("/", "partition", group, c.Topic, strconv.Itoa(int(c.Partition)))
 		// Returns nil for success.
-		r.EXPECT().CreateErrIfExist(p, []byte(id), true).Return(nil)
+		r.EXPECT().Create(p, []byte(id), true).Return(nil)
 	}
 
 	if err = m.Rebalance(); err != nil {
@@ -157,7 +157,7 @@ func TestRebalanceAfterTopicUpdate(t *testing.T) {
 	for _, c := range expectedAssigned {
 		// Returns nil for success.
 		p := "/partition/" + group + "/" + c.Topic + "/" + strconv.Itoa(int(c.Partition))
-		r.EXPECT().CreateErrIfExist(p, []byte(id), true).Return(nil)
+		r.EXPECT().Create(p, []byte(id), true).Return(nil)
 	}
 
 	if err = m.Rebalance(); err != nil {
@@ -222,7 +222,7 @@ func TestRebalanceAfterConsumerUpdate(t *testing.T) {
 	for _, c := range expectedAssigned {
 		// Returns nil for success.
 		p := "/partition/" + group + "/" + c.Topic + "/" + strconv.Itoa(int(c.Partition))
-		r.EXPECT().CreateErrIfExist(p, []byte(id), true).Return(nil)
+		r.EXPECT().Create(p, []byte(id), true).Return(nil)
 	}
 
 	if err = m.Rebalance(); err != nil {
@@ -268,11 +268,7 @@ func TestAddTopicOk(t *testing.T) {
 	}
 
 	topic := "mytopic"
-	r.EXPECT().Create(
-		gomock.Eq("/partition/"+group+"/"+topic),
-		gomock.Eq([]byte{}),
-		gomock.Eq(false),
-	).Return(nil)
+	r.EXPECT().CreateRoot(gomock.Eq("/partition/" + group + "/" + topic)).Return(nil)
 
 	if m.AddTopic(topic) != nil {
 		t.Error(err)
@@ -292,10 +288,8 @@ func TestAddTopicErr(t *testing.T) {
 	}
 
 	topic := "mytopic"
-	r.EXPECT().Create(
-		gomock.Eq("/partition/"+group+"/"+topic),
-		gomock.Eq([]byte{}),
-		gomock.Eq(false),
+	r.EXPECT().CreateRoot(
+		gomock.Eq("/partition/" + group + "/" + topic),
 	).Return(fmt.Errorf("dummy"))
 
 	if m.AddTopic(topic) == nil {

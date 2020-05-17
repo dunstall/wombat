@@ -1,12 +1,16 @@
 package membership
 
 import (
+	"fmt"
 	"path"
 	"sort"
 	"strconv"
 
 	"github.com/dunstall/wombatclient/pkg/consumer/registry"
+	"github.com/samuel/go-zookeeper/zk"
 )
+
+// TODO(AD) logging
 
 const (
 	nPartitions = 15
@@ -39,27 +43,34 @@ func (m *Membership) Assigned() []Chunk {
 
 func (m *Membership) AddTopic(topic string) error {
 	p := path.Join("/", "partition", m.group, topic)
-	return m.registry.Create(p, []byte{}, false)
+	if err := m.registry.CreateRoot(p); err != nil && err != zk.ErrNodeExists {
+		return err
+	}
+	return nil
 }
 
 // Rebalance the partitions among the consumer group. If cannot reach zookeeper
 // an error is returned so should sleep and retry.
 // TODO(AD) Caller must watch the registry and call on update
 func (m *Membership) Rebalance() error {
+	fmt.Println("clearAssigned")
 	if err := m.clearAssigned(); err != nil {
 		return err
 	}
 
+	fmt.Println("topics")
 	topics, err := m.topics()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("cnosumers")
 	consumers, err := m.consumers()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("assignPartitions")
 	for _, topic := range topics {
 		if err := m.assignPartitions(topic, consumers); err != nil {
 			return err
@@ -110,7 +121,7 @@ func (m *Membership) assignPartitions(topic string, consumers []string) error {
 
 func (m *Membership) assignPartition(c Chunk) error {
 	p := path.Join("/", "partition", m.group, c.Topic, strconv.Itoa(int(c.Partition)))
-	if err := m.registry.CreateErrIfExist(p, []byte(m.id), true); err != nil {
+	if err := m.registry.Create(p, []byte(m.id), true); err != nil {
 		return err
 	}
 	m.assigned = append(m.assigned, c)
