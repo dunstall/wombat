@@ -50,11 +50,11 @@ func New(confPath string) (Consumer, error) {
 	}, nil
 }
 
-func (c *Consumer) Poll() (record.ConsumeRecord, error) {
+func (c *Consumer) Poll() (record.ConsumeRecord, membership.Chunk, error) {
 	select {
 	case <-c.r.Events(): // TODO(AD) Add watch (in membership?)
 		if err := c.m.Rebalance(); err != nil {
-			return record.ConsumeRecord{}, err
+			return record.ConsumeRecord{}, membership.Chunk{}, err
 		}
 	default:
 	}
@@ -65,14 +65,19 @@ func (c *Consumer) Poll() (record.ConsumeRecord, error) {
 
 	offset, err := c.m.GetOffset(chunk)
 	if err != nil {
-		return record.ConsumeRecord{}, err
+		return record.ConsumeRecord{}, membership.Chunk{}, err
 	}
 
 	request := record.NewConsumeRequest(chunk.Topic, chunk.Partition, offset)
 	if err := c.conn.send(request); err != nil {
-		return record.ConsumeRecord{}, err
+		return record.ConsumeRecord{}, membership.Chunk{}, err
 	}
-	return c.conn.receive() // TODO timeout
+	r, err := c.conn.receive() // TODO timeout
+	if err != nil {
+		return record.ConsumeRecord{}, membership.Chunk{}, err
+	}
+
+	return r, chunk, nil
 }
 
 func (c *Consumer) Commit(record record.ConsumeRecord, chunk membership.Chunk) error {
