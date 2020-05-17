@@ -1,8 +1,11 @@
 package consumer
 
 import (
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/dunstall/wombatclient/pkg/consumer/conf"
 	"github.com/dunstall/wombatclient/pkg/consumer/membership"
@@ -34,10 +37,16 @@ func New(confPath string) (Consumer, error) {
 		return Consumer{}, err
 	}
 
+	if err := m.Rebalance(); err != nil {
+		return Consumer{}, err
+	}
+
 	conn, err := connect(conf.Broker())
 	if err != nil {
 		return Consumer{}, err
 	}
+
+	rand.Seed(time.Now().Unix())
 
 	return Consumer{
 		conn,
@@ -46,15 +55,18 @@ func New(confPath string) (Consumer, error) {
 	}, nil
 }
 
-// TODO(AD) Poll should not take arguments - distribute partitions automatically
-func (c *Consumer) Poll(chunk membership.Chunk) (record.ConsumeRecord, error) {
-	// TODO(AD) Request in background - one thread per partition
-
+func (c *Consumer) Poll() (record.ConsumeRecord, error) {
 	select {
 	case <-c.r.Events(): // TODO(AD) Add watch (in membership?)
-		c.m.Rebalance()
+		if err := c.m.Rebalance(); err != nil {
+			return record.ConsumeRecord{}, err
+		}
 	default:
 	}
+
+	// TODO(AD) For now just select random partition to poll - should have
+	// a thread per owned partition that pulls in background.
+	chunk := c.m.Assigned()[rand.Intn(len(c.m.Assigned()))]
 
 	offset, err := c.m.GetOffset(chunk)
 	if err != nil {
@@ -65,7 +77,7 @@ func (c *Consumer) Poll(chunk membership.Chunk) (record.ConsumeRecord, error) {
 	if err := c.conn.send(request); err != nil {
 		return record.ConsumeRecord{}, err
 	}
-	return c.conn.receive()
+	return c.conn.receive() // TODO timeout
 }
 
 func (c *Consumer) Commit(record record.ConsumeRecord, chunk membership.Chunk) error {
