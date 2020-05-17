@@ -3,6 +3,7 @@
 package tests
 
 import (
+	"io"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/dunstall/wombatclient/pkg/consumer/membership"
 	"github.com/dunstall/wombatclient/pkg/producer"
 	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/google/uuid"
 )
 
 func TestSinglePartition(t *testing.T) {
@@ -18,26 +20,32 @@ func TestSinglePartition(t *testing.T) {
 		t.Error(err)
 	}
 
-	r := record.NewProduceRecord("mytopic", []byte{1, 2, 3, 4}, []byte{5, 6, 7, 8})
-	r.SetPartition(1)
-
-	c, err := consumer.New("data/consumer.conf")
-	c.Subscribe("mytopic")
-	c.Subscribe("mysecondtopic")
-
-	for {
+	topic := uuid.New().String()
+	r := record.NewProduceRecord(topic, []byte{1, 2, 3, 4}, []byte{5, 6, 7, 8})
+	for i := 0; i != 1000; i++ {
 		if err = producer.Send(r); err != nil {
 			t.Error(err)
 		}
+	}
 
-		partition := membership.Chunk{"mytopic", 1}
-		res, err := c.Poll(partition)
+	c, err := consumer.New("data/consumer.conf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Subscribe(topic)
+
+	for {
+		partition := membership.Chunk{topic, 1}
+		res, err := c.Poll()
+		if err == io.EOF {
+			continue
+		}
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		if err = c.Commit(res, partition); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 	}
 
