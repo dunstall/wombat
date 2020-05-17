@@ -1,0 +1,31 @@
+version: 2.1
+
+jobs:
+  build-broker:
+    docker:
+      - image: circleci/rust:1.41
+
+    steps:
+      - checkout
+
+      - run: cd broker && cargo build
+      - run: cd broker && cargo test
+
+  build-client:
+    docker:
+      - image: circleci/golang:1.14.2
+
+    steps:
+      - checkout
+
+      - run: cd client && go build ./...
+      - run: cd client/pkg && go test ./...
+
+workflows:
+  broker:
+    jobs:
+      - build-broker
+
+  client:
+    jobs:
+      - build-client
