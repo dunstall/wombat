@@ -1,6 +1,7 @@
 package membership
 
 import (
+	"encoding/binary"
 	"path"
 	"sort"
 	"strconv"
@@ -73,6 +74,25 @@ func (m *Membership) Rebalance() error {
 	}
 
 	return nil
+}
+
+func (m *Membership) GetOffset(c Chunk) (uint64, error) {
+	p := path.Join("/", "offset", m.group, c.Topic, strconv.Itoa(int(c.Partition)))
+	b, err := m.registry.Get(p)
+	if err == zk.ErrNoNode {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return binary.BigEndian.Uint64(b[:8]), nil
+}
+
+func (m *Membership) CommitOffset(offset uint64, c Chunk) error {
+	p := path.Join("/", "offset", m.group, c.Topic, strconv.Itoa(int(c.Partition)))
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, offset)
+	return m.registry.Set(p, b, false)
 }
 
 func (m *Membership) clearAssigned() error {

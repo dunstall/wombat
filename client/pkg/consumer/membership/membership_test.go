@@ -1,6 +1,7 @@
 package membership
 
 import (
+	"encoding/binary"
 	"fmt"
 	"path"
 	"reflect"
@@ -11,6 +12,7 @@ import (
 	"github.com/dunstall/wombatclient/pkg/consumer/registry"
 	"github.com/dunstall/wombatclient/pkg/consumer/registry/mock_registry"
 	"github.com/golang/mock/gomock"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 func TestNewUniqueID(t *testing.T) {
@@ -264,6 +266,81 @@ func TestAddTopicErr(t *testing.T) {
 
 	if m.AddTopic(topic) == nil {
 		t.Error("expected error")
+	}
+}
+
+func TestGetOffsetExists(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_registry.NewMockRegistry(ctrl)
+	r.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+	var offset uint64 = 2340824
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, offset)
+
+	r.EXPECT().Get(gomock.Eq("/offset/mygroup/mytopic/5")).Return(b, nil)
+
+	group := "mygroup"
+	m, err := New(group, "ae51b259-c015-465a-9acb-ca602ff044d7", r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	ret, err := m.GetOffset(Chunk{"mytopic", 5})
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ret != offset {
+		t.Errorf("m.GetOffset(...) = %d, expected %d", ret, offset)
+	}
+}
+
+func TestGetOffsetNotExists(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_registry.NewMockRegistry(ctrl)
+	r.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+	r.EXPECT().Get(gomock.Eq("/offset/mygroup/mytopic/5")).Return([]byte{}, zk.ErrNoNode)
+
+	group := "mygroup"
+	m, err := New(group, "ae51b259-c015-465a-9acb-ca602ff044d7", r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	ret, err := m.GetOffset(Chunk{"mytopic", 5})
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ret != 0 {
+		t.Errorf("m.GetOffset(...) = %d, expected %d", ret, 0)
+	}
+}
+
+func TestCommitOffset(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_registry.NewMockRegistry(ctrl)
+	r.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+	var offset uint64 = 2340824
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, offset)
+
+	r.EXPECT().Set(gomock.Eq("/offset/mygroup/mytopic/5"), gomock.Eq(b), false)
+
+	group := "mygroup"
+	m, err := New(group, "ae51b259-c015-465a-9acb-ca602ff044d7", r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m.CommitOffset(offset, Chunk{"mytopic", 5}) != nil {
+		t.Error(err)
 	}
 }
 
