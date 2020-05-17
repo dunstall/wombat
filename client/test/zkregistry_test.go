@@ -3,7 +3,7 @@
 package tests
 
 import (
-	"fmt"
+	"path"
 	"reflect"
 	"testing"
 	"time"
@@ -13,15 +13,17 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func TestCreateEphemeralNode(t *testing.T) {
-	addrs := []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
+var (
+  addrs = []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
+)
 
+func TestCreateEphemeralNode(t *testing.T) {
 	r, err := registry.NewZKRegistry(addrs, time.Second*1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	p := "/" + uuid.New().String() + "/" + uuid.New().String() + "/" + uuid.New().String()
+	p := path.Join("/", uuid.New().String(), uuid.New().String(), uuid.New().String())
 	val := uuid.New().String()
 	if err = r.Create(p, []byte(val), true); err != nil {
 		t.Fatal(err)
@@ -47,21 +49,18 @@ func TestCreateEphemeralNode(t *testing.T) {
 	defer r.Close()
 
 	_, err = r.Get(p)
-	fmt.Println(err)
 	if err != zk.ErrNoNode {
 		t.Fatal("expected ErrNoNode")
 	}
 }
 
-func TestCreateNonEphemeralNode(t *testing.T) {
-	addrs := []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
-
+func TestCreateNonEphemeralNodeAndDelete(t *testing.T) {
 	r, err := registry.NewZKRegistry(addrs, time.Second*1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	p := "/" + uuid.New().String() + "/" + uuid.New().String() + "/" + uuid.New().String()
+	p := path.Join("/", uuid.New().String(), uuid.New().String(), uuid.New().String())
 	val := uuid.New().String()
 	if err = r.Create(p, []byte(val), false); err != nil {
 		t.Fatal(err)
@@ -90,22 +89,18 @@ func TestCreateNonEphemeralNode(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = r.Get(p)
-	fmt.Println(err)
 	if err != zk.ErrNoNode {
 		t.Fatal("expected ErrNoNode")
 	}
 }
 
 func TestGetRoot(t *testing.T) {
-	addrs := []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
-
 	r, err := registry.NewZKRegistry(addrs, time.Second*1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	root := "/" + uuid.New().String() + "/" + uuid.New().String() + "/" + uuid.New().String()
-
+	root := path.Join("/", uuid.New().String(), uuid.New().String(), uuid.New().String())
 	nodes := make(map[string]bool)
 	for i := 0; i != 50; i++ {
 		node := uuid.New().String()

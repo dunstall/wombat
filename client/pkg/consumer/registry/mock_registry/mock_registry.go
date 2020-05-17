@@ -5,7 +5,6 @@
 package mock_registry
 
 import (
-	registry "github.com/dunstall/wombatclient/pkg/consumer/registry"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -118,20 +117,6 @@ func (m *MockRegistry) Watch(root string) (<-chan bool, error) {
 func (mr *MockRegistryMockRecorder) Watch(root interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockRegistry)(nil).Watch), root)
-}
-
-// ConnEvents mocks base method
-func (m *MockRegistry) ConnEvents() <-chan registry.Event {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConnEvents")
-	ret0, _ := ret[0].(<-chan registry.Event)
-	return ret0
-}
-
-// ConnEvents indicates an expected call of ConnEvents
-func (mr *MockRegistryMockRecorder) ConnEvents() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConnEvents", reflect.TypeOf((*MockRegistry)(nil).ConnEvents))
 }
 
 // Close mocks base method
