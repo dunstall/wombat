@@ -5,7 +5,6 @@
 package mock_registry
 
 import (
-	registry "github.com/dunstall/wombatclient/pkg/consumer/registry"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -47,18 +46,18 @@ func (mr *MockRegistryMockRecorder) Create(path, data, isEphemeral interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegistry)(nil).Create), path, data, isEphemeral)
 }
 
-// CreateErrIfExist mocks base method
-func (m *MockRegistry) CreateErrIfExist(path string, data []byte, isEphemeral bool) error {
+// CreateRoot mocks base method
+func (m *MockRegistry) CreateRoot(p string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateErrIfExist", path, data, isEphemeral)
+	ret := m.ctrl.Call(m, "CreateRoot", p)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateErrIfExist indicates an expected call of CreateErrIfExist
-func (mr *MockRegistryMockRecorder) CreateErrIfExist(path, data, isEphemeral interface{}) *gomock.Call {
+// CreateRoot indicates an expected call of CreateRoot
+func (mr *MockRegistryMockRecorder) CreateRoot(p interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateErrIfExist", reflect.TypeOf((*MockRegistry)(nil).CreateErrIfExist), path, data, isEphemeral)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoot", reflect.TypeOf((*MockRegistry)(nil).CreateRoot), p)
 }
 
 // Get mocks base method
@@ -91,20 +90,6 @@ func (mr *MockRegistryMockRecorder) GetRoot(path interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoot", reflect.TypeOf((*MockRegistry)(nil).GetRoot), path)
 }
 
-// Set mocks base method
-func (m *MockRegistry) Set(path string, data []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", path, data)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Set indicates an expected call of Set
-func (mr *MockRegistryMockRecorder) Set(path, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockRegistry)(nil).Set), path, data)
-}
-
 // Delete mocks base method
 func (m *MockRegistry) Delete(path string) error {
 	m.ctrl.T.Helper()
@@ -132,20 +117,6 @@ func (m *MockRegistry) Watch(root string) (<-chan bool, error) {
 func (mr *MockRegistryMockRecorder) Watch(root interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockRegistry)(nil).Watch), root)
-}
-
-// ConnEvents mocks base method
-func (m *MockRegistry) ConnEvents() <-chan registry.Event {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConnEvents")
-	ret0, _ := ret[0].(<-chan registry.Event)
-	return ret0
-}
-
-// ConnEvents indicates an expected call of ConnEvents
-func (mr *MockRegistryMockRecorder) ConnEvents() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConnEvents", reflect.TypeOf((*MockRegistry)(nil).ConnEvents))
 }
 
 // Close mocks base method

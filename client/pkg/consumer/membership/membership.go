@@ -6,7 +6,10 @@ import (
 	"strconv"
 
 	"github.com/dunstall/wombatclient/pkg/consumer/registry"
+	"github.com/samuel/go-zookeeper/zk"
 )
+
+// TODO(AD) logging
 
 const (
 	nPartitions = 15
@@ -39,7 +42,10 @@ func (m *Membership) Assigned() []Chunk {
 
 func (m *Membership) AddTopic(topic string) error {
 	p := path.Join("/", "partition", m.group, topic)
-	return m.registry.Create(p, []byte{}, false)
+	if err := m.registry.CreateRoot(p); err != nil && err != zk.ErrNodeExists {
+		return err
+	}
+	return nil
 }
 
 // Rebalance the partitions among the consumer group. If cannot reach zookeeper
@@ -94,13 +100,12 @@ func (m *Membership) consumers() ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-	sort.Strings(consumers)
 	return consumers, nil
 }
 
 func (m *Membership) assignPartitions(topic string, consumers []string) error {
-	from, to := m.partitionRange(consumers)
-	for partition := from; partition != to; partition++ {
+	partitions := partitionRange(m.id, consumers, nPartitions)
+	for _, partition := range partitions {
 		if err := m.assignPartition(Chunk{topic, partition}); err != nil {
 			return err
 		}
@@ -110,20 +115,21 @@ func (m *Membership) assignPartitions(topic string, consumers []string) error {
 
 func (m *Membership) assignPartition(c Chunk) error {
 	p := path.Join("/", "partition", m.group, c.Topic, strconv.Itoa(int(c.Partition)))
-	if err := m.registry.CreateErrIfExist(p, []byte(m.id), true); err != nil {
+	if err := m.registry.Create(p, []byte(m.id), true); err != nil {
 		return err
 	}
 	m.assigned = append(m.assigned, c)
 	return nil
 }
 
-func (m *Membership) partitionRange(consumers []string) (uint32, uint32) {
-	index := sort.SearchStrings(consumers, m.id)
+func partitionRange(id string, consumers []string, nPartitions int) []uint32 {
+	sort.Strings(consumers)
+	index := sort.SearchStrings(consumers, id)
+	partitions := []uint32{}
 	// TODO(AD) Hard code 15 partitions for now - this should be configurable
 	// per topic (with global default)
-	nAssigned := nPartitions / len(consumers)
-
-	var from uint32 = uint32(nAssigned*index + 1)
-	var to uint32 = uint32(nAssigned*(index+1) + 1)
-	return from, to
+	for p := index + 1; p <= nPartitions; p += len(consumers) {
+		partitions = append(partitions, uint32(p))
+	}
+	return partitions
 }
