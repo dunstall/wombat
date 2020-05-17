@@ -1,31 +1,73 @@
 version: 2.1
 
 jobs:
-  build-broker:
+  broker-build:
     docker:
       - image: circleci/rust:1.41
 
     steps:
       - checkout
+      - run:
+        name: Build
+        command: |
+          cd broker
+          cargo build
 
-      - run: cd broker && cargo build
-      - run: cd broker && cargo test
+  broker-unit-test:
+    docker:
+      - image: circleci/rust:1.41
 
-  build-client:
+    steps:
+      - checkout
+      - run:
+        name: Unit test
+        command: |
+          cd client
+          cargo test
+
+  client-build:
     docker:
       - image: circleci/golang:1.14.2
 
     steps:
       - checkout
+      - run:
+        name: Unit test
+        command: |
+          cd client
+          go test ./...
 
-      - run: cd client && go build ./...
-      - run: cd client/pkg && go test ./...
+  client-unit-test:
+    docker:
+      - image: circleci/golang:1.14.2
+
+    steps:
+      - checkout
+      - run:
+        name: Unit test
+        command: |
+          cd client
+          go test ./...
+
 
 workflows:
   broker:
     jobs:
-      - build-broker
+      - broker-build
+      - broker-unit-test
+      - hold:
+        type: approval
+        requires:
+          - broker-build
+          - broker-unit-test
+
 
   client:
     jobs:
-      - build-client
+      - client-build
+      - client-unit-test
+      - hold:
+        type: approval
+        requires:
+          - client-build
+          - client-unit-test
