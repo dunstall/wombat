@@ -85,3 +85,5 @@ workflows:
           region: AWS_REGION
           repo: wombatbroker
           tag: 'latest,${CIRCLE_SHA1}'
+          requires:
+            - hold
