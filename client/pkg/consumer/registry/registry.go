@@ -26,9 +26,12 @@ type Registry interface {
 
 	Delete(path string) error
 
-	// Watch returns a channel of notification about updates to the nodes in the
-	// given root. If any nodes change true is sent over the channel.
-	Watch(root string) (<-chan bool, error)
+	// Events returns a channel of updates. When a watched node changes true
+	// is sent over the channel.
+	// TODO(AD) Need Watch(path string) and poll in background.
+	Events() <-chan bool
+
+	Watch(path string) error
 
 	Close()
 }

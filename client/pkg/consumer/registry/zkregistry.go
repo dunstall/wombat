@@ -114,9 +114,14 @@ func (r *ZKRegistry) Delete(path string) error {
 	return nil
 }
 
-func (r *ZKRegistry) Watch(root string) (<-chan bool, error) {
+func (r *ZKRegistry) Events() <-chan bool {
 	// TODO(AD)
-	return make(chan bool), nil
+	return make(chan bool)
+}
+
+func (r *ZKRegistry) Watch(path string) error {
+	// TODO(AD)
+	return nil
 }
 
 func (r *ZKRegistry) Close() {
