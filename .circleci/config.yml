@@ -63,12 +63,14 @@ workflows:
     jobs:
       - broker-build
       - broker-unit-test
-      - hold:
+      - approval:
           type: approval
           requires:
             - broker-build
             - broker-unit-test
-      # TODO Requires
+          filters:
+            branches:
+              ignore: master
       - aws-ecr/build-and-push-image:
           account-url: AWS_ECR_ACCOUNT_URL
           aws-access-key-id: ACCESS_KEY_ID
@@ -81,4 +83,4 @@ workflows:
           repo: wombatbroker
           tag: 'latest,${CIRCLE_SHA1}'
           requires:
-            - hold
+            - approval
