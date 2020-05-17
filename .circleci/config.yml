@@ -73,11 +73,12 @@ workflows:
           requires:
             - broker-build
             - broker-unit-test
+      # TODO Requires
       - aws-ecr/build-and-push-image:
           account-url: AWS_ECR_ACCOUNT_URL
           aws-access-key-id: ACCESS_KEY_ID
           aws-secret-access-key: SECRET_ACCESS_KEY
-          context: broker
+          context: .
           create-repo: true
           dockerfile: broker/ci/build/Dockerfile
           path: broker
