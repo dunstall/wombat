@@ -30,6 +30,10 @@ func (p *Producer) Send(record record.ProduceRecord) error {
 	return p.conn.send(record)
 }
 
+func (p *Producer) Close() error {
+	return p.conn.close()
+}
+
 func (p *Producer) updatePartition(record *record.ProduceRecord) {
 	if record.Partition() == 0 {
 		if len(record.Key()) == 0 {

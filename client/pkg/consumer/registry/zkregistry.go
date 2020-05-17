@@ -10,8 +10,8 @@ import (
 )
 
 type ZKRegistry struct {
-	conn     *zk.Conn
-	zkEvents <-chan zk.Event
+	conn   *zk.Conn
+	events chan bool
 }
 
 // NewZKRegistry returns a new registry implemented with ZooKeeper.
@@ -19,13 +19,21 @@ type ZKRegistry struct {
 // sessionTimeout is time to reestablish connection before the session is
 // invalidated (causing all ephemeral nodes to be deleted).
 func NewZKRegistry(bootstap []string, sessionTimeout time.Duration) (Registry, error) {
-	conn, zkEvents, err := zk.Connect(bootstap, sessionTimeout)
+	conn, _, err := zk.Connect(bootstap, sessionTimeout)
 	if err != nil {
 		err = fmt.Errorf("failed to connect to server: %s", err)
 		glog.Error(err)
 		return nil, err
 	}
-	return &ZKRegistry{conn: conn, zkEvents: zkEvents}, nil
+
+	r := &ZKRegistry{conn, make(chan bool)}
+
+	// Sent event to this registry to trigger immediate rebalance.
+	go func() {
+		r.events <- true
+	}()
+
+	return r, nil
 }
 
 func (r *ZKRegistry) Create(p string, val []byte, isEphemeral bool) error {
@@ -115,8 +123,7 @@ func (r *ZKRegistry) Delete(path string) error {
 }
 
 func (r *ZKRegistry) Events() <-chan bool {
-	// TODO(AD)
-	return make(chan bool)
+	return r.events // TODO(AD)
 }
 
 func (r *ZKRegistry) Watch(path string) error {

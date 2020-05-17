@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -34,10 +33,6 @@ func New(confPath string) (Consumer, error) {
 	id := uuid.New().String()
 	m, err := membership.New(conf.Group(), id, r)
 	if err != nil {
-		return Consumer{}, err
-	}
-
-	if err := m.Rebalance(); err != nil {
 		return Consumer{}, err
 	}
 
