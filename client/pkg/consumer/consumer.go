@@ -5,14 +5,16 @@ import (
 	"os"
 
 	"github.com/dunstall/wombatclient/pkg/consumer/conf"
+	"github.com/dunstall/wombatclient/pkg/consumer/membership"
+	"github.com/dunstall/wombatclient/pkg/consumer/registry"
 	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/google/uuid"
 )
 
 type Consumer struct {
-	conn    connection
-	offsets offsets
-	coord   coordinator
-	conf    conf.Conf
+	conn connection
+	r    registry.Registry
+	m    membership.Membership
 }
 
 func New(confPath string) (Consumer, error) {
@@ -21,7 +23,13 @@ func New(confPath string) (Consumer, error) {
 		return Consumer{}, err
 	}
 
-	sync, err := NewZooKeeper(conf.ZooKeeper(), conf.Timeout())
+	r, err := registry.NewZKRegistry(conf.ZooKeeper(), conf.Timeout())
+	if err != nil {
+		return Consumer{}, err
+	}
+
+	id := uuid.New().String()
+	m, err := membership.New(conf.Group(), id, r)
 	if err != nil {
 		return Consumer{}, err
 	}
@@ -31,53 +39,41 @@ func New(confPath string) (Consumer, error) {
 		return Consumer{}, err
 	}
 
-	offsets, err := newOffsets(sync, conf.Group())
-	if err != nil {
-		return Consumer{}, err
-	}
-
-	coord, err := newCoordinator(sync, conf.Group())
-	if err != nil {
-		return Consumer{}, err
-	}
-
 	return Consumer{
 		conn,
-		offsets,
-		coord,
-		conf,
+		r,
+		m,
 	}, nil
 }
 
 // TODO(AD) Poll should not take arguments - distribute partitions automatically
-func (c *Consumer) Poll(partition Partition) (record.ConsumeRecord, error) {
-	// TODO(AD) Request in background on poll - should assign partitions with client
-	// coordination.
+func (c *Consumer) Poll(chunk membership.Chunk) (record.ConsumeRecord, error) {
+	// TODO(AD) Request in background - one thread per partition
 
 	select {
-	case <-c.coord.updates():
-		c.coord.rebalance(c.conf.Group())
+	case <-c.r.Events(): // TODO(AD) Add watch (in membership?)
+		c.m.Rebalance()
 	default:
 	}
 
-	offset, err := c.offsets.lookup(partition)
+	offset, err := c.m.GetOffset(chunk)
 	if err != nil {
 		return record.ConsumeRecord{}, err
 	}
 
-	request := record.NewConsumeRequest(partition.Topic, partition.N, offset)
+	request := record.NewConsumeRequest(chunk.Topic, chunk.Partition, offset)
 	if err := c.conn.send(request); err != nil {
 		return record.ConsumeRecord{}, err
 	}
 	return c.conn.receive()
 }
 
-func (c *Consumer) Commit(record record.ConsumeRecord, partition Partition) error {
-	return c.offsets.commit(partition, record.NextOffset())
+func (c *Consumer) Commit(record record.ConsumeRecord, chunk membership.Chunk) error {
+	return c.m.CommitOffset(record.NextOffset(), chunk)
 }
 
 func (c *Consumer) Subscribe(topic string) error {
-	return c.coord.addTopic(c.conf.Group(), topic)
+	return c.m.AddTopic(topic)
 }
 
 func loadConf(path string) (conf.Conf, error) {

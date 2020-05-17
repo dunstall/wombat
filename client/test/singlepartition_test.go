@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dunstall/wombatclient/pkg/consumer"
+	"github.com/dunstall/wombatclient/pkg/consumer/membership"
 	"github.com/dunstall/wombatclient/pkg/producer"
 	"github.com/dunstall/wombatclient/pkg/record"
 )
@@ -29,7 +30,7 @@ func TestSinglePartition(t *testing.T) {
 			t.Error(err)
 		}
 
-		partition := consumer.Partition{"mytopic", 1}
+		partition := membership.Chunk{"mytopic", 1}
 		res, err := c.Poll(partition)
 		if err != nil {
 			t.Error(err)
