@@ -92,6 +92,19 @@ func (r *ZKRegistry) GetRoot(path string) ([]string, error) {
 	return c, err
 }
 
+func (r *ZKRegistry) Set(path string, data []byte, isEphemeral bool) error {
+	_, err := r.conn.Set(path, data, -1)
+	if err == zk.ErrNoNode {
+		return r.Create(path, data, isEphemeral)
+	}
+	if err != nil {
+		glog.Errorf("zk failed to set node: %s: %s", path, err)
+		return err
+	}
+	glog.Infof("zk set node %s -> %s", path, data)
+	return nil
+}
+
 func (r *ZKRegistry) Delete(path string) error {
 	if err := r.conn.Delete(path, -1); err != nil {
 		glog.Errorf("zk failed to delete node: %s: %s", path, err)

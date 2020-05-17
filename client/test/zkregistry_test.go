@@ -1,4 +1,4 @@
-// +build system
+// +build zk
 
 package tests
 
@@ -122,5 +122,40 @@ func TestGetRoot(t *testing.T) {
 
 	if !reflect.DeepEqual(a, nodes) {
 		t.Fatal("err nodes")
+	}
+}
+
+func TestSet(t *testing.T) {
+	r, err := registry.NewZKRegistry(addrs, time.Second*1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+
+	p := path.Join("/", uuid.New().String(), uuid.New().String(), uuid.New().String())
+	val := uuid.New().String()
+	if err = r.Set(p, []byte(val), true); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := r.Get(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(b) != val {
+		t.Errorf("r.Get(...) = %v, expected %v", b, []byte(val))
+	}
+
+	val = uuid.New().String()
+	if err = r.Set(p, []byte(val), true); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err = r.Get(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(b) != val {
+		t.Errorf("r.Get(...) = %v, expected %v", b, []byte(val))
 	}
 }
