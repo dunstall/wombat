@@ -8,10 +8,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Build
-        command: |
-          cd broker
-          cargo build
+          name: Build
+          command: |
+            cd broker
+            cargo build
 
   broker-unit-test:
     docker:
@@ -20,10 +20,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Unit test
-        command: |
-          cd client
-          cargo test
+          name: Unit test
+          command: |
+            cd client
+            cargo test
 
   client-build:
     docker:
@@ -32,10 +32,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Unit test
-        command: |
-          cd client
-          go test ./...
+          name: Unit test
+          command: |
+            cd client
+            go test ./...
 
   client-unit-test:
     docker:
@@ -44,10 +44,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Unit test
-        command: |
-          cd client
-          go test ./...
+          name: Unit test
+          command: |
+            cd client
+            go test ./...
 
 
 workflows:
@@ -56,10 +56,10 @@ workflows:
       - broker-build
       - broker-unit-test
       - hold:
-        type: approval
-        requires:
-          - broker-build
-          - broker-unit-test
+          type: approval
+          requires:
+            - broker-build
+            - broker-unit-test
 
 
   client:
@@ -67,7 +67,7 @@ workflows:
       - client-build
       - client-unit-test
       - hold:
-        type: approval
-        requires:
-          - client-build
-          - client-unit-test
+          type: approval
+          requires:
+            - client-build
+            - client-unit-test
