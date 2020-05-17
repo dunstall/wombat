@@ -1,31 +1,84 @@
 version: 2.1
 
+orbs:
+  aws-ecr: circleci/aws-ecr@6.8.2
+
 jobs:
-  build-broker:
+  broker-build:
     docker:
       - image: circleci/rust:1.41
 
     steps:
       - checkout
+      - run:
+          name: Build
+          command: |
+            cd broker
+            cargo build
 
-      - run: cd broker && cargo build
-      - run: cd broker && cargo test
+  broker-unit-test:
+    docker:
+      - image: circleci/rust:1.41
 
-  build-client:
+    steps:
+      - checkout
+      - run:
+          name: Unit test
+          command: |
+            cd broker
+            cargo test
+
+  client-build:
     docker:
       - image: circleci/golang:1.14.2
 
     steps:
       - checkout
+      - run:
+          name: Unit test
+          command: |
+            cd client
+            go test ./...
 
-      - run: cd client && go build ./...
-      - run: cd client/pkg && go test ./...
+  client-unit-test:
+    docker:
+      - image: circleci/golang:1.14.2
+
+    steps:
+      - checkout
+      - run:
+          name: Unit test
+          command: |
+            cd client
+            go test ./...
+
 
 workflows:
-  broker:
-    jobs:
-      - build-broker
-
   client:
     jobs:
-      - build-client
+      - client-build
+      - client-unit-test
+
+  broker:
+    jobs:
+      - broker-build
+      - broker-unit-test
+      - hold:
+          type: approval
+          requires:
+            - broker-build
+            - broker-unit-test
+      # TODO Requires
+      - aws-ecr/build-and-push-image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: ACCESS_KEY_ID
+          aws-secret-access-key: SECRET_ACCESS_KEY
+          create-repo: true
+          dockerfile: ci/build/Dockerfile
+          path: broker
+          profile-name: circleci
+          region: AWS_REGION
+          repo: wombatbroker
+          tag: 'latest,${CIRCLE_SHA1}'
+          requires:
+            - hold
