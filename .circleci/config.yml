@@ -68,7 +68,6 @@ workflows:
           requires:
             - broker-build
             - broker-unit-test
-              hold
           filters:
             branches:
               ignore: master
@@ -84,4 +83,4 @@ workflows:
           repo: wombatbroker
           tag: 'latest,${CIRCLE_SHA1}'
           requires:
-            - hold
+            - approval
