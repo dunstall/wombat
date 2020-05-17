@@ -58,11 +58,6 @@ workflows:
     jobs:
       - client-build
       - client-unit-test
-      - hold:
-          type: approval
-          requires:
-            - client-build
-            - client-unit-test
 
   broker:
     jobs:
