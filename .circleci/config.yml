@@ -22,7 +22,7 @@ jobs:
       - run:
           name: Unit test
           command: |
-            cd client
+            cd broker
             cargo test
 
   client-build:
