@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  aws-ecr: circleci/aws-ecr@6.8.2
+
 jobs:
   broker-build:
     docker:
@@ -51,17 +54,6 @@ jobs:
 
 
 workflows:
-  broker:
-    jobs:
-      - broker-build
-      - broker-unit-test
-      - hold:
-          type: approval
-          requires:
-            - broker-build
-            - broker-unit-test
-
-
   client:
     jobs:
       - client-build
@@ -71,3 +63,25 @@ workflows:
           requires:
             - client-build
             - client-unit-test
+
+  broker:
+    jobs:
+      - broker-build
+      - broker-unit-test
+      - hold:
+          type: approval
+          requires:
+            - broker-build
+            - broker-unit-test
+      - aws-ecr/build-and-push-image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: ACCESS_KEY_ID
+          aws-secret-access-key: SECRET_ACCESS_KEY
+          context: broker
+          create-repo: true
+          dockerfile: broker/ci/build/Dockerfile
+          path: broker
+          profile-name: circleci
+          region: AWS_REGION
+          repo: wombatbroker
+          tag: 'latest,${CIRCLE_SHA1}'
