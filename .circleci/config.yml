@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   aws-ecr: circleci/aws-ecr@6.8.2
+  aws-ecs: circleci/aws-ecs@0.0.10
 
 jobs:
   broker-build:
@@ -85,3 +86,9 @@ workflows:
           tag: 'latest,${CIRCLE_SHA1}'
           requires:
             - approval
+      - aws-ecs/deploy-service-update:
+          requires:
+            - aws-ecr/build-and-push-image
+          family: 'wombatbroker'
+          cluster-name: 'wombatUpdate'
+          container-image-name-updates: 'container=wombatbroker,tag=${CIRCLE_SHA1}'
