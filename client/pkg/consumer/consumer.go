@@ -29,6 +29,14 @@ func New(confPath string) (Consumer, error) {
 	if err != nil {
 		return Consumer{}, err
 	}
+	if err := r.Watch(path.Join("/", "partition", conf.Group())); err != nil { // TODO(AD)
+		return Consumer{}, err
+	}
+	if err := r.Watch(path.Join("/", "group", conf.Group())); err != nil { // TODO(AD)
+		return Consumer{}, err
+	}
+
+	// TODO(AD) must rebalance before poll
 
 	id := uuid.New().String()
 	m, err := membership.New(conf.Group(), id, r)
@@ -53,9 +61,10 @@ func New(confPath string) (Consumer, error) {
 func (c *Consumer) Poll() (record.ConsumeRecord, membership.Chunk, error) {
 	select {
 	case <-c.r.Events(): // TODO(AD) Add watch (in membership?)
-		if err := c.m.Rebalance(); err != nil {
+		if err := c.m.Rebalance(); err != nil { // TODO(AD) Sleep and retry on error
 			return record.ConsumeRecord{}, membership.Chunk{}, err
 		}
+		// TODO(AD) Need to re-watch after every event
 	default:
 	}
 

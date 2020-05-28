@@ -54,6 +54,8 @@ func (m *Membership) AddTopic(topic string) error {
 // an error is returned so should sleep and retry.
 // TODO(AD) Caller must watch the registry and call on update
 func (m *Membership) Rebalance() error {
+	glog.Infof("rebalance")
+
 	if err := m.clearAssigned(); err != nil {
 		return err
 	}
