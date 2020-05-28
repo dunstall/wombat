@@ -28,11 +28,6 @@ func NewZKRegistry(bootstap []string, sessionTimeout time.Duration) (Registry, e
 
 	r := &ZKRegistry{conn, make(chan bool)}
 
-	// Sent event to this registry to trigger immediate rebalance.
-	go func() {
-		r.events <- true
-	}()
-
 	return r, nil
 }
 
@@ -123,11 +118,24 @@ func (r *ZKRegistry) Delete(path string) error {
 }
 
 func (r *ZKRegistry) Events() <-chan bool {
-	return r.events // TODO(AD)
+	return r.events
 }
 
 func (r *ZKRegistry) Watch(path string) error {
-	// TODO(AD)
+	_, _, events, err := r.conn.ChildrenW(path)
+	if err != nil {
+		glog.Errorf("zk failed to watch path %s", path)
+		return err
+	}
+
+	go func() {
+		select {
+		case <-events:
+			glog.Infof("zk event on path %s", path)
+			r.events <- true
+		}
+	}()
+
 	return nil
 }
 

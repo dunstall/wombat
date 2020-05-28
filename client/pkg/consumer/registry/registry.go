@@ -28,7 +28,8 @@ type Registry interface {
 
 	// Events returns a channel of updates. When a watched node changes true
 	// is sent over the channel.
-	// TODO(AD) Need Watch(path string) and poll in background.
+	//
+	// Note must re-watch after every event.
 	Events() <-chan bool
 
 	Watch(path string) error
