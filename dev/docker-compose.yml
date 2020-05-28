@@ -51,6 +51,25 @@ services:
         aliases:
          - server.5.zookeeper
 
+  server.1.wombat:
+    build:
+      context: ../broker
+      dockerfile: ci/build/Dockerfile
+    networks:
+      zk-net:
+        aliases:
+         - server.1.wombat
+
+  client.1.wombat:
+    build:
+      context: ../client
+      dockerfile: build/Dockerfile.test
+    networks:
+      zk-net:
+        aliases:
+         - client.1.wombat
+
+
 networks:
   zk-net:
     driver: bridge

@@ -3,6 +3,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dunstall/wombatclient/pkg/consumer"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestEndToEnd(t *testing.T) {
-	producer, err := producer.New("localhost:3110")
+	producer, err := producer.New("server.1.wombat:3110")
 	if err != nil {
 		t.Error(err)
 	}
@@ -21,6 +22,7 @@ func TestEndToEnd(t *testing.T) {
 	topic := uuid.New().String()
 	r := record.NewProduceRecord(topic, []byte{}, []byte{5, 6, 7, 8})
 	for i := 0; i != 1000; i++ {
+		fmt.Println("produce")
 		if err = producer.Send(r); err != nil {
 			t.Error(err)
 		}
@@ -35,6 +37,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	for i := 0; i != 1000; i++ {
+		fmt.Println("consumed", i)
 		res, chunk, err := c.Poll()
 		if err != nil {
 			t.Fatal(err)
