@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	addrs = []string{"192.168.48.2", "192.168.48.3", "192.168.48.4"}
+	addrs = []string{"172.18.0.5", "172.18.0.6"}
 )
 
 func TestCreateEphemeralNode(t *testing.T) {
@@ -158,4 +158,54 @@ func TestSet(t *testing.T) {
 	if string(b) != val {
 		t.Errorf("r.Get(...) = %v, expected %v", b, []byte(val))
 	}
+}
+
+func TestWatch(t *testing.T) {
+	r, err := registry.NewZKRegistry(addrs, time.Second*1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+
+  path := "/" + uuid.New().String()
+
+  if err := r.CreateRoot(path); err != nil {
+    t.Error(err)
+  }
+
+  if err := r.Watch(path); err != nil {
+    t.Error(err)
+  }
+
+  if err := r.Create(path+"/"+uuid.New().String(), []byte{}, true); err != nil {
+    t.Error(err)
+  }
+
+  // Expect event after adding child.
+  select {
+  case <-r.Events():
+  case <-time.Tick(time.Second):
+    t.Errorf("expected event")
+  }
+
+  if err := r.Watch(path); err != nil {
+    t.Error(err)
+  }
+
+  // Should not have another event until another node added.
+  select {
+  case <-r.Events():
+    t.Errorf("expected no event")
+  case <-time.Tick(time.Second):
+  }
+
+  if err := r.Create(path+"/"+uuid.New().String(), []byte{}, true); err != nil {
+    t.Error(err)
+  }
+  // Expect another event after adding another child.
+  select {
+  case <-r.Events():
+  case <-time.Tick(1*time.Second):
+    t.Errorf("expected event")
+  }
 }
