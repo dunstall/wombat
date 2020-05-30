@@ -31,7 +31,7 @@ impl OffsetStore {
         Ok(offsets)
     }
 
-    // Returns the name of the segment containing this offset.
+    // Returns the name of the segment containing this offset read from memory.
     pub fn get(&self, offset: usize) -> Option<&String> {
         for (first_offset, segment) in self.offsets.iter().rev() {
             if *first_offset <= offset {
@@ -84,7 +84,6 @@ impl OffsetStore {
 mod tests {
     use super::*;
 
-    use std::fs::File;
     use tempdir::TempDir;
 
     #[test]
