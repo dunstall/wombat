@@ -71,4 +71,24 @@ mod tests {
             assert_eq!(written, read);
         }
     }
+
+    #[test]
+    fn append_multi_unordered_read() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut segment = Segment::new(&tmp.path().join("segment.1")).unwrap();
+
+        segment.append(&vec![1, 2, 3]).unwrap();
+        segment.append(&vec![4, 5, 6]).unwrap();
+
+        assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
+        assert_eq!(vec![4, 5, 6], segment.lookup(3, 3).unwrap());
+        assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
+
+        segment.append(&vec![7, 8, 9]).unwrap();
+
+        assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
+        assert_eq!(vec![4, 5, 6], segment.lookup(3, 3).unwrap());
+        assert_eq!(vec![7, 8, 9], segment.lookup(3, 6).unwrap());
+    }
+
 }
