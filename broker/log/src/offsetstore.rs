@@ -1,6 +1,8 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::collections::BTreeMap;
+use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
+use std::path::Path;
 use std::string::String;
 use std::vec::Vec;
 
@@ -8,16 +10,19 @@ use crate::result::LogResult;
 
 // Handles lookup of the segment that owns a given offset. All entries are
 // written to a file so they can be loaded on startup.
-pub struct OffsetStore<F> {
+pub struct OffsetStore {
     offsets: BTreeMap<usize, String>,
-    file: F,
+    file: File,
 }
 
-impl<F> OffsetStore<F>
-where
-    F: Read + Write,
-{
-    pub fn new(file: F) -> LogResult<OffsetStore<F>> {
+impl OffsetStore {
+    pub fn new(save_path: &Path) -> LogResult<OffsetStore> {
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .append(true)
+            .open(save_path)?;
         let mut offsets = OffsetStore {
             offsets: BTreeMap::new(),
             file: file,
@@ -80,20 +85,25 @@ mod tests {
     use super::*;
 
     use std::fs::File;
-    use std::io::Cursor;
     use tempdir::TempDir;
 
     #[test]
     fn lookup_empty() {
-        let offsets = OffsetStore::new(Cursor::new(vec![])).unwrap();
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+
+        let offsets = OffsetStore::new(&path).unwrap();
         assert_eq!(offsets.get(0), None);
         assert_eq!(offsets.get(100), None);
     }
 
     #[test]
     fn lookup_zero_offset() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+
         let segment = "mysegment".to_string();
-        let mut offsets = OffsetStore::new(Cursor::new(vec![])).unwrap();
+        let mut offsets = OffsetStore::new(&path).unwrap();
         offsets.insert(0, segment.clone()).unwrap();
 
         assert_eq!(offsets.get(0), Some(&segment));
@@ -103,8 +113,11 @@ mod tests {
 
     #[test]
     fn lookup_big_offset() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+
         let segment = "mysegment".to_string();
-        let mut offsets = OffsetStore::new(Cursor::new(vec![])).unwrap();
+        let mut offsets = OffsetStore::new(&path).unwrap();
         offsets.insert(0xaa, segment.clone()).unwrap();
 
         assert_eq!(offsets.get(0), None);
@@ -114,9 +127,12 @@ mod tests {
 
     #[test]
     fn lookup_multi_offset() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+
         let segment1 = "mysegment1".to_string();
         let segment2 = "mysegment2".to_string();
-        let mut offsets = OffsetStore::new(Cursor::new(vec![])).unwrap();
+        let mut offsets = OffsetStore::new(&path).unwrap();
         offsets.insert(0xa0, segment1.clone()).unwrap();
         offsets.insert(0xb0, segment2.clone()).unwrap();
 
@@ -129,10 +145,13 @@ mod tests {
 
     #[test]
     fn lookup_reverse_offset() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+
         let segment1 = "mysegment1".to_string();
         let segment2 = "mysegment2".to_string();
         let segment3 = "mysegment3".to_string();
-        let mut offsets = OffsetStore::new(Cursor::new(vec![])).unwrap();
+        let mut offsets = OffsetStore::new(&path).unwrap();
         offsets.insert(0x20, segment3.clone()).unwrap();
         offsets.insert(0x10, segment2.clone()).unwrap();
         offsets.insert(0x00, segment1.clone()).unwrap();
@@ -147,22 +166,49 @@ mod tests {
 
     #[test]
     fn load_from_file() {
-        let tmp_dir = TempDir::new("log-unit-tests").unwrap();
-        let file_path = tmp_dir.path().join("offsets");
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
 
         let segment1 = "mysegment1".to_string();
         let segment2 = "mysegment2".to_string();
 
         {
-            let buf = File::create(file_path.clone()).unwrap();
-            let mut offsets = OffsetStore::new(buf).unwrap();
+            let mut offsets = OffsetStore::new(&path).unwrap();
             offsets.insert(0xa0, segment1.clone()).unwrap();
             offsets.insert(0xb0, segment2.clone()).unwrap();
         }
 
         {
-            let buf = File::open(file_path).unwrap();
-            let offsets = OffsetStore::new(buf).unwrap();
+            let offsets = OffsetStore::new(&path).unwrap();
+
+            assert_eq!(offsets.get(0x9f), None);
+            assert_eq!(offsets.get(0xa0), Some(&segment1));
+            assert_eq!(offsets.get(0xaf), Some(&segment1));
+            assert_eq!(offsets.get(0xb0), Some(&segment2));
+            assert_eq!(offsets.get(0xff), Some(&segment2));
+        }
+    }
+
+    #[test]
+    fn multi_load_from_file() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+
+        let segment1 = "mysegment1".to_string();
+        let segment2 = "mysegment2".to_string();
+
+        {
+            let mut offsets = OffsetStore::new(&path).unwrap();
+            offsets.insert(0xa0, segment1.clone()).unwrap();
+        }
+
+        {
+            let mut offsets = OffsetStore::new(&path).unwrap();
+            offsets.insert(0xb0, segment2.clone()).unwrap();
+        }
+
+        {
+            let offsets = OffsetStore::new(&path).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
             assert_eq!(offsets.get(0xa0), Some(&segment1));
