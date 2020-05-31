@@ -5,6 +5,7 @@ use std::string;
 #[derive(std::fmt::Debug)]
 pub enum LogError {
     OffsetNotFound,
+    SegmentExpired,
     IoError(io::Error),
     Utf8Error(string::FromUtf8Error),
     OsStringError(ffi::OsString),

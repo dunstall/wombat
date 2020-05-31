@@ -2,6 +2,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use std::time::SystemTime;
 use std::vec::Vec;
 
 use crate::offsetstore::OffsetStore;
@@ -36,7 +37,7 @@ impl Log {
                 let new_off = size + self.offsets.max_offset() as u64;
                 self.active += 1;
                 self.new_segment(self.active)?;
-                self.offsets.insert(new_off as usize, self.active)?;
+                self.offsets.insert(new_off, self.active)?;
             }
         } else {
             // This can never happen to just crash.
@@ -45,17 +46,37 @@ impl Log {
         Ok(())
     }
 
-    pub fn lookup(&mut self, size: usize, offset: usize) -> LogResult<Vec<u8>> {
+    pub fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
         if let Some(segment) = self.offsets.get(offset) {
             if let Some(seg) = self.segments.get_mut(&segment.0) {
-                seg.lookup(size, offset - segment.1 as usize)
+                seg.lookup(size, offset - segment.1)
             } else {
-                // This can never happen to just crash.
-                panic!("tracked segment not found");
+                // Occurs if segment expired and removed.
+                Err(LogError::SegmentExpired)
             }
         } else {
             Err(LogError::OffsetNotFound)
         }
+    }
+
+    pub fn expire(&mut self, before: SystemTime) -> LogResult<()> {
+        let mut expired = Vec::new();
+        for (segment, _) in self.segments.iter() {
+            let path = &Path::new(&self.dir).join(Log::segment_to_string(*segment));
+            let metadata = fs::metadata(path)?;
+            if metadata.modified()? < before && *segment != self.active {
+                expired.push(*segment);
+            }
+        }
+
+        for segment in expired.iter() {
+            println!("expire {}", segment);
+            self.segments.remove(segment);
+            let path = &Path::new(&self.dir).join(Log::segment_to_string(*segment));
+            fs::remove_file(path)?;
+        }
+
+        Ok(())
     }
 
     fn segment_to_string(segment: u64) -> String {
@@ -113,6 +134,8 @@ impl Log {
 mod tests {
     use super::*;
 
+    use std::thread::sleep;
+    use std::time::Duration;
     use tempdir::TempDir;
 
     #[test]
@@ -141,8 +164,7 @@ mod tests {
     }
 
     #[test]
-    fn write_exceeds_segment_length() {
-        // TODO
+    fn write_multiple_segments() {
         let tmp = TempDir::new("log-unit-tests").unwrap();
         let mut log = Log::new(tmp.path(), 3).unwrap();
 
@@ -157,18 +179,38 @@ mod tests {
         // // Segment 3.
         log.append(&vec![11, 12]).unwrap();
 
+        // Check the records were written to different segments.
         let mut segment = Segment::new(&tmp.path().join("segment-00000000")).unwrap();
         assert_eq!(vec![1, 2, 3, 4], segment.lookup(4, 0).unwrap());
-
         let mut segment = Segment::new(&tmp.path().join("segment-00000001")).unwrap();
         assert_eq!(vec![5, 6, 7, 8], segment.lookup(4, 0).unwrap());
-
         let mut segment = Segment::new(&tmp.path().join("segment-00000002")).unwrap();
         assert_eq!(vec![7, 8], segment.lookup(2, 0).unwrap());
         assert_eq!(vec![9, 10], segment.lookup(2, 2).unwrap());
-
         let mut segment = Segment::new(&tmp.path().join("segment-00000003")).unwrap();
         assert_eq!(vec![11, 12], segment.lookup(2, 0).unwrap());
+
+        assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
+        assert_eq!(vec![5, 6, 7, 8], log.lookup(4, 4).unwrap());
+        assert_eq!(vec![7, 8], log.lookup(2, 8).unwrap());
+        assert_eq!(vec![9, 10], log.lookup(2, 10).unwrap());
+    }
+
+    #[test]
+    fn load_log() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = Log::new(tmp.path(), 3).unwrap();
+
+        // Segment 0.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        // Segment 1.
+        log.append(&vec![5, 6, 7, 8]).unwrap();
+        // Segment 2.
+        log.append(&vec![7]).unwrap();
+        log.append(&vec![8]).unwrap();
+        log.append(&vec![9, 10]).unwrap();
+        // // Segment 3.
+        log.append(&vec![11, 12]).unwrap();
 
         let mut log = Log::new(tmp.path(), 3).unwrap();
         assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
@@ -177,59 +219,66 @@ mod tests {
         assert_eq!(vec![9, 10], log.lookup(2, 10).unwrap());
     }
 
-    // #[test]
-    // fn read_existing_multi_segment() { TODO
-    // let tmp = TempDir::new("log-unit-tests").unwrap();
-    // let mut log = Log::new(tmp.path(), 100).unwrap();
+    #[test]
+    fn expire_active_segment() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = Log::new(tmp.path(), 10).unwrap();
 
-    // let written = vec![1, 2, 3];
-    // log.append(&written).unwrap();
+        // Segment 0.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
 
-    // let mut log = Log::new(tmp.path(), 10).unwrap();
-    // let read = log.lookup(3, 0).unwrap();
-    // assert_eq!(written, read);
-    // }
+        // Should NOT remove the active segment.
+        log.expire(SystemTime::now()).unwrap();
 
-    // TODO write many
+        assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
+    }
 
-    // #[test]
-    // fn read_existing_multi_segment() {
-    // let tmp = TempDir::new("log-unit-tests").unwrap();
+    #[test]
+    fn expire_old_segment() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = Log::new(tmp.path(), 3).unwrap();
 
-    // {
-    // let mut segment = Segment::new(&tmp.path().join("segment-0000")).unwrap();
+        // Fill the active segment to create new.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        let exp = SystemTime::now();
+        log.append(&vec![5, 6]).unwrap(); // Active segment.
 
-    // let written = vec![1, 2, 3];
-    // assert_eq!(segment.append(&written).unwrap(), 3);
-    // }
-    // {
-    // let mut segment = Segment::new(&tmp.path().join("segment-0001")).unwrap();
+        sleep(Duration::new(1, 0));
 
-    // let written = vec![4, 5, 6];
-    // assert_eq!(segment.append(&written).unwrap(), 3);
-    // }
+        log.expire(exp).unwrap();
 
-    // {
-    // let mut segment = Segment::new(&tmp.path().join("segment-0002")).unwrap();
+        if let Err(LogError::SegmentExpired) = log.lookup(4, 0) {
+        } else {
+            panic!("expected segment expired");
+        }
 
-    // let written = vec![7, 8, 9];
-    // assert_eq!(segment.append(&written).unwrap(), 3);
-    // }
+        assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
+    }
 
-    // let mut log = Log::new(tmp.path(), 10).unwrap();
-    // let read = log.lookup(3, 0).unwrap();
-    // assert_eq!(vec![1, 2, 3], read);
+    #[test]
+    fn load_log_with_expired_segments() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = Log::new(tmp.path(), 3).unwrap();
 
-    // let read = log.lookup(3, 3).unwrap();
-    // assert_eq!(vec![4, 5, 6], read);
+        // Fill the active segment to create new.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        let exp = SystemTime::now();
+        log.append(&vec![5, 6]).unwrap(); // Active segment.
 
-    // let read = log.lookup(3, 6).unwrap();
-    // assert_eq!(vec![7, 8, 9], read);
-    /* } */
+        sleep(Duration::new(1, 0));
 
-    // TODO segment not starting at 0 (create log then remove segment)
+        log.expire(exp).unwrap();
 
-    // TODO load offsets etc - create full multi seg log and reload
+        // Load the log again.
+        let mut log = Log::new(tmp.path(), 3).unwrap();
 
-    // TODO write to segments at diff paths and check their loaded
+        if let Err(LogError::SegmentExpired) = log.lookup(4, 0) {
+        } else {
+            panic!("expected segment expired");
+        }
+
+        assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
+    }
+
+    // TODO(AD) test edges cases eg lookup EOF
 }

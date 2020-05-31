@@ -26,10 +26,10 @@ impl Segment {
         Ok(self.file.seek(SeekFrom::Current(0))?)
     }
 
-    pub fn lookup(&mut self, size: usize, offset: usize) -> LogResult<Vec<u8>> {
+    pub fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
         self.file.seek(SeekFrom::Start(offset as u64))?;
         let mut buf = Vec::new();
-        buf.resize(size, 0);
+        buf.resize(size as usize, 0);
         self.file.read_exact(&mut buf[..])?;
         Ok(buf)
     }
@@ -65,7 +65,7 @@ mod tests {
 
             assert_eq!(segment.append(&written).unwrap(), offset + 100);
 
-            let read = segment.lookup(100, offset as usize).unwrap();
+            let read = segment.lookup(100, offset).unwrap();
             assert_eq!(written, read);
         }
     }

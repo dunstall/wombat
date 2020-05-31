@@ -10,7 +10,7 @@ use crate::result::LogResult;
 #[derive(Debug)]
 pub struct OffsetStore {
     // TODO(AD) Replace all usize with u64
-    offsets: BTreeMap<usize, u64>,
+    offsets: BTreeMap<u64, u64>,
     file: File,
 }
 
@@ -31,7 +31,7 @@ impl OffsetStore {
     }
 
     // Returns the segment number and starting offset of this segment.
-    pub fn get(&self, offset: usize) -> Option<(u64, u64)> {
+    pub fn get(&self, offset: u64) -> Option<(u64, u64)> {
         for (first_offset, segment) in self.offsets.iter().rev() {
             if *first_offset <= offset {
                 return Some((*segment, *first_offset as u64));
@@ -42,14 +42,14 @@ impl OffsetStore {
 
     // Inserts the given segment name and starting offset. This will be
     // persisted to the file before updating in memory.
-    pub fn insert(&mut self, offset: usize, segment: u64) -> LogResult<()> {
+    pub fn insert(&mut self, offset: u64, segment: u64) -> LogResult<()> {
         self.write_u64(offset as u64)?;
         self.write_u64(segment)?;
         self.offsets.insert(offset, segment);
         Ok(())
     }
 
-    pub fn max_offset(&mut self) -> usize {
+    pub fn max_offset(&mut self) -> u64 {
         if let Some(max_offset) = self.offsets.iter().next_back() {
             *max_offset.0
         } else {
@@ -69,7 +69,7 @@ impl OffsetStore {
     fn load_offset(&mut self) -> LogResult<()> {
         let offset = self.read_u64()?;
         let segment = self.read_u64()?;
-        self.offsets.insert(offset as usize, segment);
+        self.offsets.insert(offset, segment);
         Ok(())
     }
 
