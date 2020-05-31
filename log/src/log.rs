@@ -20,25 +20,27 @@ pub struct Log {
     offsets: OffsetStore,
     active: u64,
     segments: HashMap<u64, Segment>,
-    seg_size: u64,
+    segment_limit: u64,
     dir: String,
 }
 
 impl Log {
     /// Creates a `Log` in the given directory.
     ///
-    /// This will load all segments stored in this directory and the offset
-    /// table.
+    /// This will load all segments stored in `dir` and the offset table if
+    /// exists.
+    ///
+    /// `segment_limit` is the maximum size of the segments.
     ///
     /// # Errors
     ///
     /// If the directory cannot be accessed returns an `Err`.
-    pub fn new(dir: &Path, seg_size: u64) -> LogResult<Log> {
+    pub fn new(dir: &Path, segment_limit: u64) -> LogResult<Log> {
         let mut log = Log {
-            offsets: OffsetStore::new(&dir.join("offsets"))?,
+            offsets: OffsetStore::new(dir)?,
             active: 0,
             segments: HashMap::new(),
-            seg_size,
+            segment_limit,
             dir: dir.to_str().unwrap().to_string(),
         };
         log.load_segments()?;
@@ -56,14 +58,11 @@ impl Log {
     pub fn append(&mut self, data: &Vec<u8>) -> LogResult<()> {
         if let Some(seg) = self.segments.get_mut(&self.active) {
             let size = seg.append(data)?;
-            if size > self.seg_size {
-                let new_off = size + self.offsets.max_offset();
-                self.active += 1;
-                self.new_segment(self.active)?;
-                self.offsets.insert(new_off, self.active)?;
+            if self.is_segment_full(size) {
+                self.extend_segments(size + self.offsets.max_offset())?;
             }
         } else {
-            // This can never happen to just crash.
+            // This can never happen so just crash.
             panic!("no active segment");
         }
         Ok(())
@@ -155,12 +154,24 @@ impl Log {
         Ok(())
     }
 
+    fn extend_segments(&mut self, offset: u64) -> LogResult<()> {
+        // let offset = size + self.offsets.max_offset();
+        self.active += 1;
+        self.new_segment(self.active)?;
+        self.offsets.insert(offset, self.active)?;
+        Ok(())
+    }
+
     fn new_segment(&mut self, segment: u64) -> LogResult<()> {
         self.segments.insert(
             segment,
             Segment::new(&Path::new(&self.dir).join(Log::segment_to_string(segment)))?,
         );
         Ok(())
+    }
+
+    fn is_segment_full(&self, size: u64) -> bool {
+        size > self.segment_limit
     }
 }
 

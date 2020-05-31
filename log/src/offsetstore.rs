@@ -9,19 +9,18 @@ use crate::result::LogResult;
 // written to a file so they can be loaded on startup.
 #[derive(Debug)]
 pub struct OffsetStore {
-    // TODO(AD) Replace all usize with u64
     offsets: BTreeMap<u64, u64>,
     file: File,
 }
 
 impl OffsetStore {
-    pub fn new(save_path: &Path) -> LogResult<OffsetStore> {
+    pub fn new(dir: &Path) -> LogResult<OffsetStore> {
         let file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
             .append(true)
-            .open(save_path)?;
+            .open(dir.join("offsets"))?;
         let mut offsets = OffsetStore {
             offsets: BTreeMap::new(),
             file: file,
@@ -49,7 +48,7 @@ impl OffsetStore {
         Ok(())
     }
 
-    pub fn max_offset(&mut self) -> u64 {
+    pub fn max_offset(&self) -> u64 {
         if let Some(max_offset) = self.offsets.iter().next_back() {
             *max_offset.0
         } else {
@@ -91,21 +90,19 @@ mod tests {
 
     #[test]
     fn lookup_empty() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
-        let offsets = OffsetStore::new(&path).unwrap();
+        let offsets = OffsetStore::new(&dir.path()).unwrap();
         assert_eq!(offsets.get(0), None);
         assert_eq!(offsets.get(100), None);
     }
 
     #[test]
     fn lookup_zero_offset() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment = 0;
-        let mut offsets = OffsetStore::new(&path).unwrap();
+        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
         offsets.insert(0, segment).unwrap();
 
         assert_eq!(offsets.get(0), Some((segment, 0)));
@@ -115,11 +112,10 @@ mod tests {
 
     #[test]
     fn lookup_big_offset() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment = 0;
-        let mut offsets = OffsetStore::new(&path).unwrap();
+        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
         offsets.insert(0xaa, segment).unwrap();
 
         assert_eq!(offsets.get(0), None);
@@ -129,12 +125,11 @@ mod tests {
 
     #[test]
     fn lookup_multi_offset() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment1 = 0;
         let segment2 = 1;
-        let mut offsets = OffsetStore::new(&path).unwrap();
+        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
         offsets.insert(0xa0, segment1).unwrap();
         offsets.insert(0xb0, segment2).unwrap();
 
@@ -147,13 +142,12 @@ mod tests {
 
     #[test]
     fn lookup_reverse_offset() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment1 = 0;
         let segment2 = 1;
         let segment3 = 2;
-        let mut offsets = OffsetStore::new(&path).unwrap();
+        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
         offsets.insert(0x20, segment3).unwrap();
         offsets.insert(0x10, segment2).unwrap();
         offsets.insert(0x00, segment1).unwrap();
@@ -168,9 +162,9 @@ mod tests {
 
     #[test]
     fn max_offset() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
-        let mut offsets = OffsetStore::new(&path).unwrap();
+        let dir = TempDir::new("log-unit-tests").unwrap();
+
+        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
 
         assert_eq!(offsets.max_offset(), 0);
 
@@ -184,20 +178,19 @@ mod tests {
 
     #[test]
     fn load_from_file() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment1 = 0;
         let segment2 = 1;
 
         {
-            let mut offsets = OffsetStore::new(&path).unwrap();
+            let mut offsets = OffsetStore::new(&dir.path()).unwrap();
             offsets.insert(0xa0, segment1).unwrap();
             offsets.insert(0xb0, segment2).unwrap();
         }
 
         {
-            let offsets = OffsetStore::new(&path).unwrap();
+            let offsets = OffsetStore::new(&dir.path()).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
             assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
@@ -209,24 +202,23 @@ mod tests {
 
     #[test]
     fn multi_load_from_file() {
-        let tmp = TempDir::new("log-unit-tests").unwrap();
-        let path = tmp.path().join("offsets");
+        let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment1 = 0;
         let segment2 = 1;
 
         {
-            let mut offsets = OffsetStore::new(&path).unwrap();
+            let mut offsets = OffsetStore::new(&dir.path()).unwrap();
             offsets.insert(0xa0, segment1).unwrap();
         }
 
         {
-            let mut offsets = OffsetStore::new(&path).unwrap();
+            let mut offsets = OffsetStore::new(&dir.path()).unwrap();
             offsets.insert(0xb0, segment2).unwrap();
         }
 
         {
-            let offsets = OffsetStore::new(&path).unwrap();
+            let offsets = OffsetStore::new(&dir.path()).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
             assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
