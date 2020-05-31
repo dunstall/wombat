@@ -21,9 +21,9 @@ impl Segment {
         Ok(Segment { file })
     }
 
-    pub fn append(&mut self, data: &Vec<u8>) -> LogResult<()> {
+    pub fn append(&mut self, data: &Vec<u8>) -> LogResult<u64> {
         self.file.write_all(data)?;
-        Ok(())
+        Ok(self.file.seek(SeekFrom::Current(0))?)
     }
 
     pub fn lookup(&mut self, size: usize, offset: usize) -> LogResult<Vec<u8>> {
@@ -48,7 +48,7 @@ mod tests {
         let mut segment = Segment::new(&tmp.path().join("segment.1")).unwrap();
 
         let written = vec![1, 2, 3];
-        segment.append(&written).unwrap();
+        assert_eq!(segment.append(&written).unwrap(), 3);
 
         let read = segment.lookup(3, 0).unwrap();
         assert_eq!(written, read);
@@ -61,13 +61,11 @@ mod tests {
 
         for offset in (0..1000).step_by(100) {
             let mut rng = rand::thread_rng();
-            let written: Vec<u8> = (0..100).map(|_| {
-                rng.gen_range(0, 0xff)
-            }).collect();
+            let written: Vec<u8> = (0..100).map(|_| rng.gen_range(0, 0xff)).collect();
 
-            segment.append(&written).unwrap();
+            assert_eq!(segment.append(&written).unwrap(), offset + 100);
 
-            let read = segment.lookup(100, offset).unwrap();
+            let read = segment.lookup(100, offset as usize).unwrap();
             assert_eq!(written, read);
         }
     }
@@ -77,18 +75,17 @@ mod tests {
         let tmp = TempDir::new("log-unit-tests").unwrap();
         let mut segment = Segment::new(&tmp.path().join("segment.1")).unwrap();
 
-        segment.append(&vec![1, 2, 3]).unwrap();
-        segment.append(&vec![4, 5, 6]).unwrap();
+        assert_eq!(segment.append(&vec![1, 2, 3]).unwrap(), 3);
+        assert_eq!(segment.append(&vec![4, 5, 6]).unwrap(), 6);
 
         assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
         assert_eq!(vec![4, 5, 6], segment.lookup(3, 3).unwrap());
         assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
 
-        segment.append(&vec![7, 8, 9]).unwrap();
+        assert_eq!(segment.append(&vec![7, 8, 9]).unwrap(), 9);
 
         assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
         assert_eq!(vec![4, 5, 6], segment.lookup(3, 3).unwrap());
         assert_eq!(vec![7, 8, 9], segment.lookup(3, 6).unwrap());
     }
-
 }
