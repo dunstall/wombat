@@ -142,7 +142,7 @@ mod tests {
         assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
         assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
         assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
-        assert_eq!(offsets.get(0xff), Some((segment2, 0xff)));
+        assert_eq!(offsets.get(0xff), Some((segment2, 0xb0)));
     }
 
     #[test]
