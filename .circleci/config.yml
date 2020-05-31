@@ -5,90 +5,21 @@ orbs:
   aws-ecs: circleci/aws-ecs@0.0.10
 
 jobs:
-  broker-build:
+  commit-stage:
     docker:
       - image: circleci/rust:1.41
 
     steps:
       - checkout
       - run:
-          name: Build
+          name: Commit Stage
           command: |
-            cd broker
             cargo build
-
-  broker-unit-test:
-    docker:
-      - image: circleci/rust:1.41
-
-    steps:
-      - checkout
-      - run:
-          name: Unit test
-          command: |
-            cd broker
             cargo test
 
-  client-build:
-    docker:
-      - image: circleci/golang:1.14.2
-
-    steps:
-      - checkout
-      - run:
-          name: Unit test
-          command: |
-            cd client
-            go test ./...
-
-  client-unit-test:
-    docker:
-      - image: circleci/golang:1.14.2
-
-    steps:
-      - checkout
-      - run:
-          name: Unit test
-          command: |
-            cd client
-            go test ./...
-
-
 workflows:
-  client:
-    jobs:
-      - client-build
-      - client-unit-test
-
   broker:
     jobs:
-      - broker-build
-      - broker-unit-test
-      # TODO(AD) Add system tests (see redis)
-      - approval:
-          type: approval
-          requires:
-            - broker-build
-            - broker-unit-test
-          filters:
-            branches:
-              ignore: master
-      - aws-ecr/build-and-push-image:
-          account-url: AWS_ECR_ACCOUNT_URL
-          aws-access-key-id: ACCESS_KEY_ID
-          aws-secret-access-key: SECRET_ACCESS_KEY
-          create-repo: true
-          dockerfile: ci/build/Dockerfile
-          path: broker
-          profile-name: circleci
-          region: AWS_REGION
-          repo: wombatbroker
-          tag: 'latest,${CIRCLE_SHA1}'
-          requires:
-            - approval
-      - aws-ecs/deploy-service-update:
-          requires:
-            - aws-ecr/build-and-push-image
-          family: 'wombatbroker'
-          cluster-name: 'wombatUpdate'
-          container-image-name-updates: 'container=wombatbroker,tag=${CIRCLE_SHA1}'
+      - commit-stage
+      # TODO(AD) Add acc tests - for this have a API to call directly to put
+      # and get - then a thin network layer tested independentry (makes tests easier)
