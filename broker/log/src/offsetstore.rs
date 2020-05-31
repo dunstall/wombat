@@ -7,6 +7,7 @@ use crate::result::LogResult;
 
 // Handles lookup of the segment that owns a given offset. All entries are
 // written to a file so they can be loaded on startup.
+#[derive(Debug)]
 pub struct OffsetStore {
     // TODO(AD) Replace all usize with u64
     offsets: BTreeMap<usize, u64>,
@@ -46,6 +47,14 @@ impl OffsetStore {
         self.write_u64(segment)?;
         self.offsets.insert(offset, segment);
         Ok(())
+    }
+
+    pub fn max_offset(&mut self) -> usize {
+        if let Some(max_offset) = self.offsets.iter().next_back() {
+            *max_offset.0
+        } else {
+            0
+        }
     }
 
     // TODO(AD) Not handling errors if file format.
@@ -155,6 +164,22 @@ mod tests {
         assert_eq!(offsets.get(0x1f), Some(segment2));
         assert_eq!(offsets.get(0x20), Some(segment3));
         assert_eq!(offsets.get(0x2f), Some(segment3));
+    }
+
+    #[test]
+    fn max_offset() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let path = tmp.path().join("offsets");
+        let mut offsets = OffsetStore::new(&path).unwrap();
+
+        assert_eq!(offsets.max_offset(), 0);
+
+        offsets.insert(0x00, 0).unwrap();
+        assert_eq!(offsets.max_offset(), 0);
+        offsets.insert(0x10, 1).unwrap();
+        assert_eq!(offsets.max_offset(), 0x10);
+        offsets.insert(0x20, 2).unwrap();
+        assert_eq!(offsets.max_offset(), 0x20);
     }
 
     #[test]
