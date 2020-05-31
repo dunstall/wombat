@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
@@ -40,6 +41,24 @@ impl Segment {
             }
         } else {
             Ok(buf)
+        }
+    }
+
+    pub fn id_to_name(id: u64) -> String {
+        format!("segment-{:0>8}", id.to_string())
+    }
+
+    pub fn name_to_id(name: &String) -> Option<u64> {
+        let re = Regex::new(r"^segment-(\d{8})$").unwrap();
+        if let Some(caps) = re.captures(name) {
+            if let Some(n) = caps.get(1) {
+                // Unwrap as we already checked this is an integer in the regex.
+                Some(n.as_str().parse::<u64>().unwrap())
+            } else {
+                None
+            }
+        } else {
+            None
         }
     }
 }

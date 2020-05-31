@@ -1,4 +1,3 @@
-use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -34,7 +33,7 @@ impl Log {
     ///
     /// # Errors
     ///
-    /// If the directory cannot be accessed returns an `Err`.
+    /// If the file system cannot be accessed returns `LogError::IoError`.
     pub fn new(dir: &Path, segment_limit: u64) -> LogResult<Log> {
         let mut log = Log {
             offsets: OffsetStore::new(dir)?,
@@ -54,7 +53,7 @@ impl Log {
     ///
     /// # Errors
     ///
-    /// If the file system cannot be accessed.
+    /// If the file system cannot be accessed returns `LogError::IoError`.
     pub fn append(&mut self, data: &Vec<u8>) -> LogResult<()> {
         if let Some(seg) = self.segments.get_mut(&self.active) {
             let size = seg.append(data)?;
@@ -70,17 +69,19 @@ impl Log {
 
     /// Returns `size` bytes starting at `offset`.
     ///
-    /// TODO none if eof or segment expired
+    /// # Errors
+    ///
+    /// * If the file system cannot be accessed returns `LogError::IoError`,
+    /// * If the segment has expired and been removed returns `LogError::SegmentExpired`,
+    /// * If the offset exceeds the log size returns `LogError::Eof`.
     pub fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
-        if let Some(segment) = self.offsets.get(offset) {
-            if let Some(seg) = self.segments.get_mut(&segment.0) {
-                seg.lookup(size, offset - segment.1)
-            } else {
-                // Occurs if segment expired and removed.
-                Err(LogError::SegmentExpired)
-            }
+        // Offsets always start at 0 so get never returns None.
+        let (id, segment_offset) = self.offsets.get(offset).unwrap();
+        if let Some(segment) = self.segments.get_mut(&id) {
+            segment.lookup(size, offset - segment_offset)
         } else {
-            Err(LogError::OffsetNotFound)
+            // Occurs if segment expired and removed.
+            Err(LogError::SegmentExpired)
         }
     }
 
@@ -90,43 +91,24 @@ impl Log {
     ///
     /// # Errors
     ///
-    /// If the file system cannot be accessed.
+    /// If the file system cannot be accessed returns `LogError::IoError`.
     pub fn expire(&mut self, before: SystemTime) -> LogResult<()> {
         let mut expired = Vec::new();
-        for (segment, _) in self.segments.iter() {
-            let path = &Path::new(&self.dir).join(Log::segment_to_string(*segment));
+        for (id, _) in self.segments.iter() {
+            let path = &Path::new(&self.dir).join(Segment::id_to_name(*id));
             let metadata = fs::metadata(path)?;
-            if metadata.modified()? < before && *segment != self.active {
-                expired.push(*segment);
+            if metadata.modified()? < before && *id != self.active {
+                expired.push(*id);
             }
         }
 
-        for segment in expired.iter() {
-            println!("expire {}", segment);
-            self.segments.remove(segment);
-            let path = &Path::new(&self.dir).join(Log::segment_to_string(*segment));
+        for id in expired.iter() {
+            self.segments.remove(id);
+            let path = &Path::new(&self.dir).join(Segment::id_to_name(*id));
             fs::remove_file(path)?;
         }
 
         Ok(())
-    }
-
-    fn segment_to_string(segment: u64) -> String {
-        format!("segment-{:0>8}", segment.to_string())
-    }
-
-    fn string_to_segment(s: &String) -> Option<u64> {
-        let re = Regex::new(r"^segment-(\d{8})$").unwrap();
-        if let Some(caps) = re.captures(s) {
-            if let Some(n) = caps.get(1) {
-                Some(n.as_str().parse::<u64>().unwrap()) // TODO
-            } else {
-                // TODO error?
-                None
-            }
-        } else {
-            None
-        }
     }
 
     fn load_segments(&mut self) -> LogResult<()> {
@@ -136,7 +118,7 @@ impl Log {
             self.load_segment(name)?;
         }
 
-        if self.segments.len() == 0 {
+        if self.segments.is_empty() {
             self.new_segment(0)?;
             self.offsets.insert(0, 0)?;
         }
@@ -145,16 +127,14 @@ impl Log {
     }
 
     fn load_segment(&mut self, file: String) -> LogResult<()> {
-        if let Some(segment) = Log::string_to_segment(&file) {
+        if let Some(segment) = Segment::name_to_id(&file) {
             self.segments
                 .insert(segment, Segment::new(&Path::new(&self.dir).join(file))?);
         }
-
         Ok(())
     }
 
     fn extend_segments(&mut self, offset: u64) -> LogResult<()> {
-        // let offset = size + self.offsets.max_offset();
         self.active += 1;
         self.new_segment(self.active)?;
         self.offsets.insert(offset, self.active)?;
@@ -164,7 +144,7 @@ impl Log {
     fn new_segment(&mut self, segment: u64) -> LogResult<()> {
         self.segments.insert(
             segment,
-            Segment::new(&Path::new(&self.dir).join(Log::segment_to_string(segment)))?,
+            Segment::new(&Path::new(&self.dir).join(Segment::id_to_name(segment)))?,
         );
         Ok(())
     }
