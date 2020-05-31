@@ -9,6 +9,13 @@ use crate::offsetstore::OffsetStore;
 use crate::result::{LogError, LogResult};
 use crate::segment::Segment;
 
+/// Append only log.
+///
+/// This log is implemented based on the [Kafka log](http://notes.stephenholiday.com/Kafka.pdf)
+/// (Section 3.2).
+///
+/// Each log contains a set of append only segments of a configured maximum
+/// size. Records are accessed using their offset in the log.
 pub struct Log {
     offsets: OffsetStore,
     active: u64,
@@ -18,6 +25,14 @@ pub struct Log {
 }
 
 impl Log {
+    /// Creates a `Log` in the given directory.
+    ///
+    /// This will load all segments stored in this directory and the offset
+    /// table.
+    ///
+    /// # Errors
+    ///
+    /// If the directory cannot be accessed returns an `Err`.
     pub fn new(dir: &Path, seg_size: u64) -> LogResult<Log> {
         let mut log = Log {
             offsets: OffsetStore::new(&dir.join("offsets"))?,
@@ -30,11 +45,19 @@ impl Log {
         Ok(log)
     }
 
+    /// Appends the given data to the log.
+    ///
+    /// If the active segment exceeds its configured max size a new segment
+    /// is created.
+    ///
+    /// # Errors
+    ///
+    /// If the file system cannot be accessed.
     pub fn append(&mut self, data: &Vec<u8>) -> LogResult<()> {
         if let Some(seg) = self.segments.get_mut(&self.active) {
             let size = seg.append(data)?;
             if size > self.seg_size {
-                let new_off = size + self.offsets.max_offset() as u64;
+                let new_off = size + self.offsets.max_offset();
                 self.active += 1;
                 self.new_segment(self.active)?;
                 self.offsets.insert(new_off, self.active)?;
@@ -46,7 +69,11 @@ impl Log {
         Ok(())
     }
 
+    /// Returns `size` bytes starting at `offset`.
+    ///
+    /// TODO none if eof or segment expired
     pub fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
+        // TODO return None if EOF?
         if let Some(segment) = self.offsets.get(offset) {
             if let Some(seg) = self.segments.get_mut(&segment.0) {
                 seg.lookup(size, offset - segment.1)
@@ -59,6 +86,13 @@ impl Log {
         }
     }
 
+    /// Erases all segments last modified before `before`.
+    ///
+    /// This will never remove the active segment.
+    ///
+    /// # Errors
+    ///
+    /// If the file system cannot be accessed.
     pub fn expire(&mut self, before: SystemTime) -> LogResult<()> {
         let mut expired = Vec::new();
         for (segment, _) in self.segments.iter() {
