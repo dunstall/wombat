@@ -1,10 +1,13 @@
+use std::ffi;
 use std::io;
 use std::string;
 
 #[derive(std::fmt::Debug)]
 pub enum LogError {
+    OffsetNotFound,
     IoError(io::Error),
     Utf8Error(string::FromUtf8Error),
+    OsStringError(ffi::OsString),
 }
 
 impl From<io::Error> for LogError {
@@ -16,6 +19,12 @@ impl From<io::Error> for LogError {
 impl From<string::FromUtf8Error> for LogError {
     fn from(error: string::FromUtf8Error) -> Self {
         LogError::Utf8Error(error)
+    }
+}
+
+impl From<ffi::OsString> for LogError {
+    fn from(error: ffi::OsString) -> Self {
+        LogError::OsStringError(error)
     }
 }
 
