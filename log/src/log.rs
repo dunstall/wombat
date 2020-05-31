@@ -72,7 +72,6 @@ impl Log {
     ///
     /// TODO none if eof or segment expired
     pub fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
-        // TODO return None if EOF?
         if let Some(segment) = self.offsets.get(offset) {
             if let Some(seg) = self.segments.get_mut(&segment.0) {
                 seg.lookup(size, offset - segment.1)
@@ -325,5 +324,14 @@ mod tests {
         assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
     }
 
-    // TODO(AD) test edges cases eg lookup EOF
+    #[test]
+    fn lookup_eof() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = Log::new(tmp.path(), 3).unwrap();
+
+        if let Err(LogError::Eof) = log.lookup(4, 0) {
+        } else {
+            panic!("expected segment expired");
+        }
+    }
 }

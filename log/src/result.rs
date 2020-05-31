@@ -6,6 +6,7 @@ use std::string;
 pub enum LogError {
     OffsetNotFound,
     SegmentExpired,
+    Eof,
     IoError(io::Error),
     Utf8Error(string::FromUtf8Error),
     OsStringError(ffi::OsString),

@@ -1,9 +1,10 @@
 use std::fs::{File, OpenOptions};
+use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::vec::Vec;
 
-use crate::result::LogResult;
+use crate::result::{LogError, LogResult};
 
 pub struct Segment {
     file: File,
@@ -30,8 +31,16 @@ impl Segment {
         self.file.seek(SeekFrom::Start(offset as u64))?;
         let mut buf = Vec::new();
         buf.resize(size as usize, 0);
-        self.file.read_exact(&mut buf[..])?;
-        Ok(buf)
+
+        if let Err(err) = self.file.read_exact(&mut buf[..]) {
+            if err.kind() == io::ErrorKind::UnexpectedEof {
+                Err(LogError::Eof)
+            } else {
+                Err(LogError::IoError(err))
+            }
+        } else {
+            Ok(buf)
+        }
     }
 }
 
@@ -87,5 +96,16 @@ mod tests {
         assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
         assert_eq!(vec![4, 5, 6], segment.lookup(3, 3).unwrap());
         assert_eq!(vec![7, 8, 9], segment.lookup(3, 6).unwrap());
+    }
+
+    #[test]
+    fn lookup_eof() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut segment = Segment::new(&tmp.path().join("segment.1")).unwrap();
+
+        if let Err(LogError::Eof) = segment.lookup(4, 0) {
+        } else {
+            panic!("expected EOF");
+        }
     }
 }
