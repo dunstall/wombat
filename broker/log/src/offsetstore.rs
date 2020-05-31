@@ -30,11 +30,11 @@ impl OffsetStore {
         Ok(offsets)
     }
 
-    // Returns the name of the segment containing this offset read from memory.
-    pub fn get(&self, offset: usize) -> Option<u64> {
+    // Returns the segment number and starting offset of this segment.
+    pub fn get(&self, offset: usize) -> Option<(u64, u64)> {
         for (first_offset, segment) in self.offsets.iter().rev() {
             if *first_offset <= offset {
-                return Some(*segment);
+                return Some((*segment, *first_offset as u64));
             }
         }
         None
@@ -108,9 +108,9 @@ mod tests {
         let mut offsets = OffsetStore::new(&path).unwrap();
         offsets.insert(0, segment).unwrap();
 
-        assert_eq!(offsets.get(0), Some(segment));
-        assert_eq!(offsets.get(0xaa), Some(segment));
-        assert_eq!(offsets.get(0xff), Some(segment));
+        assert_eq!(offsets.get(0), Some((segment, 0)));
+        assert_eq!(offsets.get(0xaa), Some((segment, 0)));
+        assert_eq!(offsets.get(0xff), Some((segment, 0)));
     }
 
     #[test]
@@ -123,8 +123,8 @@ mod tests {
         offsets.insert(0xaa, segment).unwrap();
 
         assert_eq!(offsets.get(0), None);
-        assert_eq!(offsets.get(0xaa), Some(segment));
-        assert_eq!(offsets.get(0xff), Some(segment));
+        assert_eq!(offsets.get(0xaa), Some((segment, 0xaa)));
+        assert_eq!(offsets.get(0xff), Some((segment, 0xaa)));
     }
 
     #[test]
@@ -139,10 +139,10 @@ mod tests {
         offsets.insert(0xb0, segment2).unwrap();
 
         assert_eq!(offsets.get(0x9f), None);
-        assert_eq!(offsets.get(0xa0), Some(segment1));
-        assert_eq!(offsets.get(0xaf), Some(segment1));
-        assert_eq!(offsets.get(0xb0), Some(segment2));
-        assert_eq!(offsets.get(0xff), Some(segment2));
+        assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
+        assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
+        assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
+        assert_eq!(offsets.get(0xff), Some((segment2, 0xff)));
     }
 
     #[test]
@@ -158,12 +158,12 @@ mod tests {
         offsets.insert(0x10, segment2).unwrap();
         offsets.insert(0x00, segment1).unwrap();
 
-        assert_eq!(offsets.get(0x00), Some(segment1));
-        assert_eq!(offsets.get(0x0f), Some(segment1));
-        assert_eq!(offsets.get(0x10), Some(segment2));
-        assert_eq!(offsets.get(0x1f), Some(segment2));
-        assert_eq!(offsets.get(0x20), Some(segment3));
-        assert_eq!(offsets.get(0x2f), Some(segment3));
+        assert_eq!(offsets.get(0x00), Some((segment1, 0x00)));
+        assert_eq!(offsets.get(0x0f), Some((segment1, 0x00)));
+        assert_eq!(offsets.get(0x10), Some((segment2, 0x10)));
+        assert_eq!(offsets.get(0x1f), Some((segment2, 0x10)));
+        assert_eq!(offsets.get(0x20), Some((segment3, 0x20)));
+        assert_eq!(offsets.get(0x2f), Some((segment3, 0x20)));
     }
 
     #[test]
@@ -200,10 +200,10 @@ mod tests {
             let offsets = OffsetStore::new(&path).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
-            assert_eq!(offsets.get(0xa0), Some(segment1));
-            assert_eq!(offsets.get(0xaf), Some(segment1));
-            assert_eq!(offsets.get(0xb0), Some(segment2));
-            assert_eq!(offsets.get(0xff), Some(segment2));
+            assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
+            assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
+            assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
+            assert_eq!(offsets.get(0xff), Some((segment2, 0xb0)));
         }
     }
 
@@ -229,10 +229,10 @@ mod tests {
             let offsets = OffsetStore::new(&path).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
-            assert_eq!(offsets.get(0xa0), Some(segment1));
-            assert_eq!(offsets.get(0xaf), Some(segment1));
-            assert_eq!(offsets.get(0xb0), Some(segment2));
-            assert_eq!(offsets.get(0xff), Some(segment2));
+            assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
+            assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
+            assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
+            assert_eq!(offsets.get(0xff), Some((segment2, 0xb0)));
         }
     }
 }
