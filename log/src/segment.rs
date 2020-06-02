@@ -11,7 +11,7 @@ pub struct Segment {
     file: File,
 }
 
-// TODO Handle flush/sync
+// TODO(AD) Handle flush/sync
 impl Segment {
     pub fn new(path: &Path) -> LogResult<Segment> {
         let file = OpenOptions::new()
