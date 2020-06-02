@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 wombatcore = { path = "../core" }
+wombatlog = { path = "../log" }
 crc = "1.8.1"
 tokio = { version = "0.2", features = ["full"] }  # TODO(AD)
 
