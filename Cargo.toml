@@ -1,2 +1,2 @@
 [workspace]
-members = ["server", "client", "core", "tests", "partition", "log"]
+members = ["broker", "partition", "log"]
