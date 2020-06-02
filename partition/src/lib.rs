@@ -4,3 +4,4 @@ mod result;
 
 pub use id::PartitionID;
 pub use partition::Partition;
+pub use result::PartitionError;
