@@ -5,11 +5,12 @@ authors = ["Andy Dunstall <andydunstall@hotmail.com>"]
 edition = "2018"
 
 [dependencies]
-wombatcore = { path = "../core" }
+byteorder = "1"
+# wombatcore = { path = "../core" }
 wombatlog = { path = "../log" }
-crc = "1.8.1"
-tokio = { version = "0.2", features = ["full"] }  # TODO(AD)
+# crc = "1.8.1"
+# tokio = { version = "0.2", features = ["full"] }  # TODO(AD)
 
-[dev-dependencies]
-rand = "0.7.3"
-tempdir = "0.3"
+# [dev-dependencies]
+# rand = "0.7.3"
+# tempdir = "0.3"
