@@ -16,6 +16,9 @@ use crate::segment::Segment;
 ///
 /// Each log contains a set of append only segments of a configured maximum
 /// size. Records are accessed using their offset in the log.
+///
+/// TODO(AD) Support:
+/// * Async
 pub struct SystemLog {
     // TODO trait and SystemLog impl and in memory log not very often
     offsets: OffsetStore,
