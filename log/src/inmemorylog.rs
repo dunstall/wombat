@@ -6,6 +6,7 @@ use crate::result::{LogError, LogResult};
 
 /// In memory log for testing other components.
 pub struct InMemoryLog {
+    // TODO InMemorySegment
     data: Vec<u8>,
 }
 

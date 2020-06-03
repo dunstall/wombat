@@ -23,7 +23,7 @@ use crate::systemsegment::SystemSegment;
 /// * Async
 pub struct SystemLog {
     // TODO trait and SystemLog impl and in memory log not very often
-    offsets: OffsetStore,
+    offsets: OffsetStore<SystemSegment>,
     active: u64,
     segments: HashMap<u64, Box<SystemSegment>>,
     segment_limit: u64,

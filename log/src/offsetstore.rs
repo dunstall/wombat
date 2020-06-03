@@ -1,32 +1,27 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::collections::BTreeMap;
-use std::fs;
-use std::fs::{File, OpenOptions};
+use std::io::Cursor;
 use std::path::Path;
 
 use crate::result::LogResult;
+use crate::segment::Segment;
 
 // Handles lookup of the segment that owns a given offset. All entries are
 // written to a file so they can be loaded on startup.
 #[derive(Debug)]
-pub struct OffsetStore {
+pub struct OffsetStore<S> {
     offsets: BTreeMap<u64, u64>,
-    file: File,
+    segment: Box<S>,
 }
 
-impl OffsetStore {
-    // TODO(AD) Use segment
-    pub fn new(dir: &Path) -> LogResult<OffsetStore> {
-        fs::create_dir_all(dir)?;
-        let file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .append(true)
-            .open(dir.join("offsets"))?;
+impl<S> OffsetStore<S>
+where
+    S: Segment,
+{
+    pub fn new(dir: &Path) -> LogResult<OffsetStore<S>> {
         let mut offsets = OffsetStore {
             offsets: BTreeMap::new(),
-            file: file,
+            segment: S::open(&dir.join("offsets"))?,
         };
         offsets.load_offsets()?;
         Ok(offsets)
@@ -61,26 +56,31 @@ impl OffsetStore {
 
     // TODO(AD) Not handling errors if file format.
     fn load_offsets(&mut self) -> LogResult<()> {
+        let mut offset = 0;
         loop {
-            if let Err(_) = self.load_offset() {
+            if let Err(_) = self.load_offset(offset) {
                 return Ok(());
             }
+            offset += 16;
         }
     }
 
-    fn load_offset(&mut self) -> LogResult<()> {
-        let offset = self.read_u64()?;
-        let segment = self.read_u64()?;
+    fn load_offset(&mut self, from: u64) -> LogResult<()> {
+        let offset = self.read_u64(from)?;
+        let segment = self.read_u64(from + 8)?;
         self.offsets.insert(offset, segment);
         Ok(())
     }
 
-    fn read_u64(&mut self) -> LogResult<u64> {
-        Ok(self.file.read_u64::<BigEndian>()?)
+    fn read_u64(&mut self, offset: u64) -> LogResult<u64> {
+        let mut rdr = Cursor::new(self.segment.lookup(8, offset)?);
+        Ok(rdr.read_u64::<BigEndian>()?)
     }
 
     fn write_u64(&mut self, n: u64) -> LogResult<()> {
-        self.file.write_u64::<BigEndian>(n)?;
+        let mut size = vec![];
+        size.write_u64::<BigEndian>(n)?;
+        self.segment.append(&size)?;
         Ok(())
     }
 }
@@ -91,11 +91,14 @@ mod tests {
 
     use tempdir::TempDir;
 
+    use crate::systemsegment::SystemSegment;
+
+    // TODO(AD) Use in memory segment.
     #[test]
     fn lookup_empty() {
         let dir = TempDir::new("log-unit-tests").unwrap();
 
-        let offsets = OffsetStore::new(&dir.path()).unwrap();
+        let offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
         assert_eq!(offsets.get(0), None);
         assert_eq!(offsets.get(100), None);
     }
@@ -105,7 +108,7 @@ mod tests {
         let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment = 0;
-        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
         offsets.insert(0, segment).unwrap();
 
         assert_eq!(offsets.get(0), Some((segment, 0)));
@@ -118,7 +121,7 @@ mod tests {
         let dir = TempDir::new("log-unit-tests").unwrap();
 
         let segment = 0;
-        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
         offsets.insert(0xaa, segment).unwrap();
 
         assert_eq!(offsets.get(0), None);
@@ -132,7 +135,7 @@ mod tests {
 
         let segment1 = 0;
         let segment2 = 1;
-        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
         offsets.insert(0xa0, segment1).unwrap();
         offsets.insert(0xb0, segment2).unwrap();
 
@@ -150,7 +153,7 @@ mod tests {
         let segment1 = 0;
         let segment2 = 1;
         let segment3 = 2;
-        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
         offsets.insert(0x20, segment3).unwrap();
         offsets.insert(0x10, segment2).unwrap();
         offsets.insert(0x00, segment1).unwrap();
@@ -167,7 +170,7 @@ mod tests {
     fn max_offset() {
         let dir = TempDir::new("log-unit-tests").unwrap();
 
-        let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
 
         assert_eq!(offsets.max_offset(), 0);
 
@@ -187,13 +190,13 @@ mod tests {
         let segment2 = 1;
 
         {
-            let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+            let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
             offsets.insert(0xa0, segment1).unwrap();
             offsets.insert(0xb0, segment2).unwrap();
         }
 
         {
-            let offsets = OffsetStore::new(&dir.path()).unwrap();
+            let offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
             assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
@@ -211,17 +214,17 @@ mod tests {
         let segment2 = 1;
 
         {
-            let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+            let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
             offsets.insert(0xa0, segment1).unwrap();
         }
 
         {
-            let mut offsets = OffsetStore::new(&dir.path()).unwrap();
+            let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
             offsets.insert(0xb0, segment2).unwrap();
         }
 
         {
-            let offsets = OffsetStore::new(&dir.path()).unwrap();
+            let offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
 
             assert_eq!(offsets.get(0x9f), None);
             assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
