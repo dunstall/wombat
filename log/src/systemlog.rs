@@ -40,6 +40,7 @@ impl SystemLog {
     ///
     /// If the file system cannot be accessed returns `LogError::IoError`.
     pub fn new(dir: &Path, segment_limit: u64) -> LogResult<SystemLog> {
+        fs::create_dir_all(dir)?;
         let mut log = SystemLog {
             offsets: OffsetStore::new(dir)?,
             active: 0,
@@ -318,7 +319,7 @@ mod tests {
 
         if let Err(LogError::Eof) = log.lookup(4, 0) {
         } else {
-            panic!("expected segment expired");
+            panic!("expected EOF");
         }
     }
 }

@@ -5,4 +5,8 @@ authors = ["Andy Dunstall <andydunstall@hotmail.com>"]
 edition = "2018"
 
 [dependencies]
+wombatlog = { path = "../log" }
 wombatpartition = { path = "../partition" }
+
+[dev-dependencies]
+tempdir = "0.3"
