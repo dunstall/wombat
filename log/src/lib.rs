@@ -4,6 +4,7 @@ mod offsetstore;
 mod result;
 mod segment;
 mod systemlog;
+mod systemsegment;
 
 pub use inmemorylog::InMemoryLog;
 pub use log::Log;
