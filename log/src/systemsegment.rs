@@ -1,8 +1,9 @@
 use std::fs;
-use std::fs::{File, OpenOptions};
+use std::fs::{File, OpenOptions, ReadDir};
 use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
+use std::time::SystemTime;
 use std::vec::Vec;
 
 use crate::result::{LogError, LogResult};
@@ -10,6 +11,7 @@ use crate::segment::Segment;
 
 pub struct SystemSegment {
     file: File,
+    path: String,
 }
 
 // TODO(AD) Handle flush/sync
@@ -22,7 +24,10 @@ impl Segment for SystemSegment {
             .create(true)
             .append(true)
             .open(path)?;
-        Ok(Box::new(SystemSegment { file }))
+        Ok(Box::new(SystemSegment {
+            file,
+            path: path.to_str().unwrap().to_string(),
+        }))
     }
 
     fn append(&mut self, data: &Vec<u8>) -> LogResult<u64> {
@@ -44,6 +49,20 @@ impl Segment for SystemSegment {
         } else {
             Ok(buf)
         }
+    }
+
+    // TODO(AD) Test
+    fn modified(&self) -> LogResult<SystemTime> {
+        Ok(self.file.metadata()?.modified()?)
+    }
+
+    // TODO(AD) Test
+    fn remove(&self) -> LogResult<()> {
+        Ok(fs::remove_file(&self.path)?)
+    }
+
+    fn read_dir(dir: &Path) -> LogResult<ReadDir> {
+        Ok(fs::read_dir(dir)?)
     }
 }
 

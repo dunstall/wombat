@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 use std::path::Path;
 use std::time::SystemTime;
 use std::vec::Vec;
@@ -21,6 +20,7 @@ use crate::systemsegment::SystemSegment;
 ///
 /// TODO(AD) Support:
 /// * Async
+/// * Flush/sync (sync_all)
 pub struct SystemLog {
     // TODO trait and SystemLog impl and in memory log not very often
     offsets: OffsetStore<SystemSegment>,
@@ -55,7 +55,8 @@ impl SystemLog {
     }
 
     fn load_segments(&mut self) -> LogResult<()> {
-        for entry in fs::read_dir(&self.dir)? {
+        for entry in SystemSegment::read_dir(&Path::new(&self.dir))? {
+            // TODO(AD)
             let entry = entry?;
             let name = entry.file_name().into_string()?;
             self.load_segment(name)?;
@@ -148,182 +149,181 @@ impl Log for SystemLog {
     /// If the file system cannot be accessed returns `LogError::IoError`.
     fn expire(&mut self, before: SystemTime) -> LogResult<()> {
         let mut expired = Vec::new();
-        for (id, _) in self.segments.iter() {
-            let path = &Path::new(&self.dir).join(segment::id_to_name(*id));
-            let metadata = fs::metadata(path)?;
-            if metadata.modified()? < before && *id != self.active {
+        for (id, segment) in self.segments.iter() {
+            if segment.modified()? < before && *id != self.active {
                 expired.push(*id);
+                segment.remove()?;
             }
         }
 
         for id in expired.iter() {
             self.segments.remove(id);
-            let path = &Path::new(&self.dir).join(segment::id_to_name(*id));
-            fs::remove_file(path)?;
         }
 
         Ok(())
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-// use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// use std::thread::sleep;
-// use std::time::Duration;
-// use tempdir::TempDir;
+    use std::thread::sleep;
+    use std::time::Duration;
+    use tempdir::TempDir;
 
-// #[test]
-// fn empty_log() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 10).unwrap();
+    #[test]
+    fn empty_log() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 10).unwrap();
 
-// let written = vec![1, 2, 3];
-// log.append(&written).unwrap();
+        let written = vec![1, 2, 3];
+        log.append(&written).unwrap();
 
-// let read = log.lookup(3, 0).unwrap();
-// assert_eq!(written, read);
-// }
+        let read = log.lookup(3, 0).unwrap();
+        assert_eq!(written, read);
+    }
 
-// #[test]
-// fn read_existing_single_segment() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+    #[test]
+    fn read_existing_single_segment() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
 
-// let written = vec![1, 2, 3];
-// log.append(&written).unwrap();
+        let written = vec![1, 2, 3];
+        log.append(&written).unwrap();
 
-// let mut log = SystemLog::new(tmp.path(), 10).unwrap();
-// let read = log.lookup(3, 0).unwrap();
-// assert_eq!(written, read);
-// }
+        let mut log = SystemLog::new(tmp.path(), 10).unwrap();
+        let read = log.lookup(3, 0).unwrap();
+        assert_eq!(written, read);
+    }
 
-// #[test]
-// fn write_multiple_segments() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+    #[test]
+    fn write_multiple_segments() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
 
-// // Segment 0.
-// log.append(&vec![1, 2, 3, 4]).unwrap();
-// // Segment 1.
-// log.append(&vec![5, 6, 7, 8]).unwrap();
-// // Segment 2.
-// log.append(&vec![7]).unwrap();
-// log.append(&vec![8]).unwrap();
-// log.append(&vec![9, 10]).unwrap();
-// // // Segment 3.
-// log.append(&vec![11, 12]).unwrap();
+        // Segment 0.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        // Segment 1.
+        log.append(&vec![5, 6, 7, 8]).unwrap();
+        // Segment 2.
+        log.append(&vec![7]).unwrap();
+        log.append(&vec![8]).unwrap();
+        log.append(&vec![9, 10]).unwrap();
+        // // Segment 3.
+        log.append(&vec![11, 12]).unwrap();
 
-// // Check the records were written to different segments.
-// let mut segment = Segment::new(&tmp.path().join("segment-00000000")).unwrap();
-// assert_eq!(vec![1, 2, 3, 4], segment.lookup(4, 0).unwrap());
-// let mut segment = Segment::new(&tmp.path().join("segment-00000001")).unwrap();
-// assert_eq!(vec![5, 6, 7, 8], segment.lookup(4, 0).unwrap());
-// let mut segment = Segment::new(&tmp.path().join("segment-00000002")).unwrap();
-// assert_eq!(vec![7, 8], segment.lookup(2, 0).unwrap());
-// assert_eq!(vec![9, 10], segment.lookup(2, 2).unwrap());
-// let mut segment = Segment::new(&tmp.path().join("segment-00000003")).unwrap();
-// assert_eq!(vec![11, 12], segment.lookup(2, 0).unwrap());
+        // TODO(AD) Cleanup - replace 0000... with id to name
 
-// assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
-// assert_eq!(vec![5, 6, 7, 8], log.lookup(4, 4).unwrap());
-// assert_eq!(vec![7, 8], log.lookup(2, 8).unwrap());
-// assert_eq!(vec![9, 10], log.lookup(2, 10).unwrap());
-// }
+        // Check the records were written to different segments.
+        let mut segment = SystemSegment::open(&tmp.path().join(segment::id_to_name(0))).unwrap();
+        assert_eq!(vec![1, 2, 3, 4], segment.lookup(4, 0).unwrap());
+        let mut segment = SystemSegment::open(&tmp.path().join(segment::id_to_name(1))).unwrap();
+        assert_eq!(vec![5, 6, 7, 8], segment.lookup(4, 0).unwrap());
+        let mut segment = SystemSegment::open(&tmp.path().join(segment::id_to_name(2))).unwrap();
+        assert_eq!(vec![7, 8], segment.lookup(2, 0).unwrap());
+        assert_eq!(vec![9, 10], segment.lookup(2, 2).unwrap());
+        let mut segment = SystemSegment::open(&tmp.path().join(segment::id_to_name(3))).unwrap();
+        assert_eq!(vec![11, 12], segment.lookup(2, 0).unwrap());
 
-// #[test]
-// fn load_log() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+        assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
+        assert_eq!(vec![5, 6, 7, 8], log.lookup(4, 4).unwrap());
+        assert_eq!(vec![7, 8], log.lookup(2, 8).unwrap());
+        assert_eq!(vec![9, 10], log.lookup(2, 10).unwrap());
+    }
 
-// // Segment 0.
-// log.append(&vec![1, 2, 3, 4]).unwrap();
-// // Segment 1.
-// log.append(&vec![5, 6, 7, 8]).unwrap();
-// // Segment 2.
-// log.append(&vec![7]).unwrap();
-// log.append(&vec![8]).unwrap();
-// log.append(&vec![9, 10]).unwrap();
-// // // Segment 3.
-// log.append(&vec![11, 12]).unwrap();
+    #[test]
+    fn load_log() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
 
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
-// assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
-// assert_eq!(vec![5, 6, 7, 8], log.lookup(4, 4).unwrap());
-// assert_eq!(vec![7, 8], log.lookup(2, 8).unwrap());
-// assert_eq!(vec![9, 10], log.lookup(2, 10).unwrap());
-// }
+        // Segment 0.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        // Segment 1.
+        log.append(&vec![5, 6, 7, 8]).unwrap();
+        // Segment 2.
+        log.append(&vec![7]).unwrap();
+        log.append(&vec![8]).unwrap();
+        log.append(&vec![9, 10]).unwrap();
+        // // Segment 3.
+        log.append(&vec![11, 12]).unwrap();
 
-// #[test]
-// fn expire_active_segment() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 10).unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+        assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
+        assert_eq!(vec![5, 6, 7, 8], log.lookup(4, 4).unwrap());
+        assert_eq!(vec![7, 8], log.lookup(2, 8).unwrap());
+        assert_eq!(vec![9, 10], log.lookup(2, 10).unwrap());
+    }
 
-// // Segment 0.
-// log.append(&vec![1, 2, 3, 4]).unwrap();
+    #[test]
+    fn expire_active_segment() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 10).unwrap();
 
-// // Should NOT remove the active segment.
-// log.expire(SystemTime::now()).unwrap();
+        // Segment 0.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
 
-// assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
-// }
+        // Should NOT remove the active segment.
+        log.expire(SystemTime::now()).unwrap();
 
-// #[test]
-// fn expire_old_segment() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+        assert_eq!(vec![1, 2, 3, 4], log.lookup(4, 0).unwrap());
+    }
 
-// // Fill the active segment to create new.
-// log.append(&vec![1, 2, 3, 4]).unwrap();
-// let exp = SystemTime::now();
-// log.append(&vec![5, 6]).unwrap(); // Active segment.
+    #[test]
+    fn expire_old_segment() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
 
-// sleep(Duration::new(1, 0));
+        // Fill the active segment to create new.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        let exp = SystemTime::now();
+        log.append(&vec![5, 6]).unwrap(); // Active segment.
 
-// log.expire(exp).unwrap();
+        sleep(Duration::new(1, 0));
 
-// if let Err(LogError::SegmentExpired) = log.lookup(4, 0) {
-// } else {
-// panic!("expected segment expired");
-// }
+        log.expire(exp).unwrap();
 
-// assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
-// }
+        if let Err(LogError::SegmentExpired) = log.lookup(4, 0) {
+        } else {
+            panic!("expected segment expired");
+        }
 
-// #[test]
-// fn load_log_with_expired_segments() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+        assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
+    }
 
-// // Fill the active segment to create new.
-// log.append(&vec![1, 2, 3, 4]).unwrap();
-// let exp = SystemTime::now();
-// log.append(&vec![5, 6]).unwrap(); // Active segment.
+    #[test]
+    fn load_log_with_expired_segments() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
 
-// sleep(Duration::new(1, 0));
+        // Fill the active segment to create new.
+        log.append(&vec![1, 2, 3, 4]).unwrap();
+        let exp = SystemTime::now();
+        log.append(&vec![5, 6]).unwrap(); // Active segment.
 
-// log.expire(exp).unwrap();
+        sleep(Duration::new(1, 0));
 
-// // Load the log again.
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+        log.expire(exp).unwrap();
 
-// if let Err(LogError::SegmentExpired) = log.lookup(4, 0) {
-// } else {
-// panic!("expected segment expired");
-// }
+        // Load the log again.
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
 
-// assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
-// }
+        if let Err(LogError::SegmentExpired) = log.lookup(4, 0) {
+        } else {
+            panic!("expected segment expired");
+        }
 
-// #[test]
-// fn lookup_eof() {
-// let tmp = TempDir::new("log-unit-tests").unwrap();
-// let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+        assert_eq!(vec![5, 6], log.lookup(2, 4).unwrap());
+    }
 
-// if let Err(LogError::Eof) = log.lookup(4, 0) {
-// } else {
-// panic!("expected EOF");
-// }
-// }
-/* } */
+    #[test]
+    fn lookup_eof() {
+        let tmp = TempDir::new("log-unit-tests").unwrap();
+        let mut log = SystemLog::new(tmp.path(), 3).unwrap();
+
+        if let Err(LogError::Eof) = log.lookup(4, 0) {
+        } else {
+            panic!("expected EOF");
+        }
+    }
+}
