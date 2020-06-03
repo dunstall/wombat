@@ -28,6 +28,7 @@ pub struct SystemLog {
     dir: String,
 }
 
+// TODO(AD) Log should be a struct and segment generic.
 impl SystemLog {
     /// Creates a `SystemLog` in the given directory.
     ///
@@ -40,7 +41,6 @@ impl SystemLog {
     ///
     /// If the file system cannot be accessed returns `LogError::IoError`.
     pub fn new(dir: &Path, segment_limit: u64) -> LogResult<SystemLog> {
-        fs::create_dir_all(dir)?;
         let mut log = SystemLog {
             offsets: OffsetStore::new(dir)?,
             active: 0,

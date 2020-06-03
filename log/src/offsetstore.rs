@@ -1,5 +1,6 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::collections::BTreeMap;
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 
@@ -14,7 +15,9 @@ pub struct OffsetStore {
 }
 
 impl OffsetStore {
+    // TODO(AD) Use segment
     pub fn new(dir: &Path) -> LogResult<OffsetStore> {
+        fs::create_dir_all(dir)?;
         let file = OpenOptions::new()
             .read(true)
             .write(true)

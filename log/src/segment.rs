@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
@@ -14,6 +15,7 @@ pub struct Segment {
 // TODO(AD) Handle flush/sync
 impl Segment {
     pub fn new(path: &Path) -> LogResult<Segment> {
+        fs::create_dir_all(path.parent().unwrap())?;
         let file = OpenOptions::new()
             .read(true)
             .write(true)
