@@ -25,7 +25,7 @@ pub struct SystemLog {
     // TODO trait and SystemLog impl and in memory log not very often
     offsets: OffsetStore,
     active: u64,
-    segments: HashMap<u64, SystemSegment>,
+    segments: HashMap<u64, Box<SystemSegment>>,
     segment_limit: u64,
     dir: String,
 }
@@ -73,7 +73,7 @@ impl SystemLog {
         if let Some(segment) = segment::name_to_id(&file) {
             self.segments.insert(
                 segment,
-                SystemSegment::new(&Path::new(&self.dir).join(file))?,
+                SystemSegment::open(&Path::new(&self.dir).join(file))?,
             );
         }
         Ok(())
@@ -89,7 +89,7 @@ impl SystemLog {
     fn new_segment(&mut self, segment: u64) -> LogResult<()> {
         self.segments.insert(
             segment,
-            SystemSegment::new(&Path::new(&self.dir).join(segment::id_to_name(segment)))?,
+            SystemSegment::open(&Path::new(&self.dir).join(segment::id_to_name(segment)))?,
         );
         Ok(())
     }

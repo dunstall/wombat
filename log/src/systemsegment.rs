@@ -13,8 +13,8 @@ pub struct SystemSegment {
 }
 
 // TODO(AD) Handle flush/sync
-impl SystemSegment {
-    pub fn new(path: &Path) -> LogResult<SystemSegment> {
+impl Segment for SystemSegment {
+    fn open(path: &Path) -> LogResult<Box<SystemSegment>> {
         fs::create_dir_all(path.parent().unwrap())?;
         let file = OpenOptions::new()
             .read(true)
@@ -22,11 +22,9 @@ impl SystemSegment {
             .create(true)
             .append(true)
             .open(path)?;
-        Ok(SystemSegment { file })
+        Ok(Box::new(SystemSegment { file }))
     }
-}
 
-impl Segment for SystemSegment {
     fn append(&mut self, data: &Vec<u8>) -> LogResult<u64> {
         self.file.write_all(data)?;
         Ok(self.file.seek(SeekFrom::Current(0))?)
@@ -59,7 +57,7 @@ mod tests {
     #[test]
     fn append_single() {
         let tmp = TempDir::new("log-unit-tests").unwrap();
-        let mut segment = SystemSegment::new(&tmp.path().join("segment.1")).unwrap();
+        let mut segment = SystemSegment::open(&tmp.path().join("segment.1")).unwrap();
 
         let written = vec![1, 2, 3];
         assert_eq!(segment.append(&written).unwrap(), 3);
@@ -71,7 +69,7 @@ mod tests {
     #[test]
     fn append_multi() {
         let tmp = TempDir::new("log-unit-tests").unwrap();
-        let mut segment = SystemSegment::new(&tmp.path().join("segment.1")).unwrap();
+        let mut segment = SystemSegment::open(&tmp.path().join("segment.1")).unwrap();
 
         for offset in (0..1000).step_by(100) {
             let mut rng = rand::thread_rng();
@@ -87,7 +85,7 @@ mod tests {
     #[test]
     fn append_multi_unordered_read() {
         let tmp = TempDir::new("log-unit-tests").unwrap();
-        let mut segment = SystemSegment::new(&tmp.path().join("segment.1")).unwrap();
+        let mut segment = SystemSegment::open(&tmp.path().join("segment.1")).unwrap();
 
         assert_eq!(segment.append(&vec![1, 2, 3]).unwrap(), 3);
         assert_eq!(segment.append(&vec![4, 5, 6]).unwrap(), 6);
@@ -106,7 +104,7 @@ mod tests {
     #[test]
     fn lookup_eof() {
         let tmp = TempDir::new("log-unit-tests").unwrap();
-        let mut segment = SystemSegment::new(&tmp.path().join("segment.1")).unwrap();
+        let mut segment = SystemSegment::open(&tmp.path().join("segment.1")).unwrap();
 
         if let Err(LogError::Eof) = segment.lookup(4, 0) {
         } else {
