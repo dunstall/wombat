@@ -4,6 +4,11 @@ use std::path::Path;
 use wombatlog::SystemLog;
 use wombatpartition::{Partition, PartitionID};
 
+/// Handles looking up partitions to write to and consume from.
+///
+/// TODO(AD) Support:
+/// * Coordination to assign partitions
+/// * Async
 pub struct Broker {
     partitions: HashMap<String, Partition<SystemLog>>,
     dir: String,

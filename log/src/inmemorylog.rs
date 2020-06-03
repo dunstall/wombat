@@ -25,7 +25,7 @@ impl Log for InMemoryLog {
         if size + offset > self.data.len() as u64 {
             Err(LogError::Eof)
         } else {
-            Ok(self.data[offset as usize..(size+offset) as usize].to_vec())
+            Ok(self.data[offset as usize..(size + offset) as usize].to_vec())
         }
     }
 
