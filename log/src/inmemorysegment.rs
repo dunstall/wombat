@@ -1,10 +1,9 @@
-use std::fs::ReadDir;
 use std::path::Path;
 use std::time::SystemTime;
 use std::vec::Vec;
 
-use crate::segment::Segment;
 use crate::result::{LogError, LogResult};
+use crate::segment::Segment;
 
 /// In memory segment for testing other components.
 pub struct InMemorySegment {
@@ -37,8 +36,10 @@ impl Segment for InMemorySegment {
         Ok(())
     }
 
-    fn read_dir(_path: &Path) -> LogResult<ReadDir> {  // TODO(AD) ties to fs
-        Err(LogError::Eof)
+    fn read_dir(_path: &Path) -> LogResult<Vec<u64>> {
+        // TODO(AD) ties to fs
+        // Err(LogError::Eof)
+        Ok(vec![])
     }
 }
 

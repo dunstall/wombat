@@ -1,5 +1,4 @@
 use regex::Regex;
-use std::fs::ReadDir;
 use std::path::Path;
 use std::time::SystemTime;
 use std::vec::Vec;
@@ -17,7 +16,7 @@ pub trait Segment {
 
     fn remove(&self) -> LogResult<()>;
 
-    fn read_dir(path: &Path) -> LogResult<ReadDir>;
+    fn read_dir(path: &Path) -> LogResult<Vec<u64>>;
 }
 
 pub fn id_to_name(id: u64) -> String {

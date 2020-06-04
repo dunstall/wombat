@@ -8,7 +8,7 @@ use crate::result::{LogError, LogResult};
 use crate::segment;
 use crate::segment::Segment;
 
-/// Append only log using the local file system.
+/// Append only log.
 ///
 /// This log is implemented based on the [Kafka log](http://notes.stephenholiday.com/Kafka.pdf)
 /// (Section 3.2).
@@ -20,7 +20,6 @@ use crate::segment::Segment;
 /// * Async
 /// * Flush/sync (sync_all)
 pub struct Log<S> {
-    // TODO trait and Log impl and in memory log not very often
     offsets: OffsetStore<S>,
     active: u64,
     segments: HashMap<u64, Box<S>>,
@@ -28,7 +27,6 @@ pub struct Log<S> {
     dir: String,
 }
 
-// TODO(AD) Log should be a struct and segment generic.
 impl<S> Log<S>
 where
     S: Segment,
@@ -118,11 +116,11 @@ where
     }
 
     fn load_segments(&mut self) -> LogResult<()> {
-        for entry in S::read_dir(&Path::new(&self.dir))? {
-            // TODO(AD)
-            let entry = entry?;
-            let name = entry.file_name().into_string()?;
-            self.load_segment(name)?;
+        for id in S::read_dir(&Path::new(&self.dir))? {
+            self.segments.insert(
+                id,
+                S::open(&Path::new(&self.dir).join(segment::id_to_name(id)))?,
+            );
         }
 
         if self.segments.is_empty() {
@@ -130,14 +128,6 @@ where
             self.offsets.insert(0, 0)?;
         }
 
-        Ok(())
-    }
-
-    fn load_segment(&mut self, file: String) -> LogResult<()> {
-        if let Some(segment) = segment::name_to_id(&file) {
-            self.segments
-                .insert(segment, S::open(&Path::new(&self.dir).join(file))?);
-        }
         Ok(())
     }
 

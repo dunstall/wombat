@@ -1,5 +1,5 @@
 use std::fs;
-use std::fs::{File, OpenOptions, ReadDir};
+use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
@@ -7,6 +7,7 @@ use std::time::SystemTime;
 use std::vec::Vec;
 
 use crate::result::{LogError, LogResult};
+use crate::segment;
 use crate::segment::Segment;
 
 pub struct SystemSegment {
@@ -61,8 +62,16 @@ impl Segment for SystemSegment {
         Ok(fs::remove_file(&self.path)?)
     }
 
-    fn read_dir(dir: &Path) -> LogResult<ReadDir> {
-        Ok(fs::read_dir(dir)?)
+    fn read_dir(dir: &Path) -> LogResult<Vec<u64>> {
+        let mut ids = Vec::new();
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let name = entry.file_name().into_string()?;
+            if let Some(id) = segment::name_to_id(&name) {
+                ids.push(id);
+            }
+        }
+        Ok(ids)
     }
 }
 
