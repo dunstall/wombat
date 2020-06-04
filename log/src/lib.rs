@@ -1,4 +1,4 @@
-// mod inmemorylog;
+mod inmemorysegment;
 mod log;
 mod offsetstore;
 mod result;
@@ -9,7 +9,7 @@ mod systemsegment;
 // TODO Check coverage and rewrite/cleanup tests
 // TODO Refactor and doc all public
 
-// pub use inmemorylog::InMemoryLog; TODO inmemorysegment
+pub use inmemorysegment::InMemorySegment;
 pub use log::Log;
 pub use result::{LogError, LogResult};
 pub use segment::Segment;
