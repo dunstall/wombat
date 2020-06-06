@@ -15,16 +15,13 @@ use crate::result::PartitionResult;
 /// * Replication
 /// * CRC check
 /// * Timestamp
-pub struct Partition<L> {
-    log: L,
+pub struct Partition<'a> {
+    log: Log<'a>,
 }
 
-impl<L> Partition<L>
-where
-    L: Log,
-{
+impl<'a> Partition<'a> {
     /// Creates a `Partition` using the given log.
-    pub fn new(log: L) -> Partition<L> {
+    pub fn new(log: Log) -> Partition {
         Partition { log: log }
     }
 
@@ -58,11 +55,15 @@ where
 mod tests {
     use super::*;
 
-    use wombatlog::InMemoryLog;
+    use wombatlog::{InMemorySegmentManager, SegmentManager};
 
     #[test]
-    fn empty_log() {
-        let mut partition = Partition::new(InMemoryLog::new());
+    fn open_empty() {
+        let mut manager: std::boxed::Box<(dyn SegmentManager + 'static)> =
+            Box::new(InMemorySegmentManager::new().unwrap());
+        let log = Log::open(&mut manager, 10).unwrap();
+
+        let mut partition = Partition::new(log);
 
         let written = vec![1, 2, 3];
         partition.put(&written).unwrap();
@@ -73,7 +74,11 @@ mod tests {
 
     #[test]
     fn write_multi() {
-        let mut partition = Partition::new(InMemoryLog::new());
+        let mut manager: std::boxed::Box<(dyn SegmentManager + 'static)> =
+            Box::new(InMemorySegmentManager::new().unwrap());
+        let log = Log::open(&mut manager, 10).unwrap();
+
+        let mut partition = Partition::new(log);
 
         partition.put(&vec![1, 2, 3]).unwrap();
         partition.put(&vec![4, 5, 6]).unwrap();
