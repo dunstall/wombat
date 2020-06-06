@@ -1,45 +1,42 @@
-use std::path::Path;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::time::SystemTime;
 use std::vec::Vec;
 
 use crate::result::{LogError, LogResult};
 use crate::segment::Segment;
 
-/// In memory segment for testing other components.
 pub struct InMemorySegment {
-    data: Vec<u8>,
+    data: Rc<RefCell<Vec<u8>>>,
+    modified: SystemTime,
+}
+
+impl InMemorySegment {
+    pub fn new(data: Rc<RefCell<Vec<u8>>>) -> InMemorySegment {
+        InMemorySegment {
+            data,
+            modified: SystemTime::now(),
+        }
+    }
 }
 
 impl Segment for InMemorySegment {
-    fn open(_path: &Path) -> LogResult<Box<InMemorySegment>> {
-        Ok(Box::new(InMemorySegment { data: Vec::new() }))
-    }
-
     fn append(&mut self, data: &Vec<u8>) -> LogResult<u64> {
-        self.data.append(&mut data.clone());
-        Ok(self.data.len() as u64)
+        self.data.borrow_mut().append(&mut data.clone());
+        self.modified = SystemTime::now();
+        Ok(self.data.borrow_mut().len() as u64)
     }
 
     fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
-        if size + offset > self.data.len() as u64 {
+        if size + offset > self.data.borrow_mut().len() as u64 {
             Err(LogError::Eof)
         } else {
-            Ok(self.data[offset as usize..(size + offset) as usize].to_vec())
+            Ok(self.data.borrow_mut()[offset as usize..(size + offset) as usize].to_vec())
         }
     }
 
     fn modified(&self) -> LogResult<SystemTime> {
-        Ok(SystemTime::now())
-    }
-
-    fn remove(&self) -> LogResult<()> {
-        Ok(())
-    }
-
-    fn read_dir(_path: &Path) -> LogResult<Vec<u64>> {
-        // TODO(AD) ties to fs
-        // Err(LogError::Eof)
-        Ok(vec![])
+        Ok(self.modified)
     }
 }
 
@@ -48,19 +45,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn append_and_lookup() {
-        let mut segment = InMemorySegment::open(&Path::new("")).unwrap();
+    fn lookup_not_empty() {
+        let data = Rc::new(RefCell::new(Vec::new()));
+        let mut segment = InMemorySegment::new(data);
 
-        let written = vec![1, 2, 3];
-        segment.append(&written).unwrap();
+        segment.append(&vec![1, 2, 3]).unwrap();
+        segment.append(&vec![4, 5, 6]).unwrap();
 
-        let read = segment.lookup(3, 0).unwrap();
-        assert_eq!(written, read);
+        assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
+        assert_eq!(vec![4], segment.lookup(1, 3).unwrap());
+        assert_eq!(vec![5, 6], segment.lookup(2, 4).unwrap());
     }
 
     #[test]
-    fn lookup_eof() {
-        let mut segment = InMemorySegment::open(&Path::new("")).unwrap();
+    fn lookup_empty() {
+        let data = Rc::new(RefCell::new(Vec::new()));
+        let mut segment = InMemorySegment::new(data);
         if let Err(LogError::Eof) = segment.lookup(4, 0) {
         } else {
             panic!("expected segment expired");

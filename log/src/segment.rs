@@ -1,22 +1,15 @@
 use regex::Regex;
-use std::path::Path;
 use std::time::SystemTime;
 use std::vec::Vec;
 
 use crate::result::LogResult;
 
 pub trait Segment {
-    fn open(path: &Path) -> LogResult<Box<Self>>;
-
     fn append(&mut self, data: &Vec<u8>) -> LogResult<u64>;
 
     fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>>;
 
     fn modified(&self) -> LogResult<SystemTime>;
-
-    fn remove(&self) -> LogResult<()>;
-
-    fn read_dir(path: &Path) -> LogResult<Vec<u64>>;
 }
 
 pub fn id_to_name(id: u64) -> String {

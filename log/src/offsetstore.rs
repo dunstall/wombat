@@ -1,27 +1,22 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::collections::BTreeMap;
 use std::io::Cursor;
-use std::path::Path;
 
 use crate::result::LogResult;
 use crate::segment::Segment;
 
 // Handles lookup of the segment that owns a given offset. All entries are
-// written to a file so they can be loaded on startup.
-#[derive(Debug)]
-pub struct OffsetStore<S> {
+// persisted to the segment so they can be loaded on startup.
+pub struct OffsetStore {
     offsets: BTreeMap<u64, u64>,
-    segment: Box<S>,
+    segment: Box<dyn Segment>,
 }
 
-impl<S> OffsetStore<S>
-where
-    S: Segment,
-{
-    pub fn new(dir: &Path) -> LogResult<OffsetStore<S>> {
+impl OffsetStore {
+    pub fn new(segment: Box<dyn Segment>) -> LogResult<OffsetStore> {
         let mut offsets = OffsetStore {
             offsets: BTreeMap::new(),
-            segment: S::open(&dir.join("offsets"))?,
+            segment,
         };
         offsets.load_offsets()?;
         Ok(offsets)
@@ -29,9 +24,9 @@ where
 
     // Returns the segment number and starting offset of this segment.
     pub fn get(&self, offset: u64) -> Option<(u64, u64)> {
-        for (first_offset, segment) in self.offsets.iter().rev() {
+        for (first_offset, id) in self.offsets.iter().rev() {
             if *first_offset <= offset {
-                return Some((*segment, *first_offset as u64));
+                return Some((*id, *first_offset as u64));
             }
         }
         None
@@ -89,88 +84,91 @@ where
 mod tests {
     use super::*;
 
-    use tempdir::TempDir;
+    use crate::inmemorysegmentmanager::InMemorySegmentManager;
+    use crate::segmentmanager::SegmentManager;
 
-    use crate::systemsegment::SystemSegment;
-
-    // TODO(AD) Use in memory segment.
     #[test]
     fn lookup_empty() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
+        let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+        let offsets = OffsetStore::new(segment).unwrap();
 
-        let offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
         assert_eq!(offsets.get(0), None);
         assert_eq!(offsets.get(100), None);
     }
 
     #[test]
     fn lookup_zero_offset() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
+        let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+        let mut offsets = OffsetStore::new(segment).unwrap();
 
-        let segment = 0;
-        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-        offsets.insert(0, segment).unwrap();
+        let id = 0;
+        offsets.insert(0, id).unwrap();
 
-        assert_eq!(offsets.get(0), Some((segment, 0)));
-        assert_eq!(offsets.get(0xaa), Some((segment, 0)));
-        assert_eq!(offsets.get(0xff), Some((segment, 0)));
+        assert_eq!(offsets.get(0), Some((id, 0)));
+        assert_eq!(offsets.get(0xff), Some((id, 0)));
     }
 
     #[test]
-    fn lookup_big_offset() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
+    fn lookup_non_zero_offset() {
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
+        let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+        let mut offsets = OffsetStore::new(segment).unwrap();
 
-        let segment = 0;
-        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-        offsets.insert(0xaa, segment).unwrap();
+        let id = 0;
+
+        offsets.insert(0xaa, id).unwrap();
 
         assert_eq!(offsets.get(0), None);
-        assert_eq!(offsets.get(0xaa), Some((segment, 0xaa)));
-        assert_eq!(offsets.get(0xff), Some((segment, 0xaa)));
+        assert_eq!(offsets.get(0xaa), Some((0, 0xaa)));
+        assert_eq!(offsets.get(0xff), Some((0, 0xaa)));
     }
 
     #[test]
     fn lookup_multi_offset() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
+        let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+        let mut offsets = OffsetStore::new(segment).unwrap();
 
-        let segment1 = 0;
-        let segment2 = 1;
-        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-        offsets.insert(0xa0, segment1).unwrap();
-        offsets.insert(0xb0, segment2).unwrap();
+        let id1 = 0;
+        let id2 = 1;
+        offsets.insert(0xa0, id1).unwrap();
+        offsets.insert(0xb0, id2).unwrap();
 
         assert_eq!(offsets.get(0x9f), None);
-        assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
-        assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
-        assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
-        assert_eq!(offsets.get(0xff), Some((segment2, 0xb0)));
+        assert_eq!(offsets.get(0xa0), Some((id1, 0xa0)));
+        assert_eq!(offsets.get(0xaf), Some((id1, 0xa0)));
+        assert_eq!(offsets.get(0xb0), Some((id2, 0xb0)));
+        assert_eq!(offsets.get(0xff), Some((id2, 0xb0)));
     }
 
     #[test]
     fn lookup_reverse_offset() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
+        let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+        let mut offsets = OffsetStore::new(segment).unwrap();
 
-        let segment1 = 0;
-        let segment2 = 1;
-        let segment3 = 2;
-        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-        offsets.insert(0x20, segment3).unwrap();
-        offsets.insert(0x10, segment2).unwrap();
-        offsets.insert(0x00, segment1).unwrap();
+        let id1 = 0;
+        let id2 = 1;
+        let id3 = 2;
+        offsets.insert(0x20, id3).unwrap();
+        offsets.insert(0x10, id2).unwrap();
+        offsets.insert(0x00, id1).unwrap();
 
-        assert_eq!(offsets.get(0x00), Some((segment1, 0x00)));
-        assert_eq!(offsets.get(0x0f), Some((segment1, 0x00)));
-        assert_eq!(offsets.get(0x10), Some((segment2, 0x10)));
-        assert_eq!(offsets.get(0x1f), Some((segment2, 0x10)));
-        assert_eq!(offsets.get(0x20), Some((segment3, 0x20)));
-        assert_eq!(offsets.get(0x2f), Some((segment3, 0x20)));
+        assert_eq!(offsets.get(0x00), Some((id1, 0x00)));
+        assert_eq!(offsets.get(0x0f), Some((id1, 0x00)));
+        assert_eq!(offsets.get(0x10), Some((id2, 0x10)));
+        assert_eq!(offsets.get(0x1f), Some((id2, 0x10)));
+        assert_eq!(offsets.get(0x20), Some((id3, 0x20)));
+        assert_eq!(offsets.get(0x2f), Some((id3, 0x20)));
     }
 
     #[test]
     fn max_offset() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
-
-        let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
+        let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+        let mut offsets = OffsetStore::new(segment).unwrap();
 
         assert_eq!(offsets.max_offset(), 0);
 
@@ -183,54 +181,32 @@ mod tests {
     }
 
     #[test]
-    fn load_from_file() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
+    fn load_persisted() {
+        let mut manager = Box::new(InMemorySegmentManager::new().unwrap());
 
-        let segment1 = 0;
-        let segment2 = 1;
+        let id1 = 0;
+        let id2 = 1;
 
         {
-            let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-            offsets.insert(0xa0, segment1).unwrap();
-            offsets.insert(0xb0, segment2).unwrap();
+            let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+            let mut offsets = OffsetStore::new(segment).unwrap();
+            offsets.insert(0xa0, id1).unwrap();
         }
 
         {
-            let offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
+            let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+            let mut offsets = OffsetStore::new(segment).unwrap();
+            offsets.insert(0xb0, id2).unwrap();
+        }
 
+        {
+            let segment = manager.open_name("segment.offsets".to_string()).unwrap();
+            let offsets = OffsetStore::new(segment).unwrap();
             assert_eq!(offsets.get(0x9f), None);
-            assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
-            assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
-            assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
-            assert_eq!(offsets.get(0xff), Some((segment2, 0xb0)));
-        }
-    }
-
-    #[test]
-    fn multi_load_from_file() {
-        let dir = TempDir::new("log-unit-tests").unwrap();
-
-        let segment1 = 0;
-        let segment2 = 1;
-
-        {
-            let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-            offsets.insert(0xa0, segment1).unwrap();
-        }
-
-        {
-            let mut offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-            offsets.insert(0xb0, segment2).unwrap();
-        }
-
-        {
-            let offsets = OffsetStore::<SystemSegment>::new(&dir.path()).unwrap();
-
-            assert_eq!(offsets.get(0x9f), None);
-            assert_eq!(offsets.get(0xa0), Some((segment1, 0xa0)));
-            assert_eq!(offsets.get(0xaf), Some((segment1, 0xa0)));
-            assert_eq!(offsets.get(0xb0), Some((segment2, 0xb0)));
-            assert_eq!(offsets.get(0xff), Some((segment2, 0xb0)));
+            assert_eq!(offsets.get(0xa0), Some((id1, 0xa0)));
+            assert_eq!(offsets.get(0xaf), Some((id1, 0xa0)));
+            assert_eq!(offsets.get(0xb0), Some((id2, 0xb0)));
+            assert_eq!(offsets.get(0xff), Some((id2, 0xb0)));
         }
     }
 }

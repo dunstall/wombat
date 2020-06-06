@@ -1,16 +1,16 @@
 mod inmemorysegment;
+mod inmemorysegmentmanager;
 mod log;
 mod offsetstore;
 mod result;
 mod segment;
+mod segmentmanager;
 mod systemsegment;
-
-// TODO Replace uses of system segment with in memory
-// TODO Check coverage and rewrite/cleanup tests
-// TODO Refactor and doc all public
+mod systemsegmentmanager;
 
 pub use inmemorysegment::InMemorySegment;
+pub use inmemorysegmentmanager::InMemorySegmentManager;
 pub use log::Log;
 pub use result::{LogError, LogResult};
-pub use segment::Segment;
-pub use systemsegment::SystemSegment;
+pub use segmentmanager::SegmentManager;
+pub use systemsegmentmanager::SystemSegmentManager;
