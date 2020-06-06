@@ -146,10 +146,8 @@ impl<'a> Log<'a> {
 
     fn is_segment_full(&self, size: u64) -> bool {
         size > self.segment_limit
-        // false
     }
 }
-// TODO rewrite and tdd
 
 #[cfg(test)]
 mod tests {
