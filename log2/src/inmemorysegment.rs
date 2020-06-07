@@ -63,11 +63,25 @@ impl Segment for InMemorySegment {
             Ok(0)
         }
     }
+
+    async fn segments(dir: &Path) -> LogResult<Vec<u64>> {
+        let mut res = vec![];
+        for (path, _) in STATE.lock().unwrap().iter() {
+            if path.starts_with(dir) {
+                if let Some(id) = segment::path_to_id(path) {
+                    res.push(id);
+                }
+            }
+        }
+        Ok(res)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::segment::Segment;
 
     #[tokio::test]
     async fn open_empty() {
@@ -127,5 +141,25 @@ mod tests {
 
         assert_eq!(6, seg1.size().await.unwrap());
         assert_eq!(vec![4, 5, 6], seg1.lookup(3, 3).await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn list_segments() {
+        let path = rand_path();
+
+        let mut seg1 = InMemorySegment::open(0x0286e4d4, &path).await.unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+        let mut seg2 = InMemorySegment::open(0x0286e4d5, &path).await.unwrap();
+        seg2.append(&vec![4, 5, 6]).await.unwrap();
+
+        let mut segments = InMemorySegment::segments(&path).await.unwrap();
+        segments.sort();
+        assert_eq!(vec![0x0286e4d4, 0x0286e4d5], segments);
+    }
+
+    fn rand_path() -> PathBuf {
+        let mut path = PathBuf::new();
+        path.push((0..0xf).map(|_| rand::random::<char>()).collect::<String>());
+        path
     }
 }

@@ -56,6 +56,17 @@ impl Segment for SystemSegment {
     async fn size(&mut self) -> LogResult<u64> {
         Ok(self.file.seek(SeekFrom::End(0)).await?)
     }
+
+    async fn segments(dir: &Path) -> LogResult<Vec<u64>> {
+        let mut ids = vec![];
+        let mut files = fs::read_dir(dir).await?;
+        while let Some(file) = files.next_entry().await? {
+            if let Some(id) = segment::path_to_id(&file.path()) {
+                ids.push(id);
+            }
+        }
+        Ok(ids)
+    }
 }
 
 #[cfg(test)]
@@ -114,6 +125,20 @@ mod tests {
 
         assert_eq!(6, seg1.size().await.unwrap());
         assert_eq!(vec![4, 5, 6], seg1.lookup(3, 3).await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn list_segments() {
+        let dir = tmp_dir();
+
+        let mut seg1 = SystemSegment::open(0x0286e4d4, &dir.path()).await.unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+        let mut seg2 = SystemSegment::open(0x0286e4d5, &dir.path()).await.unwrap();
+        seg2.append(&vec![4, 5, 6]).await.unwrap();
+
+        let mut segments = SystemSegment::segments(&dir.path()).await.unwrap();
+        segments.sort();
+        assert_eq!(vec![0x0286e4d4, 0x0286e4d5], segments);
     }
 
     fn tmp_dir() -> TempDir {
