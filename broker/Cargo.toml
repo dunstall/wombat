@@ -9,4 +9,5 @@ wombatlog = { path = "../log" }
 wombatpartition = { path = "../partition" }
 
 [dev-dependencies]
-tempdir = "0.3"
+rand = "0.7.3"
+tokio = { version = "0.2", features = ["full"] }
