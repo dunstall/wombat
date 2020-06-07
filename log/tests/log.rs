@@ -12,7 +12,7 @@ async fn random_data() {
 
     let mut rng = rand::thread_rng();
 
-    for n in (0..1000) {
+    for n in 0..1000 {
         let numbers: Vec<u8> = (0..0xff).map(|_| rng.gen_range(0, 0xff)).collect();
 
         log.append(&numbers).await.unwrap();
@@ -30,12 +30,12 @@ async fn benchmark() {
     let numbers: Vec<u8> = (0..0xff).map(|_| rng.gen_range(0, 0xff)).collect();
 
     let now = Instant::now();
-    for _ in (0..10_000_000) {
+    for _ in 0..100_000 {
         log.append(&numbers).await.unwrap();
     }
     println!("Append time {}", now.elapsed().as_secs());
 
-    for n in (0..10_000_000) {
+    for n in 0..100_000 {
         assert_eq!(numbers, log.lookup(n * 0xff, 0xff).await.unwrap());
     }
     println!("Append and lookup time {}", now.elapsed().as_secs());
