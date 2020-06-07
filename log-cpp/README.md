@@ -7,14 +7,14 @@ the underlying files are never directly accessed).
 
 The log has no knowledge of the structure of the data but simply provides an
 interface with operations:
-* Append(data)
-* Lookup(offset, size) -> data
+* `Append(data)`
+* `Lookup(offset, size) -> data`
 
 ### Segments
 Each log consists of segments of maximum size 128MB. The purpose of this is:
 * Allow removal of expired segments
 * Easily replicate the log by sending sements concurrently using kernel level
-copying (sendfile). This is to be used when a node becomes a replica for the
+copying (`sendfile`). This is to be used when a node becomes a replica for the
 partition or a segment is corrupted and requests a new clone
 * If a record is detected as corrupted (when a CRC check fails) the log can
 request this segment from a replica rather than try to recover data from that
