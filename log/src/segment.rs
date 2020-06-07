@@ -1,27 +1,44 @@
+use async_trait::async_trait;
 use regex::Regex;
-use std::time::SystemTime;
-use std::vec::Vec;
+use std::path::Path;
 
 use crate::result::LogResult;
 
+#[async_trait]
 pub trait Segment {
-    fn append(&mut self, data: &Vec<u8>) -> LogResult<u64>;
+    async fn open(id: u64, dir: &Path) -> LogResult<Box<Self>>;
 
-    fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>>;
+    async fn append(&mut self, data: &Vec<u8>) -> LogResult<()>;
 
-    fn modified(&self) -> LogResult<SystemTime>;
+    async fn lookup(&mut self, offset: u64, size: u64) -> LogResult<Vec<u8>>;
+
+    async fn size(&mut self) -> LogResult<u64>;
+
+    async fn segments(dir: &Path) -> LogResult<Vec<u64>>;
 }
 
 pub fn id_to_name(id: u64) -> String {
     format!("segment-{:0>20}", id.to_string())
 }
 
-pub fn name_to_id(name: &String) -> Option<u64> {
+pub fn name_to_id(name: &str) -> Option<u64> {
     let re = Regex::new(r"^segment-(\d{20})$").unwrap();
     if let Some(caps) = re.captures(name) {
         if let Some(n) = caps.get(1) {
             // Unwrap as we already checked this is an integer in the regex.
             Some(n.as_str().parse::<u64>().unwrap())
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+pub fn path_to_id(path: &Path) -> Option<u64> {
+    if let Some(name) = path.file_name() {
+        if let Some(id) = name_to_id(name.to_str().unwrap()) {
+            Some(id)
         } else {
             None
         }
@@ -63,5 +80,40 @@ mod tests {
     #[test]
     fn name_to_id_none() {
         assert_eq!(None, name_to_id(&"segment-badid".to_string()));
+    }
+
+    #[test]
+    fn path_to_id_ok() {
+        assert_eq!(
+            Some(0),
+            path_to_id(Path::new("segment-00000000000000000000"))
+        );
+        assert_eq!(
+            Some(78642),
+            path_to_id(Path::new("segment-00000000000000078642"))
+        );
+        assert_eq!(
+            Some(0xffffffffffffffff),
+            path_to_id(Path::new("segment-18446744073709551615"))
+        );
+        assert_eq!(
+            Some(0),
+            path_to_id(Path::new("/foo/bar/segment-00000000000000000000"))
+        );
+        assert_eq!(
+            Some(78642),
+            path_to_id(Path::new("/foo/bar/segment-00000000000000078642"))
+        );
+        assert_eq!(
+            Some(0xffffffffffffffff),
+            path_to_id(Path::new("/foo/bar/segment-18446744073709551615"))
+        );
+    }
+
+    #[test]
+    fn path_to_id_none() {
+        assert_eq!(None, path_to_id(Path::new("segment-badid")));
+        assert_eq!(None, path_to_id(Path::new("/")));
+        assert_eq!(None, path_to_id(Path::new("/foo/bar/")));
     }
 }

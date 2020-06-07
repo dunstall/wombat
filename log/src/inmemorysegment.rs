@@ -1,42 +1,79 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::time::SystemTime;
-use std::vec::Vec;
+use async_trait::async_trait;
+use lazy_static::lazy_static;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use crate::result::{LogError, LogResult};
-use crate::segment::Segment;
+use crate::segment;
+use crate::Segment;
 
+lazy_static! {
+    // State stores the shared state of in-memory segments to act like a
+    // persistent filesystem.
+    static ref STATE: Mutex<HashMap<PathBuf, Vec<u8>>> = Mutex::new(HashMap::new());
+}
+
+/// Implementation of Segment using an in-memory buffer.
+///
+/// This must only be used for testing. To act as a file system the segments
+/// state is stored in a (syncronized) global buffer indexed by `id` and `dir`
+/// so these must be unique to avoid collisions (which is annoying but a
+/// reasonable trade-off).
+///
+/// Not thread safe.
 pub struct InMemorySegment {
-    data: Rc<RefCell<Vec<u8>>>,
-    modified: SystemTime,
+    path: PathBuf,
 }
 
-impl InMemorySegment {
-    pub fn new(data: Rc<RefCell<Vec<u8>>>) -> InMemorySegment {
-        InMemorySegment {
-            data,
-            modified: SystemTime::now(),
-        }
-    }
-}
-
+#[async_trait]
 impl Segment for InMemorySegment {
-    fn append(&mut self, data: &Vec<u8>) -> LogResult<u64> {
-        self.data.borrow_mut().append(&mut data.clone());
-        self.modified = SystemTime::now();
-        Ok(self.data.borrow_mut().len() as u64)
+    async fn open(id: u64, dir: &Path) -> LogResult<Box<Self>> {
+        Ok(Box::new(InMemorySegment {
+            path: dir.join(segment::id_to_name(id)),
+        }))
     }
 
-    fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
-        if size + offset > self.data.borrow_mut().len() as u64 {
-            Err(LogError::Eof)
+    async fn append(&mut self, data: &Vec<u8>) -> LogResult<()> {
+        let mut state = STATE.lock().unwrap();
+        if let Some(buf) = state.get_mut(&self.path) {
+            buf.append(&mut data.clone());
         } else {
-            Ok(self.data.borrow_mut()[offset as usize..(size + offset) as usize].to_vec())
+            state.insert(self.path.clone(), data.clone());
+        }
+        Ok(())
+    }
+
+    async fn lookup(&mut self, offset: u64, size: u64) -> LogResult<Vec<u8>> {
+        if let Some(buf) = STATE.lock().unwrap().get(&self.path) {
+            if offset + size <= buf.len() as u64 {
+                Ok(buf[offset as usize..(offset + size) as usize].to_vec())
+            } else {
+                Err(LogError::Eof)
+            }
+        } else {
+            Err(LogError::Eof)
         }
     }
 
-    fn modified(&self) -> LogResult<SystemTime> {
-        Ok(self.modified)
+    async fn size(&mut self) -> LogResult<u64> {
+        if let Some(buf) = STATE.lock().unwrap().get(&self.path) {
+            Ok(buf.len() as u64)
+        } else {
+            Ok(0)
+        }
+    }
+
+    async fn segments(dir: &Path) -> LogResult<Vec<u64>> {
+        let mut res = vec![];
+        for (path, _) in STATE.lock().unwrap().iter() {
+            if path.starts_with(dir) {
+                if let Some(id) = segment::path_to_id(path) {
+                    res.push(id);
+                }
+            }
+        }
+        Ok(res)
     }
 }
 
@@ -44,26 +81,89 @@ impl Segment for InMemorySegment {
 mod tests {
     use super::*;
 
-    #[test]
-    fn lookup_not_empty() {
-        let data = Rc::new(RefCell::new(Vec::new()));
-        let mut segment = InMemorySegment::new(data);
+    use crate::segment::Segment;
 
-        segment.append(&vec![1, 2, 3]).unwrap();
-        segment.append(&vec![4, 5, 6]).unwrap();
-
-        assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
-        assert_eq!(vec![4], segment.lookup(1, 3).unwrap());
-        assert_eq!(vec![5, 6], segment.lookup(2, 4).unwrap());
+    #[tokio::test]
+    async fn open_empty() {
+        let mut seg = InMemorySegment::open(0x8312, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        assert_eq!(0, seg.size().await.unwrap());
+        if let Err(LogError::Eof) = seg.lookup(0, 4).await {
+        } else {
+            panic!("expected EOF");
+        }
     }
 
-    #[test]
-    fn lookup_empty() {
-        let data = Rc::new(RefCell::new(Vec::new()));
-        let mut segment = InMemorySegment::new(data);
-        if let Err(LogError::Eof) = segment.lookup(4, 0) {
-        } else {
-            panic!("expected segment expired");
-        }
+    #[tokio::test]
+    async fn open_load_existing() {
+        let mut seg = InMemorySegment::open(0xfa89, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        seg.append(&vec![1, 2, 3]).await.unwrap();
+
+        // Re-open the non-empty segment.
+        let mut seg = InMemorySegment::open(0xfa89, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        assert_eq!(3, seg.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg.lookup(0, 3).await.unwrap());
+    }
+
+    // Test multiple segments to check no collisions.
+    #[tokio::test]
+    async fn multi_segment_lookup_offset() {
+        let mut seg1 = InMemorySegment::open(0xd6a2, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+        assert_eq!(3, seg1.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg1.lookup(0, 3).await.unwrap());
+
+        let mut seg2 = InMemorySegment::open(0xb2aa, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        seg2.append(&vec![6, 7, 8, 9]).await.unwrap();
+        assert_eq!(4, seg2.size().await.unwrap());
+        assert_eq!(vec![6, 7, 8, 9], seg2.lookup(0, 4).await.unwrap());
+    }
+
+    // Test multiple segments refering to the same data.
+    #[tokio::test]
+    async fn multi_segments_shared() {
+        let mut seg1 = InMemorySegment::open(0xf2aa, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+
+        let mut seg2 = InMemorySegment::open(0xf2aa, Path::new("foo/bar"))
+            .await
+            .unwrap();
+        assert_eq!(3, seg2.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg2.lookup(0, 3).await.unwrap());
+        seg2.append(&vec![4, 5, 6]).await.unwrap();
+
+        assert_eq!(6, seg1.size().await.unwrap());
+        assert_eq!(vec![4, 5, 6], seg1.lookup(3, 3).await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn list_segments() {
+        let path = rand_path();
+
+        let mut seg1 = InMemorySegment::open(0x0286e4d4, &path).await.unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+        let mut seg2 = InMemorySegment::open(0x0286e4d5, &path).await.unwrap();
+        seg2.append(&vec![4, 5, 6]).await.unwrap();
+
+        let mut segments = InMemorySegment::segments(&path).await.unwrap();
+        segments.sort();
+        assert_eq!(vec![0x0286e4d4, 0x0286e4d5], segments);
+    }
+
+    fn rand_path() -> PathBuf {
+        let mut path = PathBuf::new();
+        path.push((0..0xf).map(|_| rand::random::<char>()).collect::<String>());
+        path
     }
 }

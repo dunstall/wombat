@@ -1,35 +1,47 @@
-use std::fs::File;
+use async_trait::async_trait;
 use std::io;
-use std::io::{Read, Seek, SeekFrom, Write};
-use std::time::SystemTime;
-use std::vec::Vec;
+use std::io::SeekFrom;
+use std::path::Path;
+use tokio::fs;
+use tokio::fs::{File, OpenOptions};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::result::{LogError, LogResult};
-use crate::segment::Segment;
+use crate::segment;
+use crate::Segment;
 
+/// Not thread safe. For concurrent access create multiple segments to the
+/// same path/id.
 pub struct SystemSegment {
     file: File,
 }
 
-impl SystemSegment {
-    pub fn new(file: File) -> SystemSegment {
-        SystemSegment { file }
-    }
-}
-
-// TODO(AD) Handle flush/sync
+#[async_trait]
 impl Segment for SystemSegment {
-    fn append(&mut self, data: &Vec<u8>) -> LogResult<u64> {
-        self.file.write_all(data)?;
-        Ok(self.file.seek(SeekFrom::Current(0))?)
+    async fn open(id: u64, dir: &Path) -> LogResult<Box<Self>> {
+        fs::create_dir_all(dir).await?;
+        let path = dir.join(segment::id_to_name(id));
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .append(true)
+            .open(path)
+            .await?;
+        Ok(Box::new(SystemSegment { file }))
     }
 
-    fn lookup(&mut self, size: u64, offset: u64) -> LogResult<Vec<u8>> {
-        self.file.seek(SeekFrom::Start(offset as u64))?;
+    async fn append(&mut self, data: &Vec<u8>) -> LogResult<()> {
+        self.file.write_all(data).await?;
+        Ok(())
+    }
+
+    async fn lookup(&mut self, offset: u64, size: u64) -> LogResult<Vec<u8>> {
         let mut buf = Vec::new();
         buf.resize(size as usize, 0);
+        self.file.seek(SeekFrom::Start(offset as u64)).await?;
 
-        if let Err(err) = self.file.read_exact(&mut buf[..]) {
+        if let Err(err) = self.file.read_exact(&mut buf[..]).await {
             if err.kind() == io::ErrorKind::UnexpectedEof {
                 Err(LogError::Eof)
             } else {
@@ -40,8 +52,20 @@ impl Segment for SystemSegment {
         }
     }
 
-    fn modified(&self) -> LogResult<SystemTime> {
-        Ok(self.file.metadata()?.modified()?)
+    /// Returns the size of the segment.
+    async fn size(&mut self) -> LogResult<u64> {
+        Ok(self.file.seek(SeekFrom::End(0)).await?)
+    }
+
+    async fn segments(dir: &Path) -> LogResult<Vec<u64>> {
+        let mut ids = vec![];
+        let mut files = fs::read_dir(dir).await?;
+        while let Some(file) = files.next_entry().await? {
+            if let Some(id) = segment::path_to_id(&file.path()) {
+                ids.push(id);
+            }
+        }
+        Ok(ids)
     }
 }
 
@@ -51,33 +75,70 @@ mod tests {
 
     use tempdir::TempDir;
 
-    use crate::segmentmanager::SegmentManager;
-    use crate::systemsegmentmanager::SystemSegmentManager;
-
-    #[test]
-    fn lookup_not_empty() {
+    #[tokio::test]
+    async fn open_empty() {
         let dir = tmp_dir();
-        let mut manager = SystemSegmentManager::new(&dir.path()).unwrap();
-        let mut segment = manager.open(0xaabb).unwrap();
+        let mut seg = SystemSegment::open(0x87fa2, &dir.path()).await.unwrap();
+        assert_eq!(0, seg.size().await.unwrap());
 
-        segment.append(&vec![1, 2, 3]).unwrap();
-        segment.append(&vec![4, 5, 6]).unwrap();
-
-        assert_eq!(vec![1, 2, 3], segment.lookup(3, 0).unwrap());
-        assert_eq!(vec![5, 6], segment.lookup(2, 4).unwrap());
-        assert_eq!(vec![4], segment.lookup(1, 3).unwrap());
+        seg.append(&vec![1, 2, 3]).await.unwrap();
+        assert_eq!(3, seg.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg.lookup(0, 3).await.unwrap());
     }
 
-    #[test]
-    fn lookup_empty() {
+    #[tokio::test]
+    async fn open_dir_not_exists() {
         let dir = tmp_dir();
-        let mut manager = SystemSegmentManager::new(&dir.path()).unwrap();
-        let mut segment = manager.open(0xaabb).unwrap();
+        let mut seg = SystemSegment::open(0x8abb, &dir.path().join("notexist"))
+            .await
+            .unwrap();
+        assert_eq!(0, seg.size().await.unwrap());
 
-        if let Err(LogError::Eof) = segment.lookup(4, 0) {
-        } else {
-            panic!("expected segment expired");
-        }
+        seg.append(&vec![1, 2, 3]).await.unwrap();
+        assert_eq!(3, seg.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg.lookup(0, 3).await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn open_load_existing() {
+        let dir = tmp_dir();
+        let mut seg = SystemSegment::open(0x3ff, &dir.path()).await.unwrap();
+        seg.append(&vec![1, 2, 3]).await.unwrap();
+
+        let mut seg = SystemSegment::open(0x3ff, &dir.path()).await.unwrap();
+        assert_eq!(3, seg.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg.lookup(0, 3).await.unwrap());
+    }
+
+    // Test multiple segments refering to the same data.
+    #[tokio::test]
+    async fn multi_segments_shared() {
+        let dir = tmp_dir();
+
+        let mut seg1 = SystemSegment::open(0xf2aa, &dir.path()).await.unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+
+        let mut seg2 = SystemSegment::open(0xf2aa, &dir.path()).await.unwrap();
+        assert_eq!(3, seg2.size().await.unwrap());
+        assert_eq!(vec![1, 2, 3], seg2.lookup(0, 3).await.unwrap());
+        seg2.append(&vec![4, 5, 6]).await.unwrap();
+
+        assert_eq!(6, seg1.size().await.unwrap());
+        assert_eq!(vec![4, 5, 6], seg1.lookup(3, 3).await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn list_segments() {
+        let dir = tmp_dir();
+
+        let mut seg1 = SystemSegment::open(0x0286e4d4, &dir.path()).await.unwrap();
+        seg1.append(&vec![1, 2, 3]).await.unwrap();
+        let mut seg2 = SystemSegment::open(0x0286e4d5, &dir.path()).await.unwrap();
+        seg2.append(&vec![4, 5, 6]).await.unwrap();
+
+        let mut segments = SystemSegment::segments(&dir.path()).await.unwrap();
+        segments.sort();
+        assert_eq!(vec![0x0286e4d4, 0x0286e4d5], segments);
     }
 
     fn tmp_dir() -> TempDir {
