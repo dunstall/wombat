@@ -52,7 +52,7 @@ impl Segment for InMemorySegment {
                 Err(LogError::Eof)
             }
         } else {
-            Ok(vec![])
+            Err(LogError::Eof)
         }
     }
 
@@ -89,6 +89,10 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(0, seg.size().await.unwrap());
+        if let Err(LogError::Eof) = seg.lookup(0, 4).await {
+        } else {
+            panic!("expected EOF");
+        }
     }
 
     #[tokio::test]
