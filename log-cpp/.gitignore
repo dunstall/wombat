@@ -29,3 +29,12 @@
 *.exe
 *.out
 *.app
+
+# Compiled outputs
+build/
+
+# Installed dependencies
+lib/
+
+# Test binary
+log_*

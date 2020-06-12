@@ -3,8 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace wombat {
-namespace log {
+namespace wombat::log {
 
 template<class S>
 class Log {
@@ -19,5 +18,4 @@ class Log {
   }
 };
 
-}  // namespace log
-}  // namespace wombat
+}  // namespace wombat::log
