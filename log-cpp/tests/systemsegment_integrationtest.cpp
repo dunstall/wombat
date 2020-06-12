@@ -7,40 +7,9 @@
 
 #include "gtest/gtest.h"
 #include "log/systemsegment.h"
+#include "tempdir.h"
 
 namespace wombat::log::testing {
-
-class TempDir {
- public:
-  TempDir() : path_(GeneratePath()) {
-    std::filesystem::create_directories(path_);
-  }
-
-  ~TempDir() {
-    std::filesystem::remove_all(path_);
-  }
-
-  std::filesystem::path path() const { return path_; }
-
- private:
-  const size_t PATH_LEN = 6;
-  const std::string CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
-
-  std::filesystem::path GeneratePath() const {
-    thread_local static std::mt19937 rg{std::random_device{}()};
-    thread_local static std::uniform_int_distribution<std::string::size_type> pick(
-      0, CHARS.size() - 2
-    );
-    std::string dir;
-    dir.reserve(PATH_LEN);
-    for (size_t i = 0; i != PATH_LEN; ++i) {
-      dir += CHARS[pick(rg)];
-    }
-    return "/tmp/wombatlog" + dir;
-  }
-
-  std::filesystem::path path_;
-};
 
 class SystemSegmentTest : public ::testing::Test {};
 
