@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <iostream>
 #include <filesystem>
 
 #include "log/logexception.h"

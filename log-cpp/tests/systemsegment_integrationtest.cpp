@@ -42,7 +42,9 @@ class TempDir {
   std::filesystem::path path_;
 };
 
-TEST(SystemSegmentTest, OpenEmpty) {
+class SystemSegmentTest : public ::testing::Test {};
+
+TEST_F(SystemSegmentTest, OpenEmpty) {
   TempDir dir{};
   SystemSegment segment{0x2478, dir.path(), 3};
 
@@ -58,7 +60,7 @@ TEST(SystemSegmentTest, OpenEmpty) {
   EXPECT_EQ(data, segment.Lookup(0U, 3U));
 }
 
-TEST(SystemSegmentTest, OpenDirNotExist) {
+TEST_F(SystemSegmentTest, OpenDirNotExist) {
   TempDir dir{};
   SystemSegment segment{0x2478, dir.path() / "notexist", 3};
 
@@ -74,7 +76,7 @@ TEST(SystemSegmentTest, OpenDirNotExist) {
   EXPECT_EQ(data, segment.Lookup(0U, 3U));
 }
 
-TEST(SystemSegmentTest, OpenExisting) {
+TEST_F(SystemSegmentTest, OpenExisting) {
   TempDir dir{};
   const std::string path = dir.path();
 
@@ -93,7 +95,7 @@ TEST(SystemSegmentTest, OpenExisting) {
   EXPECT_EQ(data, segment_reader.Lookup(0U, 3U));
 }
 
-TEST(SystemSegmentTest, OpenMulti) {
+TEST_F(SystemSegmentTest, OpenMulti) {
   TempDir dir{};
   const std::string path = dir.path();
 
@@ -117,7 +119,7 @@ TEST(SystemSegmentTest, OpenMulti) {
   EXPECT_TRUE(segment3.Lookup(0U, 3U).empty());
 }
 
-TEST(SystemSegmentTest, LookupEof) {
+TEST_F(SystemSegmentTest, LookupEof) {
   TempDir dir{};
   SystemSegment segment{0x2478, dir.path(), 3};
 
