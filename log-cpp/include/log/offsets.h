@@ -20,9 +20,10 @@ class Offsets {
     }
   }
 
-  bool Lookup(uint32_t offset, uint32_t* id) {
+  bool Lookup(uint32_t offset, uint32_t* id, uint32_t* start) {
     for (auto it = offsets_.rbegin(); it != offsets_.rend(); ++it) {
       if (it->first <= offset) {
+        *start = it->first;
         *id = it->second;
         return true;
       }
