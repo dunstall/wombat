@@ -69,7 +69,40 @@ Docker version.
 This was started in Rust - though currently porting to C++ due to Rust being to
 restrictive (especially around not being able to use UNIX C functions like epoll and sendfile).
 
+## Partition
+The log is partitioned with each node assigned is assigned N partitions.
+
+TODO decide on how to coordinate (P2P or a master).
+TODO use ZK for persistent state
+
 ## Replication
+Each partition is owned by a node are replicated on a further M nodes.
+
+### On Rebalance
+When a node becomes a replica for a partition it must request the log for this
+partition. Each log is split into multiple segments (128MB) so use sendfile to
+transfer segments.
+
+### On Write
+Each write is configured with a consistency requirement for the number of nodes
+to write to (so the client can use async or a quorum). All writes are routed
+to the owner of the partition (as conflicts would be difficult as the log is
+append only).
+
+* 1 Write the data to the local log on the partition
+* 2 Identify the replica nodes
+* 3 Route the request to these nodes and wait for N responses (where N is the
+number of configured nodes)
+* 4 On timeout return an error to the client (maybe start with only allowing
+async)
+
+### On Read
+Reads should always be routed to replicas (the client should cache this info
+and know to route reads to replicas). If the 
+
+
+ This owner first appends to its local log - then
+
 The log on each node is split into multiple segments (128MB?) so should be able
 to use sendfile to just transfer whole segments concurrently when a new node
 starts up.
