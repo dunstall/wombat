@@ -39,6 +39,8 @@ test: $(OBJ_FILES) $(TEST_OBJ_FILES)
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
 
+-include $(TEST_OBJ_FILES:.o=.d)
+
 .PHONY: clean
 clean:
 	rm -rf lib $(OBJ_DIR) $(TEST_EXE)
