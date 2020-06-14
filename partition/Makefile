@@ -10,7 +10,7 @@ LDFLAGS := -lstdc++fs
 
 # TODO(AD) build lib
 .PHONY: all
-all: $(OBJ_FILES)
+all: $(OBJ_DIR) $(OBJ_FILES)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<
@@ -44,3 +44,6 @@ $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 .PHONY: clean
 clean:
 	rm -rf lib $(OBJ_DIR) $(TEST_EXE)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
