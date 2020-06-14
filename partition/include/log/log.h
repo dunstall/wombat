@@ -81,7 +81,8 @@ class Log {
   uint64_t Recv(uint64_t size, int fd) {
     // TODO(AD) Ignoring segments - just write until segment full then move
     // to next
-    return 0;
+    // TODO(AD) Rewrite and re-test once interface and system tests
+    return LookupSegment(active_).Recv(size, fd);
   }
 
  private:
