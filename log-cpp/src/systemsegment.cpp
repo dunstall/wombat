@@ -1,5 +1,7 @@
 #include "log/systemsegment.h"
 
+#include <fcntl.h>
+#include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -13,17 +15,12 @@ SystemSegment::SystemSegment(
     uint64_t id,
     const std::filesystem::path& path,
     size_t limit)
-  : Segment(limit)
+  : Segment{limit}, path_{path / IdToName(id) }
 {
   std::filesystem::create_directories(path);
 
-  const std::string name = IdToName(id);
-
-  fs_.open(
-      path / name,
-      std::ios::in | std::ios::out | std::ios::binary | std::ios::app
-  );
-  size_ = std::filesystem::file_size(path / name);
+  fs_.open(path_, std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
+  size_ = std::filesystem::file_size(path_);
 
   if (fs_.fail()) {
     throw LogException{"failed to open file"};
@@ -60,6 +57,48 @@ std::vector<uint8_t> SystemSegment::Lookup(uint64_t offset, uint64_t size)
   }
 
   return data;
+}
+
+uint64_t SystemSegment::Send(uint64_t offset, uint64_t size, int fd) {
+  // TODO(AD) should not have to open every time - just use FILE* for all?
+  int in_fd = open(path_.c_str(), O_RDONLY);
+  if (in_fd == -1) {
+    throw LogException{"failed to open segment to send"};
+  }
+
+  off_t off = offset;
+  //TODO(AD) first send header - TCP_CORK (see sendfile docs)
+  ssize_t written = sendfile(fd, in_fd, &off, size);
+  if (written == -1) {
+    if (errno == EAGAIN) {
+      return 0;
+    } else {
+      throw LogException{"sendfile failed"};
+    }
+  }
+
+  return written;
+}
+
+uint64_t SystemSegment::Recv(uint64_t size, int fd) {
+  int segment_fd = open(path_.c_str(), O_WRONLY);
+  if (segment_fd == -1) {
+    throw LogException{"failed to open segment to recv"};
+  }
+
+  off_t off = 0;
+  ssize_t written = sendfile(segment_fd, fd, &off, size);
+  if (written == -1) {
+    if (errno == EAGAIN) {
+      return 0;
+    } else {
+      throw LogException{"sendfile failed"};
+    }
+  }
+
+  size_ += written;
+
+  return written;
 }
 
 }  // namespace wombat::log

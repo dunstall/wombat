@@ -19,8 +19,14 @@ class SystemSegment : public Segment {
 
   std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size) override;
 
+  uint64_t Send(uint64_t offset, uint64_t size, int fd) override;
+
+  uint64_t Recv(uint64_t size, int fd) override;
+
  private:
   std::fstream fs_;
+
+  std::filesystem::path path_;
 };
 
 }  // namespace wombat::log

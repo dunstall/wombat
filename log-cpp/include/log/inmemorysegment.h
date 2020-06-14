@@ -19,6 +19,16 @@ class InMemorySegment : public Segment {
 
   std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size) override;
 
+  uint64_t Send(uint64_t offset, uint64_t size, int fd) override {
+    // TODO(AD)
+    return 0;
+  }
+
+  uint64_t Recv(uint64_t size, int fd) override {
+    // TODO(AD)
+    return 0;
+  }
+
  private:
   std::filesystem::path path_;
 };

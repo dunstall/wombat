@@ -21,8 +21,9 @@ class Segment {
 
   virtual std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size) = 0;
 
-  // TODO(AD) use sendfile
-  // virtual void Send(int fd) = 0;
+  virtual uint64_t Send(uint64_t offset, uint64_t size, int fd) = 0;
+
+  virtual uint64_t Recv(uint64_t size, int fd) = 0;
 
  protected:
   uint64_t size_;

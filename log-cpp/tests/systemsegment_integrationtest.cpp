@@ -1,9 +1,13 @@
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
 #include <iostream>
 #include <random>
 #include <string>
+#include <unistd.h>
 
 #include "gtest/gtest.h"
 #include "log/systemsegment.h"
@@ -93,6 +97,82 @@ TEST_F(SystemSegmentTest, LookupEof) {
   SystemSegment segment{0x2478, dir.path(), 3};
 
   EXPECT_TRUE(segment.Lookup(0U, 3U).empty());
+}
+
+TEST_F(SystemSegmentTest, Send) {
+  TempDir dir{};
+  SystemSegment segment{0x2478, dir.path(), 3};
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  segment.Append(data);
+
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  EXPECT_EQ(3U, segment.Send(0, 3, fd));
+
+  if (lseek(fd, 0, SEEK_SET) != 0) FAIL();
+  uint8_t buf[3];
+  if (read(fd, buf, 3) != 3) FAIL();
+
+  std::vector<uint8_t> read(buf, buf+3);
+  EXPECT_EQ(data, read);
+}
+
+TEST_F(SystemSegmentTest, SendOverflow) {
+  TempDir dir{};
+  SystemSegment segment{0x2478, dir.path(), 3};
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  segment.Append(data);
+
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  // Only return 3 bytes even though requesting 10.
+  uint64_t size = 10;
+  EXPECT_EQ(3U, segment.Send(0, size, fd));
+
+  if (lseek(fd, 0, SEEK_SET) != 0) FAIL();
+  uint8_t buf[3];
+  if (read(fd, buf, 3) != 3) FAIL();
+
+  std::vector<uint8_t> read(buf, buf+3);
+  EXPECT_EQ(data, read);
+}
+
+TEST_F(SystemSegmentTest, Recv) {
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  if (write(fd, data.data(), data.size()) != 3) FAIL();
+
+  TempDir dir{};
+  SystemSegment segment{0x2478, dir.path(), 3};
+  EXPECT_EQ(3U, segment.Recv(3, fd));
+
+  EXPECT_EQ(3U, segment.size());
+  EXPECT_TRUE(segment.is_full());
+
+  EXPECT_EQ(data, segment.Lookup(0U, 3U));
+}
+
+TEST_F(SystemSegmentTest, RecvOverflow) {
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  if (write(fd, data.data(), data.size()) != 3) FAIL();
+
+  TempDir dir{};
+  SystemSegment segment{0x2478, dir.path(), 3};
+  EXPECT_EQ(3U, segment.Recv(10, fd));  // Overflow
+
+  EXPECT_EQ(3U, segment.size());
+  EXPECT_TRUE(segment.is_full());
+
+  EXPECT_EQ(data, segment.Lookup(0U, 3U));
 }
 
 }  // namespace wombat::log::testing
