@@ -11,8 +11,7 @@ namespace wombat::log::testing {
 class PartitionTest : public ::testing::Test {};
 
 TEST_F(PartitionTest, OpenEmpty) {
-  Log<InMemorySegment> log{GeneratePath(), 3};
-  Partition partition{log};
+  Partition partition{Log<InMemorySegment>{GeneratePath(), 3}};
 
   std::vector<uint8_t> read;
   uint32_t next;
@@ -20,8 +19,7 @@ TEST_F(PartitionTest, OpenEmpty) {
 }
 
 TEST_F(PartitionTest, LookupOffsetZero) {
-  Log<InMemorySegment> log{GeneratePath(), 3};
-  Partition partition{log};
+  Partition partition{Log<InMemorySegment>{GeneratePath(), 3}};
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5, 6};
   partition.Append(data);
@@ -35,8 +33,7 @@ TEST_F(PartitionTest, LookupOffsetZero) {
 }
 
 TEST_F(PartitionTest, LookupMulti) {
-  Log<InMemorySegment> log{GeneratePath(), 3};
-  Partition partition{log};
+  Partition partition{Log<InMemorySegment>{GeneratePath(), 3}};
 
   const std::vector<uint8_t> data1{1, 2, 3};
   partition.Append(data1);

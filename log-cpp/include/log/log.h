@@ -26,12 +26,11 @@ class Log {
     offsets_.Insert(0, active_);
   }
 
-  // TODO
-  // Log(const Log&) = delete;
-  // Log& operator=(const Log&) = delete;
+  Log(const Log&) = delete;
+  Log& operator=(const Log&) = delete;
 
-  // Log(Log&&) = default;
-  // Log& operator=(Log&&) = default;
+  Log(Log&&) = default;
+  Log& operator=(Log&&) = default;
 
   void Append(const std::vector<uint8_t>& data) {
     // Allow at() to throw as should never happen if the id is in offsets.
@@ -51,6 +50,7 @@ class Log {
       // This should never happen a segment at offset 0 is always added.
       throw LogException("offset not found");
     }
+    // TODO(AD) need to handle lookup over multi segments now
     return LookupSegment(id).Lookup(offset - starting_offset, size);
   }
 
@@ -79,10 +79,8 @@ class Log {
   }
 
   uint64_t Recv(uint64_t size, int fd) {
-    // TODO(AD)
-    // Must ensure the segments on each replica are identical - this is so
-    // Lookup() never reaches EOF incorrectly (as record split among segments)
-    // and so segments can be transfered in parallel later.
+    // TODO(AD) Ignoring segments - just write until segment full then move
+    // to next
     return 0;
   }
 
