@@ -1,9 +1,7 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
-#include <fstream>
-#include <string>
-#include <vector>
 
 #include "log/segment.h"
 
@@ -11,23 +9,16 @@ namespace wombat::log {
 
 class SystemSegment : public Segment {
  public:
-  SystemSegment(uint64_t id, const std::filesystem::path& path, size_t limit);
+  SystemSegment(uint64_t id, const std::filesystem::path& dir, size_t limit);
 
-  // TODO close fd
-  ~SystemSegment() override {}
+  ~SystemSegment() override;
 
-  void Append(const std::vector<uint8_t>& data) override;
+  // TODO 
+  // Segment(const Segment&) = delete;
+  // Segment& operator=(const Segment&) = delete;
 
-  std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size) override;
-
-  uint64_t Send(uint64_t offset, uint64_t size, int fd) override;
-
-  uint64_t Recv(uint64_t size, int fd) override;
-
- private:
-  std::fstream fs_;
-
-  std::filesystem::path path_;
+  // Segment(Segment&&) = default;
+  // Segment& operator=(Segment&&) = default;
 };
 
 }  // namespace wombat::log
