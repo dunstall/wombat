@@ -13,6 +13,7 @@ class SystemSegment : public Segment {
  public:
   SystemSegment(uint64_t id, const std::filesystem::path& path, size_t limit);
 
+  // TODO close fd
   ~SystemSegment() override {}
 
   void Append(const std::vector<uint8_t>& data) override;

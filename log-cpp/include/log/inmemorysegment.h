@@ -13,7 +13,7 @@ class InMemorySegment : public Segment {
  public:
   InMemorySegment(uint64_t id, const std::filesystem::path& path, size_t limit);
 
-  ~InMemorySegment() override {}
+  ~InMemorySegment() override;
 
   void Append(const std::vector<uint8_t>& data) override;
 
@@ -24,6 +24,8 @@ class InMemorySegment : public Segment {
   uint64_t Recv(uint64_t size, int fd) override;
 
  private:
+  int fd_;
+
   std::filesystem::path path_;
 };
 
