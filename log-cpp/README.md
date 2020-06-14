@@ -1,9 +1,8 @@
 # Log Module
 
 ## Design
-Wombat should be heavily partitioned - with each partition (where each node
-may have many partitions) owns a log that is accessed by a single thread (the
-the underlying files are never directly accessed).
+Wombat should be heavily partitioned - each partition (where each node
+may have many partitions) owns a log that is accessed by a single thread.
 
 The log has no knowledge of the structure of the data but simply provides an
 interface with operations:
@@ -42,3 +41,28 @@ Transfering the log for replication requires sending segments concurrently with
 `sendfile` so this is a log level operation (as segments are encapsulated). For
 sending segments the client (another broker) should be able to specify the
 segments then want (eg if segment 5 is corrupted so need it from a replica).
+
+### Corruption
+Each record contains a CRC to detect corruption which is checked on lookup. If
+this occurs the log requests the segment from a replica - for forwards lookups
+to a replica until it is repaired.
+
+### Append
+Append is only called on the partition coordinator (never replicas - maybe add
+option to append to replicas and just forward to master). This is to avoid
+conflicts that would be hard to resolve in an append only log.
+
+First push the data to a queue to be handled by a background thread - then if
+that succeeds write to the local log.
+
+In the background the request should be written to all replicas (received from
+the cluster membership module)
+
+#### Receive Replica Request
+The partition listens for incoming requests from the coordinator:
+* 1 - Check the local log is upto the same offset as the new request
+* 2 - If not buffer incoming requests while requesting the missing segments from
+the coordinator or another replica
+* 3 - If the buffer exceeds the segment size (128MB) discard and just request
+the segment
+* 4 - Once upto data apply the buffer to the log
