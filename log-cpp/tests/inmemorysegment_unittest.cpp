@@ -1,3 +1,10 @@
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <filesystem>
 #include <vector>
 
@@ -67,6 +74,79 @@ TEST_F(InMemorySegmentTest, OpenMulti) {
 TEST_F(InMemorySegmentTest, LookupEof) {
   InMemorySegment segment{0x2478, GeneratePath(), 3};
   EXPECT_TRUE(segment.Lookup(0U, 3U).empty());
+}
+
+TEST_F(InMemorySegmentTest, Send) {
+  InMemorySegment segment{0x2478, GeneratePath(), 3};
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  segment.Append(data);
+
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  EXPECT_EQ(3U, segment.Send(0, 3, fd));
+
+  if (lseek(fd, 0, SEEK_SET) != 0) FAIL();
+  uint8_t buf[3];
+  if (read(fd, buf, 3) != 3) FAIL();
+
+  std::vector<uint8_t> read(buf, buf+3);
+  EXPECT_EQ(data, read);
+}
+
+TEST_F(InMemorySegmentTest, SendOverflow) {
+  InMemorySegment segment{0x2478, GeneratePath(), 3};
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  segment.Append(data);
+
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  // Only return 3 bytes even though requesting 10.
+  uint64_t size = 10;
+  EXPECT_EQ(3U, segment.Send(0, size, fd));
+
+  if (lseek(fd, 0, SEEK_SET) != 0) FAIL();
+  uint8_t buf[3];
+  if (read(fd, buf, 3) != 3) FAIL();
+
+  std::vector<uint8_t> read(buf, buf+3);
+  EXPECT_EQ(data, read);
+}
+
+TEST_F(InMemorySegmentTest, Recv) {
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  if (write(fd, data.data(), data.size()) != 3) FAIL();
+
+  InMemorySegment segment{0x2478, GeneratePath(), 3};
+  EXPECT_EQ(3U, segment.Recv(3, fd));
+
+  EXPECT_EQ(3U, segment.size());
+  EXPECT_TRUE(segment.is_full());
+
+  EXPECT_EQ(data, segment.Lookup(0U, 3U));
+}
+
+TEST_F(InMemorySegmentTest, RecvOverflow) {
+  int fd = memfd_create("myfd", O_RDWR);
+  if (fd == -1) FAIL();
+
+  const std::vector<uint8_t> data{1, 2, 3};
+  if (write(fd, data.data(), data.size()) != 3) FAIL();
+
+  TempDir dir{};
+  InMemorySegment segment{0x2478, GeneratePath(), 3};
+  EXPECT_EQ(3U, segment.Recv(10, fd));  // Overflow
+
+  EXPECT_EQ(3U, segment.size());
+  EXPECT_TRUE(segment.is_full());
+
+  EXPECT_EQ(data, segment.Lookup(0U, 3U));
 }
 
 }  // namespace wombat::log::testing
