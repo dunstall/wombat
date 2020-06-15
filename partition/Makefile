@@ -11,6 +11,7 @@ LDFLAGS := -lstdc++fs
 # TODO(AD) build lib
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
+	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(LDFLAGS) -o log
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<

@@ -37,5 +37,7 @@ build/
 lib/
 
 # Test binary
+log
+!log/
 log_test
 log_unittest
