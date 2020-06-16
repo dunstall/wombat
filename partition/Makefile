@@ -2,7 +2,7 @@ INC_DIR := include
 SRC_DIR := src
 OBJ_DIR := build
 
-SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
 INC_FLAGS := -I$(INC_DIR)
@@ -11,7 +11,7 @@ LDFLAGS := -lstdc++fs
 # TODO(AD) build lib
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
-	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(LDFLAGS) -o log
+	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(OBJ_FILES) src/main.cpp $(LDFLAGS) -o log
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<

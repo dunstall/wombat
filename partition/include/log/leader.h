@@ -11,9 +11,9 @@
 namespace wombat::log {
 
 template<class S>
-class Partition {
+class Leader {
  public:
-  Partition(Log<S> log) : log_{std::move(log)} {}
+  Leader(Log<S> log) : log_{std::move(log)} {}
 
   void Append(const std::vector<uint8_t>& data) {
     WriteU32(data.size());
