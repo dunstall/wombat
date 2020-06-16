@@ -33,7 +33,7 @@ TEST_SRC_FILES := $(wildcard $(TEST_DIR)/*.cpp)
 TEST_OBJ_FILES := $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(TEST_SRC_FILES))
 
 .PHONY: test
-test: $(OBJ_FILES) $(TEST_OBJ_FILES)
+test: $(OBJ_DIR) $(OBJ_FILES) $(TEST_OBJ_FILES)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(TEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(TEST_EXE)
 	./$(TEST_EXE)
 
