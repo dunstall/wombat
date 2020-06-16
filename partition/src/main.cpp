@@ -58,6 +58,14 @@ void RunLeader(const std::vector<uint16_t>& ports) {
   }
 }
 
+void RunReplica(const std::vector<uint16_t>& ports) {
+    wombat::log::TempDir dir{};
+    wombat::log::Replica<wombat::log::InMemorySegment> rep{
+        wombat::log::Log<wombat::log::InMemorySegment>{dir.path(), 128'000'000}
+    };
+    std::cout << "running as replica on port " << ports[0] << std::endl;
+}
+
 int main(int argc, char** argv) {
   if (argc < 3) {
     std::cout << "USAGE: ./log TYPE PORTS" << std::endl;
@@ -69,11 +77,7 @@ int main(int argc, char** argv) {
     RunLeader(ParsePorts(argc, argv));
     break;
   case Type::kReplica:
-    wombat::log::TempDir dir{};
-    wombat::log::Replica<wombat::log::InMemorySegment> rep{
-        wombat::log::Log<wombat::log::InMemorySegment>{dir.path(), 128'000'000}
-    };
-    std::cout << "running as replica on port " << ParsePorts(argc, argv)[0] << std::endl;
+    RunReplica(ParsePorts(argc, argv));
     break;
   }
 }
