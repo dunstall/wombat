@@ -4,8 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "log/framing.h"
 #include "log/leader.h"
 #include "log/log.h"
+#include "log/replica.h"
+#include "log/inmemorysegment.h"
 #include "log/systemsegment.h"
 #include "log/tempdir.h"
 
@@ -38,15 +41,20 @@ void RunLeader(const std::vector<uint16_t>& ports) {
   for (auto p : ports) {
     std::cout << p << ", ";
   }
+  std::cout << std::endl;
 
   wombat::log::TempDir dir{};
-  wombat::log::Leader<wombat::log::SystemSegment> leader{
-      wombat::log::Log<wombat::log::SystemSegment>{dir.path(), 128'000'000}
+  wombat::log::Log<wombat::log::InMemorySegment> log{dir.path(), 128'000'000};
+
+  wombat::log::Leader<wombat::log::InMemorySegment> leader{
+    log, {{"127.0.0.1", 3110}}
   };
-  std::cout << std::endl;
+
+  wombat::log::Framing<wombat::log::InMemorySegment> framing{log};
+
   for (std::string line; std::getline(std::cin, line);) {
     std::cout << "Append " << line << std::endl;
-    leader.Append(std::vector<uint8_t>(line.begin(), line.end()));
+    framing.Append(std::vector<uint8_t>(line.begin(), line.end()));
   }
 }
 
@@ -61,6 +69,10 @@ int main(int argc, char** argv) {
     RunLeader(ParsePorts(argc, argv));
     break;
   case Type::kReplica:
+    wombat::log::TempDir dir{};
+    wombat::log::Replica<wombat::log::InMemorySegment> rep{
+        wombat::log::Log<wombat::log::InMemorySegment>{dir.path(), 128'000'000}
+    };
     std::cout << "running as replica on port " << ParsePorts(argc, argv)[0] << std::endl;
     break;
   }
