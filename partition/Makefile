@@ -44,7 +44,7 @@ $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf lib $(OBJ_DIR) $(TEST_EXE)
+	rm -rf log log.d lib $(OBJ_DIR) $(TEST_EXE)
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
