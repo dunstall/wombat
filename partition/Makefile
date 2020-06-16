@@ -6,7 +6,7 @@ SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
 INC_FLAGS := -I$(INC_DIR)
-LDFLAGS := -lstdc++fs
+LDFLAGS := -lstdc++fs -lpthread
 
 # TODO(AD) build lib
 .PHONY: all

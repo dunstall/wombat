@@ -2,24 +2,24 @@
 
 #include "gtest/gtest.h"
 #include "log/inmemorysegment.h"
-#include "log/leader.h"
+#include "log/framing.h"
 #include "log/log.h"
 #include "log/tempdir.h"
 
 namespace wombat::log::testing {
 
-class LeaderTest : public ::testing::Test {};
+class FramingTest : public ::testing::Test {};
 
-TEST_F(LeaderTest, OpenEmpty) {
-  Leader leader{Log<InMemorySegment>{GeneratePath(), 3}};
+TEST_F(FramingTest, OpenEmpty) {
+  Framing leader{Log<InMemorySegment>{GeneratePath(), 3}};
 
   std::vector<uint8_t> read;
   uint32_t next;
   EXPECT_FALSE(leader.Lookup(0U, &read, &next));
 }
 
-TEST_F(LeaderTest, LookupOffsetZero) {
-  Leader leader{Log<InMemorySegment>{GeneratePath(), 3}};
+TEST_F(FramingTest, LookupOffsetZero) {
+  Framing leader{Log<InMemorySegment>{GeneratePath(), 3}};
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5, 6};
   leader.Append(data);
@@ -32,8 +32,8 @@ TEST_F(LeaderTest, LookupOffsetZero) {
   EXPECT_EQ(10U, next);
 }
 
-TEST_F(LeaderTest, LookupMulti) {
-  Leader leader{Log<InMemorySegment>{GeneratePath(), 3}};
+TEST_F(FramingTest, LookupMulti) {
+  Framing leader{Log<InMemorySegment>{GeneratePath(), 3}};
 
   const std::vector<uint8_t> data1{1, 2, 3};
   leader.Append(data1);

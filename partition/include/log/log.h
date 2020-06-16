@@ -26,11 +26,11 @@ class Log {
     offsets_.Insert(0, active_);
   }
 
-  Log(const Log&) = delete;
-  Log& operator=(const Log&) = delete;
+/*   Log(const Log&) = delete; */
+  // Log& operator=(const Log&) = delete;
 
-  Log(Log&&) = default;
-  Log& operator=(Log&&) = default;
+  // Log(Log&&) = default;
+  /* Log& operator=(Log&&) = default; */
 
   void Append(const std::vector<uint8_t>& data) {
     // Allow at() to throw as should never happen if the id is in offsets.
