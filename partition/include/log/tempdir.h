@@ -1,14 +1,8 @@
-#include <sys/stat.h>
-#include <sys/types.h>
-
 #include <iostream>
 #include <random>
 #include <string>
 
-#include "gtest/gtest.h"
-#include "log/systemsegment.h"
-
-namespace wombat::log::testing {
+namespace wombat::log {
 
 const size_t PATH_LEN = 6;
 const std::string CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -42,4 +36,4 @@ class TempDir {
   std::filesystem::path path_;
 };
 
-}  // namespace wombat::log::testing
+}  // namespace wombat::log

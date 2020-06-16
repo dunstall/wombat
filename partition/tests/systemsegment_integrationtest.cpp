@@ -11,7 +11,7 @@
 
 #include "gtest/gtest.h"
 #include "log/systemsegment.h"
-#include "tempdir.h"
+#include "log/tempdir.h"
 
 namespace wombat::log::testing {
 

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "log/inmemorysegment.h"
 #include "log/offsets.h"
-#include "tempdir.h"
+#include "log/tempdir.h"
 
 namespace wombat::log::testing {
 

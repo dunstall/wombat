@@ -5,6 +5,9 @@
 #include <vector>
 
 #include "log/leader.h"
+#include "log/log.h"
+#include "log/systemsegment.h"
+#include "log/tempdir.h"
 
 enum class Type {
   kLeader,
@@ -36,9 +39,14 @@ void RunLeader(const std::vector<uint16_t>& ports) {
     std::cout << p << ", ";
   }
 
+  wombat::log::TempDir dir{};
+  wombat::log::Leader<wombat::log::SystemSegment> leader{
+      wombat::log::Log<wombat::log::SystemSegment>{dir.path(), 128'000'000}
+  };
   std::cout << std::endl;
   for (std::string line; std::getline(std::cin, line);) {
-      std::cout << "READ LINE " << line << std::endl;
+    std::cout << "Append " << line << std::endl;
+    leader.Append(std::vector<uint8_t>(line.begin(), line.end()));
   }
 }
 

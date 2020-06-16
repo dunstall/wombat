@@ -4,7 +4,7 @@
 #include "log/inmemorysegment.h"
 #include "log/leader.h"
 #include "log/log.h"
-#include "tempdir.h"
+#include "log/tempdir.h"
 
 namespace wombat::log::testing {
 
