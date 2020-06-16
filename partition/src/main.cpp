@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
@@ -46,9 +47,7 @@ void RunLeader(const std::vector<uint16_t>& ports) {
   wombat::log::TempDir dir{};
   wombat::log::Log<wombat::log::InMemorySegment> log{dir.path(), 128'000'000};
 
-  wombat::log::Leader<wombat::log::InMemorySegment> leader{
-    log, {{"127.0.0.1", 3110}}
-  };
+  wombat::log::Leader<wombat::log::InMemorySegment> leader{log};
 
   wombat::log::Framing<wombat::log::InMemorySegment> framing{log};
 
@@ -61,9 +60,13 @@ void RunLeader(const std::vector<uint16_t>& ports) {
 void RunReplica(const std::vector<uint16_t>& ports) {
     wombat::log::TempDir dir{};
     wombat::log::Replica<wombat::log::InMemorySegment> rep{
-        wombat::log::Log<wombat::log::InMemorySegment>{dir.path(), 128'000'000}
+        wombat::log::Log<wombat::log::InMemorySegment>{dir.path(), 128'000'000},
+        {"127.0.0.1", 3110}
     };
     std::cout << "running as replica on port " << ports[0] << std::endl;
+    while (true) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 }
 
 int main(int argc, char** argv) {
