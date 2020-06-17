@@ -63,6 +63,11 @@ class Replica {
     if (connect(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
       throw LogException{"failed to connect to server"};
     }
+
+    // TODO 1 send offset
+    // TODO 2 receive stream
+    //
+    // also handle reconnect
   }
 
   Log<S> log_;

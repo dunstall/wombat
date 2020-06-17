@@ -27,20 +27,76 @@ TEST_DIR := tests
 TEST_INC_FLAGS := -Ilib/googletest/googletest/include
 TEST_LDFLAGS := -Llib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
-TEST_EXE := log_test
 
-TEST_SRC_FILES := $(wildcard $(TEST_DIR)/*.cpp)
-TEST_OBJ_FILES := $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(TEST_SRC_FILES))
+# =============================================================================
+# Unit tests.
+# =============================================================================
 
-.PHONY: test
-test: $(OBJ_DIR) $(OBJ_FILES) $(TEST_OBJ_FILES)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(TEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(TEST_EXE)
-	./$(TEST_EXE)
+UNITTEST_EXE := log_unittest
 
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
+UNITTEST_DIR = $(TEST_DIR)/unit
+UNITTEST_SRC_FILES := $(wildcard $(UNITTEST_DIR)/*.cpp)
+UNITTEST_OBJ_FILES := $(patsubst $(UNITTEST_DIR)/%.cpp,$(OBJ_DIR)/unit/%.o,$(UNITTEST_SRC_FILES))
+
+.PHONY: unittest
+unittest: $(OBJ_DIR) $(OBJ_FILES) $(UNITTEST_OBJ_FILES)
+	echo $(UNITTEST_OBJ_FILES)
+	echo $(UNITTEST_OBJ_FILES)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(UNITTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(UNITTEST_EXE)
+	./$(UNITTEST_EXE)
+
+$(OBJ_DIR)/unit/%.o: $(TEST_DIR)/unit/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
 
--include $(TEST_OBJ_FILES:.o=.d)
+-include $(UNITTEST_OBJ_FILES:.o=.d)
+
+
+# =============================================================================
+# Integration tests.
+# =============================================================================
+
+INTEGRATIONTEST_EXE := log_integrationtest
+
+INTEGRATIONTEST_DIR = $(TEST_DIR)/integration
+INTEGRATIONTEST_SRC_FILES := $(wildcard $(INTEGRATIONTEST_DIR)/*.cpp)
+INTEGRATIONTEST_OBJ_FILES := $(patsubst $(INTEGRATIONTEST_DIR)/%.cpp,$(OBJ_DIR)/integration/%.o,$(INTEGRATIONTEST_SRC_FILES))
+
+.PHONY: integrationtest
+integrationtest: $(OBJ_DIR) $(OBJ_FILES) $(INTEGRATIONTEST_OBJ_FILES)
+	echo $(INTEGRATIONTEST_OBJ_FILES)
+	echo $(INTEGRATIONTEST_OBJ_FILES)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(INTEGRATIONTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(INTEGRATIONTEST_EXE)
+	./$(INTEGRATIONTEST_EXE)
+
+$(OBJ_DIR)/integration/%.o: $(TEST_DIR)/integration/%.cpp
+	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
+
+-include $(INTEGRATIONTEST_OBJ_FILES:.o=.d)
+
+
+# =============================================================================
+# Component tests.
+# Ensure the test harness is running.
+# =============================================================================
+
+COMPONENTTEST_EXE := log_componenttest
+
+COMPONENTTEST_DIR = $(TEST_DIR)/component
+COMPONENTTEST_SRC_FILES := $(wildcard $(COMPONENTTEST_DIR)/*.cpp)
+COMPONENTTEST_OBJ_FILES := $(patsubst $(COMPONENTTEST_DIR)/%.cpp,$(OBJ_DIR)/component/%.o,$(COMPONENTTEST_SRC_FILES))
+
+.PHONY: componenttest
+componenttest: $(OBJ_DIR) $(OBJ_FILES) $(COMPONENTTEST_OBJ_FILES)
+	echo $(COMPONENTTEST_OBJ_FILES)
+	echo $(COMPONENTTEST_OBJ_FILES)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(COMPONENTTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(COMPONENTTEST_EXE)
+	./$(COMPONENTTEST_EXE)
+
+$(OBJ_DIR)/component/%.o: $(TEST_DIR)/component/%.cpp
+	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
+
+-include $(COMPONENTTEST_OBJ_FILES:.o=.d)
+
 
 .PHONY: clean
 clean:
