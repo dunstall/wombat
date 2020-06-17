@@ -21,9 +21,15 @@ class Log {
       path_{path},
       segments_{},
       active_{1},
-      segment_limit_{segment_limit} {
+      segment_limit_{segment_limit},
+      size_{0} {
     segments_.emplace(active_, S{active_, path, segment_limit});
     offsets_.Insert(0, active_);
+
+    uint32_t id;
+    uint32_t offset;
+    offsets_.Lookup(offsets_.MaxOffset(), &id, &offset);
+    size_ = offsets_.MaxOffset() + LookupSegment(id).size();
   }
 
 /*   Log(const Log&) = delete; */
@@ -31,6 +37,8 @@ class Log {
 
   // Log(Log&&) = default;
   /* Log& operator=(Log&&) = default; */
+
+  uint32_t size() const { return size_; }
 
   void Append(const std::vector<uint8_t>& data) {
     // Allow at() to throw as should never happen if the id is in offsets.
@@ -41,8 +49,10 @@ class Log {
       segments_.emplace(active_, S{active_, path_, segment_limit_});
       offsets_.Insert(offsets_.MaxOffset() + segment.size(), active_);
     }
+    size_ += data.size();
   }
 
+  // TODO(AD) Replica uint64_t offset with uint32_t.
   std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size) {
     uint32_t id;
     uint32_t starting_offset;
@@ -105,6 +115,8 @@ class Log {
   uint64_t active_;
 
   uint64_t segment_limit_;
+
+  uint32_t size_;
 };
 
 }  // namespace wombat::log
