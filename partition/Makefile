@@ -34,12 +34,14 @@ TEST_LDFLAGS := -Llib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
 UNITTEST_EXE := log_unittest
 
+UNITTEST_OBJ_DIR = $(OBJ_DIR)/unit
+
 UNITTEST_DIR = $(TEST_DIR)/unit
 UNITTEST_SRC_FILES := $(wildcard $(UNITTEST_DIR)/*.cpp)
-UNITTEST_OBJ_FILES := $(patsubst $(UNITTEST_DIR)/%.cpp,$(OBJ_DIR)/unit/%.o,$(UNITTEST_SRC_FILES))
+UNITTEST_OBJ_FILES := $(patsubst $(UNITTEST_DIR)/%.cpp,$(UNITTEST_OBJ_DIR)/%.o,$(UNITTEST_SRC_FILES))
 
 .PHONY: unittest
-unittest: $(OBJ_DIR) $(OBJ_FILES) $(UNITTEST_OBJ_FILES)
+unittest: $(UNITTEST_OBJ_DIR) $(OBJ_FILES) $(UNITTEST_OBJ_FILES)
 	echo $(UNITTEST_OBJ_FILES)
 	echo $(UNITTEST_OBJ_FILES)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(UNITTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(UNITTEST_EXE)
@@ -104,3 +106,5 @@ clean:
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
+$(UNITTEST_OBJ_DIR):
+	mkdir -p $(UNITTEST_OBJ_DIR)
