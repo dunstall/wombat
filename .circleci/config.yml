@@ -16,7 +16,23 @@ jobs:
             make
             make unittest
 
+  integration-test-stage:
+    docker:
+      - image: circleci/buildpack-deps:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Commit stage
+          command: |
+            sudo apt-get install -y cmake
+            cd partition
+            make install
+            make integrationtest
+
+
 workflows:
   broker:
     jobs:
       - commit-stage
+      - integration-test-stage
