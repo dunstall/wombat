@@ -88,13 +88,6 @@ class Log {
     return written;
   }
 
-  uint64_t Recv(uint64_t size, int fd) {
-    // TODO(AD) Ignoring segments - just write until segment full then move
-    // to next
-    // TODO(AD) Rewrite and re-test once interface and system tests
-    return LookupSegment(active_).Recv(size, fd);
-  }
-
  private:
   S LookupSegment(uint64_t id) {
     // Lazily load the segments. TODO if too make open FDs is an issue could

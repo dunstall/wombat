@@ -61,20 +61,6 @@ uint64_t Segment::Send(uint64_t offset, uint64_t size, int fd) {
   return written;
 }
 
-uint64_t Segment::Recv(uint64_t size, int fd) {
-  off_t off = 0;
-  ssize_t written = sendfile(fd_, fd, &off, size);
-  if (written == -1) {
-    if (errno == EAGAIN) {
-      return 0;
-    } else {
-      throw LogException{"sendfile failed"};
-    }
-  }
-  size_ += written;
-  return written;
-}
-
 uint64_t Segment::Size() const {
   off_t seek = lseek(fd_, 0, SEEK_END);
   if (seek == -1) {

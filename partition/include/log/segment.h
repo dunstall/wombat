@@ -23,8 +23,6 @@ class Segment {
 
   uint64_t Send(uint64_t offset, uint64_t size, int fd);
 
-  uint64_t Recv(uint64_t size, int fd);
-
  protected:
   Segment(const std::filesystem::path& path, uint64_t limit);
 

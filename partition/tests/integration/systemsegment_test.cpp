@@ -141,38 +141,4 @@ TEST_F(SystemSegmentTest, SendOverflow) {
   EXPECT_EQ(data, read);
 }
 
-TEST_F(SystemSegmentTest, Recv) {
-  int fd = memfd_create("myfd", O_RDWR);
-  if (fd == -1) FAIL();
-
-  const std::vector<uint8_t> data{1, 2, 3};
-  if (write(fd, data.data(), data.size()) != 3) FAIL();
-
-  TempDir dir{};
-  SystemSegment segment{0x2478, dir.path(), 3};
-  EXPECT_EQ(3U, segment.Recv(3, fd));
-
-  EXPECT_EQ(3U, segment.size());
-  EXPECT_TRUE(segment.is_full());
-
-  EXPECT_EQ(data, segment.Lookup(0U, 3U));
-}
-
-TEST_F(SystemSegmentTest, RecvOverflow) {
-  int fd = memfd_create("myfd", O_RDWR);
-  if (fd == -1) FAIL();
-
-  const std::vector<uint8_t> data{1, 2, 3};
-  if (write(fd, data.data(), data.size()) != 3) FAIL();
-
-  TempDir dir{};
-  SystemSegment segment{0x2478, dir.path(), 3};
-  EXPECT_EQ(3U, segment.Recv(10, fd));  // Overflow
-
-  EXPECT_EQ(3U, segment.size());
-  EXPECT_TRUE(segment.is_full());
-
-  EXPECT_EQ(data, segment.Lookup(0U, 3U));
-}
-
 }  // namespace wombat::log::testing
