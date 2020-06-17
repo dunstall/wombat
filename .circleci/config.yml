@@ -1,0 +1,21 @@
+version: 2.1
+
+jobs:
+  commit-stage:
+    docker:
+      - image: circleci/buildpack-deps:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Commit stage
+          command: |
+            apt-get install -y cmake
+            make install
+            make
+            make unittest
+
+workflows:
+  broker:
+    jobs:
+      - commit-stage
