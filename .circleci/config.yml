@@ -23,7 +23,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Commit stage
+          name: Integration Test stage
           command: |
             sudo apt-get install -y cmake
             cd partition
@@ -35,4 +35,6 @@ workflows:
   broker:
     jobs:
       - commit-stage
-      - integration-test-stage
+      - integration-test-stage:
+          requires:
+            - commit-stage
