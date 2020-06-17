@@ -17,11 +17,6 @@
 
 namespace wombat::log {
 
-struct ReplicaAddress {
-  std::string ip;
-  uint16_t port;
-};
-
 template<class S>
 class Leader {
  public:
