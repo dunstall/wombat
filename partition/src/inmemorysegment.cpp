@@ -40,7 +40,7 @@ InMemorySegment::InMemorySegment(
   if (state.find(path_.string()) == state.end()) {
     fd_ = memfd_create(path_.c_str(), O_RDWR);
     if (fd_ == -1) {
-      throw LogException{"memfd_create failed"};
+      throw LogException{"memfd_create failed", errno};
     }
     state.emplace(path_.string(), fd_);
   } else {

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <glog/logging.h>
 #include "log/framing.h"
 #include "log/leader.h"
 #include "log/log.h"
@@ -70,6 +71,8 @@ void RunReplica(const std::vector<uint16_t>& ports) {
 }
 
 int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+
   if (argc < 3) {
     std::cout << "USAGE: ./log TYPE PORTS" << std::endl;
     std::exit(1);

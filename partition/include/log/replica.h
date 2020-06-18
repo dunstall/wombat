@@ -10,6 +10,7 @@
 
 #include <vector>
 
+#include <glog/logging.h>
 #include "log/log.h"
 #include "log/logexception.h"
 
@@ -53,7 +54,7 @@ class Replica {
       return;
     } else if (n == -1) {
       if (errno != EAGAIN || errno != EWOULDBLOCK) {
-        throw LogException{"read error"};
+        throw LogException{"replica read error", errno};
       } else {
         return;
       }
@@ -69,11 +70,11 @@ class Replica {
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(leader_.port);
     if (inet_pton(AF_INET, leader_.ip.c_str(), &servaddr.sin_addr.s_addr) != 1) {
-      throw LogException{"inet_pton error"};
+      throw LogException{"bad leader IP"};
     }
 
     if ((sock_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      throw LogException{"socket error"};
+      throw LogException{"socket error", errno};
     }
 
     struct timeval timeout;
@@ -81,14 +82,14 @@ class Replica {
     timeout.tv_usec = 0;
 
     if (setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout)) == -1)
-      throw LogException{"setsockopt error"};
+      throw LogException{"setsockopt error", errno};
 
     if (setsockopt(sock_, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {
-      throw LogException{"setsockopt error"};
+      throw LogException{"setsockopt error", errno};
     }
 
     if (connect(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
-      throw LogException{"failed to connect to server"};
+      throw LogException{"failed to connect to server", errno};
     }
 
     if (!SendOffset()) return false;
@@ -117,7 +118,7 @@ class Replica {
             connected_ = false;
             return false;
           }
-          throw LogException{"failed to write to server"};
+          throw LogException{"failed to write to leader", errno};
         }
       }
       written += n;
