@@ -3,10 +3,12 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <signal.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include <atomic>
-#include <thread>
+#include <vector>
 
 #include "log/log.h"
 #include "log/logexception.h"
@@ -22,17 +24,14 @@ template<class S>
 class Replica {
  public:
   Replica(Log<S> log, const LeaderAddress& leader)
-      : log_{log}, leader_{leader}
+      : log_{log}, leader_{leader}, buf_(kBufSize), connected_{false}
   {
-    running_ = true;
-    thread_ = std::thread{&Replica::Run, this};
+    signal(SIGINT, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
   }
 
   ~Replica() {
-    running_ = false;
-    if (thread_.joinable()) {
-      thread_.join();
-    }
+    close(sock_);
   }
 
   Replica(const Replica&) = delete;
@@ -41,14 +40,31 @@ class Replica {
   Replica(Replica&&) = delete;
   Replica& operator=(Replica&&) = delete;
 
- private:
-  void Run() {
-    Connect();
+  void Poll() {
+    if (!connected_) {
+      if (!Connect()) {
+        return;
+      }
+    }
 
-    // TODO(AD) Create connection, send offset, listen for incoming
+    ssize_t n = read(sock_, buf_.data(), kBufSize);
+    if (n == 0) {
+      connected_ = false;
+      return;
+    } else if (n == -1) {
+      if (errno != EAGAIN || errno != EWOULDBLOCK) {
+        throw LogException{"read error"};
+      } else {
+        return;
+      }
+    }
+    log_.Append(std::vector<uint8_t>(buf_.begin(), buf_.begin() + n));
   }
 
-  void Connect() {
+ private:
+  static const size_t kBufSize = 1024;
+
+  bool Connect() {
     struct sockaddr_in servaddr;
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(leader_.port);
@@ -60,14 +76,54 @@ class Replica {
       throw LogException{"socket error"};
     }
 
+    struct timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    if (setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout)) == -1)
+      throw LogException{"setsockopt error"};
+
+    if (setsockopt(sock_, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {
+      throw LogException{"setsockopt error"};
+    }
+
     if (connect(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
       throw LogException{"failed to connect to server"};
     }
 
-    // TODO 1 send offset
-    // TODO 2 receive stream
-    //
-    // also handle reconnect
+    if (!SendOffset()) return false;
+
+    connected_ = true;
+
+    return true;
+  }
+
+  bool SendOffset() {
+    uint32_t offset = log_.size();
+    uint32_t ordered = htonl(offset);
+    std::vector<uint8_t> enc {
+      (uint8_t) (ordered >> 0),
+      (uint8_t) (ordered >> 8),
+      (uint8_t) (ordered >> 16),
+      (uint8_t) (ordered >> 24)
+    };
+
+    int written = 0;
+    while (written < 4) {
+      int n = write(sock_, enc.data() + written, enc.size() - written);
+      if (n == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+          if (errno == EPIPE) {
+            connected_ = false;
+            return false;
+          }
+          throw LogException{"failed to write to server"};
+        }
+      }
+      written += n;
+    }
+
+    return true;
   }
 
   Log<S> log_;
@@ -76,8 +132,9 @@ class Replica {
 
   int sock_;
 
-  std::thread thread_;
-  std::atomic_bool running_;
+  std::vector<uint8_t> buf_;
+
+  bool connected_;
 };
 
 }  // namespace wombat::log
