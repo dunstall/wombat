@@ -13,8 +13,8 @@ jobs:
             sudo apt-get install -y cmake
             cd partition
             make install
-            make
-            make unittest
+            make -j 4
+            make -j 4 unittest
 
   integration-test-stage:
     docker:
@@ -28,7 +28,7 @@ jobs:
             sudo apt-get install -y cmake
             cd partition
             make install
-            make integrationtest
+            make -j 4 integrationtest
 
 
 workflows:
