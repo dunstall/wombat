@@ -6,7 +6,7 @@ SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
 INC_FLAGS := -I$(INC_DIR)
-LDFLAGS := -lstdc++fs -lpthread
+LDFLAGS := -lstdc++fs -lglog -lpthread
 
 # TODO(AD) build lib
 .PHONY: all
@@ -45,7 +45,7 @@ unittest: $(UNITTEST_OBJ_DIR) $(OBJ_FILES) $(UNITTEST_OBJ_FILES)
 	echo $(UNITTEST_OBJ_FILES)
 	echo $(UNITTEST_OBJ_FILES)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(UNITTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(UNITTEST_EXE)
-	./$(UNITTEST_EXE)
+	GLOG_logtostderr=1 LD_LIBRARY_PATH=/usr/local/lib ./$(UNITTEST_EXE)
 
 $(OBJ_DIR)/unit/%.o: $(TEST_DIR)/unit/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
@@ -70,7 +70,7 @@ integrationtest: $(INTEGRATIONTEST_OBJ_DIR) $(OBJ_FILES) $(INTEGRATIONTEST_OBJ_F
 	echo $(INTEGRATIONTEST_OBJ_FILES)
 	echo $(INTEGRATIONTEST_OBJ_FILES)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(INTEGRATIONTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(INTEGRATIONTEST_EXE)
-	./$(INTEGRATIONTEST_EXE)
+	GLOG_logtostderr=1 LD_LIBRARY_PATH=/usr/local/lib ./$(INTEGRATIONTEST_EXE)
 
 $(OBJ_DIR)/integration/%.o: $(TEST_DIR)/integration/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
@@ -96,7 +96,7 @@ componenttest: $(COMPONENTTEST_OBJ_DIR) $(OBJ_FILES) $(COMPONENTTEST_OBJ_FILES)
 	echo $(COMPONENTTEST_OBJ_FILES)
 	echo $(COMPONENTTEST_OBJ_FILES)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(COMPONENTTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(COMPONENTTEST_EXE)
-	./$(COMPONENTTEST_EXE)
+	GLOG_logtostderr=1 LD_LIBRARY_PATH=/usr/local/lib ./$(COMPONENTTEST_EXE)
 
 $(OBJ_DIR)/component/%.o: $(TEST_DIR)/component/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
