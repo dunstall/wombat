@@ -7,48 +7,75 @@ import socketserver
 import struct
 import time
 
+"""
+Leader OK
+
+Handle the normal case of replica sending an offset of 0 and respond with
+a stream of data.
+
+PORT: 5100
+"""
+
 class LeaderOkHandler(socketserver.BaseRequestHandler):
     allow_reuse_address = True
 
     def handle(self):
         data = self.request.recv(4).strip()
         offset = struct.unpack("!L", data)[0]
-        print("offset {} from {}".format(offset, self.client_address[0]))
 
-        for _ in range(10):
-            self.request.sendall(b"\x04\x01\x01\x01\x01")
-            time.sleep(1)
+        for _ in range(5):
+            self.request.sendall(b"\x04\x01\x02\x03\x04")
+            time.sleep(0.1)
 
 
-def leader_ok():
-    HOST, PORT = "localhost", 5100
-    with socketserver.TCPServer((HOST, PORT), LeaderOkHandler) as server:
-        server.serve_forever()
+"""
+Leader unreachable.
 
+Port: 5101
+"""
+# Nothing to run.
+
+
+"""
+Leader accept request and immediately close.
+
+Replica should keep trying to connect.
+
+Port: 5102
+"""
 
 class LeaderCloseImmediatelyHandler(socketserver.BaseRequestHandler):
+    allow_reuse_address = True
+
     def handle(self):
         self.request.close()
 
 
-def leader_close_immediately():
-    HOST, PORT = "localhost", 5102
-    with socketserver.TCPServer((HOST, PORT), LeaderCloseImmediatelyHandler) as server:
-        server.serve_forever()
+"""
+Leader write single byte and close.
+
+Replica should keep re-connecting and receiving the stream of data (giving
+a new offset each time).
+
+Port: 5103
+"""
 
 class LeaderWriteAndCloseHandler(socketserver.BaseRequestHandler):
     allow_reuse_address = True
 
-    log = b"\x04\x01\x01\x01\x01" * 10
+    log = b"\x04\x01\x02\x03\x04" * 5
 
     def handle(self):
-        data = self.request.recv(4).strip()
+        data = b''
+        while len(data) < 4:
+            data += self.request.recv(4 - len(data)).strip()
         offset = struct.unpack("!L", data)[0]
-        print("offset {} from {}".format(offset, self.client_address[0]))
 
         self.request.sendall(self.log[offset:offset+1])
 
-def leader_write_and_close():
-    HOST, PORT = "localhost", 5103
-    with socketserver.TCPServer((HOST, PORT), LeaderWriteAndCloseHandler) as server:
+        self.request.close()
+
+
+def run(handler, port):
+    with socketserver.TCPServer(("localhost", port), handler) as server:
         server.serve_forever()

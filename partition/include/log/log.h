@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <glog/logging.h>
 #include "logexception.h"
 #include "offsets.h"
 
@@ -48,6 +49,7 @@ class Log {
       ++active_;
       segments_.emplace(active_, S{active_, path_, segment_limit_});
       offsets_.Insert(offsets_.MaxOffset() + segment.size(), active_);
+      LOG(INFO) << "opening new segment: " << active_;
     }
     size_ += data.size();
   }

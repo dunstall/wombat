@@ -16,7 +16,8 @@ class LogException : public std::exception {
   }
 
   LogException(const std::string& msg, int err) : msg_{msg} {
-    std::stringstream ss{msg};
+    std::stringstream ss{};
+    ss << msg;
     ss << ": " << std::strerror(err);
     ss << " (" << err << ")";
     msg_ = ss.str();

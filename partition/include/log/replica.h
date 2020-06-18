@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <memory>
 #include <vector>
 
 #include <glog/logging.h>
@@ -24,10 +25,9 @@ struct LeaderAddress {
 template<class S>
 class Replica {
  public:
-  Replica(Log<S> log, const LeaderAddress& leader)
+  Replica(std::shared_ptr<Log<S>> log, const LeaderAddress& leader)
       : log_{log}, leader_{leader}, buf_(kBufSize), connected_{false}
   {
-    signal(SIGINT, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
   }
 
@@ -41,6 +41,10 @@ class Replica {
   Replica(Replica&&) = delete;
   Replica& operator=(Replica&&) = delete;
 
+  // TODO(AD) Should be able to split more out here for unit testing
+
+  bool connected() const { return connected_; }
+
   void Poll() {
     if (!connected_) {
       if (!Connect()) {
@@ -50,16 +54,23 @@ class Replica {
 
     ssize_t n = read(sock_, buf_.data(), kBufSize);
     if (n == 0) {
+      LOG(WARNING) << "connection closed by leader " << leader_.ip << ":" << leader_.port;
       connected_ = false;
       return;
     } else if (n == -1) {
-      if (errno != EAGAIN || errno != EWOULDBLOCK) {
+      if (errno != EAGAIN && errno != EWOULDBLOCK) {
+        close(sock_);
+        if (errno == ECONNRESET) {
+          connected_ = false;
+          return;
+        }
+
         throw LogException{"replica read error", errno};
       } else {
         return;
       }
     }
-    log_.Append(std::vector<uint8_t>(buf_.begin(), buf_.begin() + n));
+    log_->Append(std::vector<uint8_t>(buf_.begin(), buf_.begin() + n));
   }
 
  private:
@@ -89,6 +100,11 @@ class Replica {
     }
 
     if (connect(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
+      close(sock_);
+      LOG(WARNING) << "failed to connect to " << leader_.ip << ":" << leader_.port;
+      if (errno == ECONNREFUSED) {
+        return false;
+      }
       throw LogException{"failed to connect to server", errno};
     }
 
@@ -100,7 +116,7 @@ class Replica {
   }
 
   bool SendOffset() {
-    uint32_t offset = log_.size();
+    uint32_t offset = log_->size();
     uint32_t ordered = htonl(offset);
     std::vector<uint8_t> enc {
       (uint8_t) (ordered >> 0),
@@ -127,7 +143,7 @@ class Replica {
     return true;
   }
 
-  Log<S> log_;
+  std::shared_ptr<Log<S>> log_;
 
   LeaderAddress leader_;
 
