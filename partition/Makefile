@@ -20,6 +20,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 .PHONY: install
 install:
+	./bin/install.sh
 	./bin/installtest.sh
 
 TEST_DIR := tests
