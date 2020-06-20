@@ -1,10 +1,10 @@
-#include "log/leader.h"
+#include "partition/leader.h"
 
 #include <chrono>
 #include <thread>
 
 #include <glog/logging.h>
-#include "log/leader.h"
+#include "partition/leader.h"
 #include "log/log.h"
 #include "log/logexception.h"
 #include "log/inmemorysegment.h"

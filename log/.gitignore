@@ -40,3 +40,5 @@ lib/
 log
 !log/
 log_*
+
+libwombatlog.a

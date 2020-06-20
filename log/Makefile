@@ -12,6 +12,7 @@ LDFLAGS := -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 # TODO(AD) build lib
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
+	ar rvs libwombatlog.a $(OBJ_FILES)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<
@@ -20,8 +21,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 .PHONY: install
 install:
-	./bin/install.sh
-	./bin/installtest.sh
+	../bin/install.sh
+	../bin/installtest.sh
 
 TEST_DIR := tests
 

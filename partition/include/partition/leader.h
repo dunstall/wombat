@@ -14,7 +14,7 @@
 #include <vector>
 
 #include <glog/logging.h>
-#include "log/connection.h"
+#include "partition/connection.h"
 #include "log/log.h"
 #include "log/logexception.h"
 

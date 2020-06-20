@@ -1,4 +1,4 @@
-#include "log/connection.h"
+#include "partition/connection.h"
 
 #include <errno.h>
 #include <netinet/in.h>

@@ -3,11 +3,11 @@
 #include <chrono>
 #include <thread>
 
-#include "log/leader.h"
+#include "partition/leader.h"
+#include "partition/replica.h"
 #include "log/log.h"
 #include "log/logexception.h"
 #include "log/inmemorysegment.h"
-#include "log/replica.h"
 #include "log/tempdir.h"
 
 namespace wombat::log::testing {
