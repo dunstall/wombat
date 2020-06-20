@@ -11,7 +11,7 @@ jobs:
           name: Commit stage
           command: |
             sudo apt-get install -y cmake
-            cd partition
+            cd log
             make install
             make -j 4
             make -j 4 unittest
@@ -26,13 +26,13 @@ jobs:
           name: Integration Test stage
           command: |
             sudo apt-get install -y cmake
-            cd partition
+            cd log
             make install
             make -j 4 integrationtest
 
 
 workflows:
-  broker:
+  log:
     jobs:
       - commit-stage
       - integration-test-stage:
