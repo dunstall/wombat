@@ -53,6 +53,7 @@ class Replica {
     }
 
     ssize_t n = read(sock_, buf_.data(), kBufSize);
+    LOG(INFO) << "replica read " << n;
     if (n == 0) {
       LOG(WARNING) << "connection closed by leader " << leader_.ip << ":" << leader_.port;
       connected_ = false;

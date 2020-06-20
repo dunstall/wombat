@@ -8,10 +8,13 @@
 #include <sys/types.h>
 
 #include <algorithm>
-#include <atomic>
-#include <thread>
+#include <cstring>
+#include <memory>
+#include <unordered_map>
 #include <vector>
 
+#include <glog/logging.h>
+#include "log/connection.h"
 #include "log/log.h"
 #include "log/logexception.h"
 
@@ -20,16 +23,14 @@ namespace wombat::log {
 template<class S>
 class Leader {
  public:
-  Leader(Log<S> log) : log_{log}, buf_(kReadBufSize) {
-    running_ = true;
-    thread_ = std::thread{&Leader::Run, this};
+  Leader(std::shared_ptr<Log<S>> log, uint16_t port) : log_{log}, buf_(kReadBufSize) {
+    LOG(INFO) << "starting leader on port " << port;
+    Listen(port);
+    InitPoll();
   }
 
   ~Leader() {
-    running_ = false;
-    if (thread_.joinable()) {
-      thread_.join();
-    }
+    Close();
   }
 
   Leader(const Leader&) = delete;
@@ -38,121 +39,142 @@ class Leader {
   Leader(Leader&&) = delete;
   Leader& operator=(Leader&&) = delete;
 
+  void Poll() {
+    int nready;
+    if ((nready = poll(fds_, max_fd_index_ + 1, 0)) == -1) {
+      throw LogException{"poll error", errno};
+    }
+
+    if (WaitingConnection()) {
+      Accept();
+      if (--nready <= 0) {
+        return;
+      }
+    }
+
+    for (int i = 1; i <= max_fd_index_; ++i) {  // Check clients for data.
+      if (PendingRead(i)) {
+        Read(i);
+        if (--nready <= 0) {
+          break;
+        }
+      }
+
+      if (PendingWrite(i)) {
+        if (log_->size() > connections_.at(fds_[i].fd).offset()) {
+          LOG(INFO) << "SENT " << log_->Send(connections_.at(fds_[i].fd).offset(), 100, fds_[i].fd);
+        }
+      }
+    }
+  }
+
  private:
-  static const uint16_t kListenPort = 3111;
   static const int kListenBacklog = 10;
   static const int kMaxReplicas = 10;
-  static const int kPollTimeoutMs = 1000;
 
   static const size_t kReadBufSize = 1000;
 
-  void Run() {
-    int i;
-    int maxi = 0;
-
-    Listen();
-
-    struct pollfd client[kMaxReplicas];
-    client[0].fd = sock_;
-    client[0].events = POLLRDNORM;
-    for (i = 1; i < kMaxReplicas; ++i) {
-      client[i].fd = -1;
-    }
-
-    int nready;
-    while (running_) {
-      // Need a timeout so periodically check running_.
-      if ((nready = poll(client, maxi + 1, kPollTimeoutMs)) == -1) {
-        throw LogException{"poll error"};
-      }
-
-      if (client[0].revents & POLLRDNORM) {  // New connection.
-        struct sockaddr_in cliaddr;
-        socklen_t clilen = sizeof(cliaddr);
-        
-        int connfd = accept(sock_, (struct sockaddr*) &cliaddr, &clilen);
-        if (connfd == -1) {
-          // TODO See accept(2) for errors to handle otherwise ignore
-          // (make this a function and just skip)
-        }
-
-        for (i = 1; i != kMaxReplicas; ++i) {
-          if (client[i].fd < 0) {
-            client[i].fd = connfd;
-            break;
-          }
-        }
-        if (i == kMaxReplicas) {
-          // TODO(AD) Replica limit reached - log and refuse connections?
-          // Do not add to active connections.
-        }
-
-        // TODO(AD) Must also poll for writable.
-        client[i].events = POLLRDNORM;  // TODO also writable
-        maxi = std::max(maxi, i);
-
-        if (--nready <= 0) {
-          continue;
-        }
-      }
-
-      int sockfd;
-      int n;
-      for (i = 1; i <= maxi; ++i) {  // Check clients for data.
-        if ((sockfd = client[i].fd) == -1) {
-          continue;
-        }
-
-        if (client[i].revents & (POLLRDNORM | POLLERR)) {
-          if ((n = read(sockfd, buf_.data(), kReadBufSize)) == -1) {
-            if (errno == ECONNRESET) {
-              close(sockfd);
-              client[i].fd = -1;
-            } else {
-              // TODO(AD) Read error - Just log and close?
-            }
-          } else if (n == 0) {
-            close(sockfd);
-            client[i].fd = -1;
-          } else {
-            // TODO(AD) Handle incoming data.
-          }
-
-          if (--nready <= 0) {
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  void Listen() {
+  void Listen(uint16_t port) {
     struct sockaddr_in servaddr;
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(kListenPort);
+    servaddr.sin_port = htons(port);
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
-    if ((sock_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      throw LogException{"socket error"};
+    if ((listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+      throw LogException{"socket error", errno};
     }
 
-    if (bind(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
-      throw LogException{"bind error"};
+    if (bind(listenfd_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
+      throw LogException{"bind error", errno};
     }
 
-    if (listen(sock_, 10) == -1) {
-      throw LogException{"listen error"};
+    if (listen(listenfd_, kListenBacklog) == -1) {
+      throw LogException{"listen error", errno};
     }
   }
 
-  Log<S> log_;
+  void Accept() {
+    struct sockaddr_in cliaddr;
+    socklen_t clilen = sizeof(cliaddr);
 
-  int sock_;
+    int connfd = accept(listenfd_, (struct sockaddr*) &cliaddr, &clilen);
+    if (connfd == -1) {
+      // TODO See accept(2) for errors to handle otherwise ignore
+      // (make this a function and just skip)
+    }
+
+    LOG(INFO) << "replica connected";
+
+    for (int i = 1; i != kMaxReplicas; ++i) {
+      if (fds_[i].fd < 0) {
+        fds_[i].fd = connfd;
+        fds_[i].events = POLLRDNORM;
+        max_fd_index_ = std::max(max_fd_index_, i);
+        connections_.emplace(connfd, Connection(connfd, cliaddr));
+        return;
+      }
+    }
+
+    LOG(WARNING) << "maximum replicas reached";
+    // Cannot accept so close immediately.
+    close(connfd);
+  }
+
+  bool WaitingConnection() const {
+    return (fds_[0].revents & POLLRDNORM) != 0;
+  }
+
+  bool PendingRead(int i) const {
+    if (fds_[i].fd == -1) {
+      return false;
+    }
+    return (fds_[i].revents & (POLLRDNORM | POLLERR)) != 0;
+  }
+
+  bool PendingWrite(int i) const {
+    if (fds_[i].fd == -1) {
+      return false;
+    }
+    return (fds_[i].revents & POLLWRNORM) != 0;
+  }
+
+  void Read(int i) {
+    int sockfd = fds_[i].fd;
+    if (!connections_.at(sockfd).Read()) {
+      fds_[i].fd = -1;
+      connections_.erase(sockfd);
+      return;
+    }
+
+    // If established can listen for write.
+    if (connections_.at(sockfd).state() == ConnectionState::kEstablished) {
+      fds_[i].events = POLLRDNORM | POLLWRNORM;
+    }
+  }
+
+  void InitPoll() {
+    fds_[0].fd = listenfd_;
+    fds_[0].events = POLLRDNORM;
+    for (int i = 1; i < kMaxReplicas; ++i) {
+      fds_[i].fd = -1;
+    }
+  }
+
+  void Close() {
+    close(listenfd_);
+  }
+
+  std::unordered_map<int, Connection> connections_;
+
+  std::shared_ptr<Log<S>> log_;
+
+  int listenfd_;
 
   std::vector<uint8_t> buf_;
 
-  std::thread thread_;
-  std::atomic_bool running_;
+  int max_fd_index_ = 0;
+
+  struct pollfd fds_[kMaxReplicas];
 };
 
 }  // namespace wombat::log
