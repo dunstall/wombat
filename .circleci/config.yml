@@ -30,6 +30,21 @@ jobs:
             make install
             make -j 4 integrationtest
 
+  partition-commit-stage:
+    docker:
+      - image: circleci/buildpack-deps:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Commit stage
+          command: |
+            sudo apt-get install -y cmake
+            cd partition
+            make install
+            make -j 4
+            # TODO(AD) Unit tests
+
 
 workflows:
   log:
@@ -38,3 +53,7 @@ workflows:
       - log-integration-test-stage:
           requires:
             - log-commit-stage
+
+  partition:
+    jobs:
+      - partition-commit-stage
