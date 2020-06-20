@@ -23,7 +23,8 @@ namespace wombat::log {
 template<class S>
 class Leader {
  public:
-  Leader(std::shared_ptr<Log<S>> log, uint16_t port) : log_{log}, buf_(kReadBufSize) {
+  Leader(std::shared_ptr<Log<S>> log, uint16_t port)
+      : log_{log}, buf_(kReadBufSize) {
     LOG(INFO) << "starting leader on port " << port;
     Listen(port);
     InitPoll();
@@ -45,17 +46,14 @@ class Leader {
       throw LogException{"poll error", errno};
     }
 
-    LOG(INFO) << nready;
-
     if (WaitingConnection()) {
-      LOG(INFO) << "PENDING CONN";
       Accept();
       if (--nready <= 0) {
         return;
       }
     }
 
-    for (int i = 1; i <= max_fd_index_; ++i) {  // Check clients for data.
+    for (int i = 1; i <= max_fd_index_; ++i) {
       if (PendingRead(i)) {
         Read(i);
         if (--nready <= 0) {
@@ -126,7 +124,7 @@ class Leader {
       }
     }
 
-    LOG(WARNING) << "maximum replicas reached";
+    LOG(WARNING) << "maximum replicas reached (" << kMaxReplicas << ")";
     // Cannot accept so close immediately.
     close(connfd);
   }

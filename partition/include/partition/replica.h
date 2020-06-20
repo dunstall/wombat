@@ -118,6 +118,8 @@ class Replica {
 
   bool SendOffset() {
     uint32_t offset = log_->size();
+    LOG(INFO) << "send offset " << offset;
+
     uint32_t ordered = htonl(offset);
     std::vector<uint8_t> enc {
       (uint8_t) (ordered >> 0),

@@ -30,32 +30,31 @@ TEST_LDFLAGS := -Llib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
 
 # =============================================================================
-# Component tests.
-# Ensure the test harness is running.
+# Integration tests.
 # =============================================================================
 
-COMPONENTTEST_EXE := log_componenttest
+INTEGRATIONTEST_EXE := log_integrationtest
 
-COMPONENTTEST_OBJ_DIR = $(OBJ_DIR)/component
+INTEGRATIONTEST_OBJ_DIR = $(OBJ_DIR)/integration
 
-COMPONENTTEST_DIR = $(TEST_DIR)/component
-COMPONENTTEST_SRC_FILES := $(wildcard $(COMPONENTTEST_DIR)/*.cpp)
-COMPONENTTEST_OBJ_FILES := $(patsubst $(COMPONENTTEST_DIR)/%.cpp,$(COMPONENTTEST_OBJ_DIR)/%.o,$(COMPONENTTEST_SRC_FILES))
+INTEGRATIONTEST_DIR = $(TEST_DIR)/integration
+INTEGRATIONTEST_SRC_FILES := $(wildcard $(INTEGRATIONTEST_DIR)/*.cpp)
+INTEGRATIONTEST_OBJ_FILES := $(patsubst $(INTEGRATIONTEST_DIR)/%.cpp,$(INTEGRATIONTEST_OBJ_DIR)/%.o,$(INTEGRATIONTEST_SRC_FILES))
 
-.PHONY: componenttest
-componenttest: $(COMPONENTTEST_OBJ_DIR) $(OBJ_FILES) $(COMPONENTTEST_OBJ_FILES)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(COMPONENTTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(COMPONENTTEST_EXE)
-	GLOG_logtostderr=1 ./$(COMPONENTTEST_EXE)
+.PHONY: integrationtest
+integrationtest: $(INTEGRATIONTEST_OBJ_DIR) $(OBJ_FILES) $(INTEGRATIONTEST_OBJ_FILES)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(INTEGRATIONTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(INTEGRATIONTEST_EXE)
+	GLOG_logtostderr=1 ./$(INTEGRATIONTEST_EXE)
 
-$(OBJ_DIR)/component/%.o: $(TEST_DIR)/component/%.cpp
+$(OBJ_DIR)/integration/%.o: $(TEST_DIR)/integration/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
 
--include $(COMPONENTTEST_OBJ_FILES:.o=.d)
+-include $(INTEGRATIONTEST_OBJ_FILES:.o=.d)
 
 
 .PHONY: clean
 clean:
-	rm -rf log log.d lib $(OBJ_DIR) $(COMPONENTTEST_EXE)
+	rm -rf log log.d lib $(OBJ_DIR) $(INTEGRATIONTEST_EXE)
 
-$(OBJ_DIR) $(COMPONENTTEST_OBJ_DIR):
+$(OBJ_DIR) $(INTEGRATIONTEST_OBJ_DIR):
 	mkdir -p $@

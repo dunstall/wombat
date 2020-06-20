@@ -13,7 +13,7 @@
 namespace wombat::log {
 
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
-    : connfd_{connfd}, addr_{addr}, buf_{kReadBufSize}, state_{ConnectionState::kPending} {}
+    : connfd_{connfd}, addr_{addr}, buf_(kReadBufSize), state_{ConnectionState::kPending} {}
 
 // TODO(AD) If read returns false leader must remove from map and fds
 bool Connection::Read() {
@@ -42,9 +42,15 @@ bool Connection::Read() {
     // TODO keep reading till buf
 
     if (n == kReadBufSize) {
-      uint32_t offset;
+      LOG(INFO) << buf_.size();
+      for (uint8_t b : buf_) {
+        LOG(INFO) << "BYTE " << (int)b;
+      }
+
+      uint32_t offset = 0;
       memcpy(&offset, buf_.data(), kReadBufSize);
-      offset_ = ntohs(offset);
+      LOG(INFO) << "temp offset " << offset;
+      offset_ = ntohl(offset);
       LOG(INFO) << "connection established: offset: " << offset_ << std::endl;
       state_ = ConnectionState::kEstablished;
     }
