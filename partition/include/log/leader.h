@@ -45,7 +45,10 @@ class Leader {
       throw LogException{"poll error", errno};
     }
 
+    LOG(INFO) << nready;
+
     if (WaitingConnection()) {
+      LOG(INFO) << "PENDING CONN";
       Accept();
       if (--nready <= 0) {
         return;
@@ -61,9 +64,17 @@ class Leader {
       }
 
       if (PendingWrite(i)) {
+        uint32_t logsize = log_->size();
+        uint32_t offset = connections_.at(fds_[i].fd).offset();
+
+        LOG(INFO) << "PENDNIG WRITE " << logsize << " > " << offset;
+        // TODO(AD) Must increment offset - test with unique data
         if (log_->size() > connections_.at(fds_[i].fd).offset()) {
           LOG(INFO) << "SENT " << log_->Send(connections_.at(fds_[i].fd).offset(), 100, fds_[i].fd);
         }
+        // if (--nready <= 0) {
+          // break;
+        // }
       }
     }
   }

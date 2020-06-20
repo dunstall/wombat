@@ -53,10 +53,12 @@ TEST_F(LeaderTest, TestReceiveData) {
     replica.Poll();
   }
 
-  EXPECT_EQ(std::vector<uint8_t>({1, 2, 3, 4, 5}), log->Lookup(0, 5));
-  EXPECT_EQ(std::vector<uint8_t>({1, 2, 3, 4, 5}), log->Lookup(5, 5));
-  EXPECT_EQ(std::vector<uint8_t>({1, 2, 3, 4, 5}), log->Lookup(10, 5));
-  EXPECT_EQ(std::vector<uint8_t>({1, 2, 3, 4, 5}), log->Lookup(15, 5));
+  EXPECT_EQ(std::vector<uint8_t>({0, 0, 0, 0, 0}), log->Lookup(0, 5));
+  EXPECT_EQ(std::vector<uint8_t>({1, 1, 1, 1, 1}), log->Lookup(5, 5));
+  EXPECT_EQ(std::vector<uint8_t>({2, 2, 2, 2, 2}), log->Lookup(10, 5));
+  EXPECT_EQ(std::vector<uint8_t>({3, 3, 3, 3, 3}), log->Lookup(15, 5));
+  EXPECT_EQ(std::vector<uint8_t>({4, 4, 4, 4, 4}), log->Lookup(20, 5));
+  EXPECT_EQ(std::vector<uint8_t>({5, 5, 5, 5, 5}), log->Lookup(25, 5));
 
   std::cout << log->size() << std::endl;
 }

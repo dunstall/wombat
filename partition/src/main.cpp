@@ -18,12 +18,13 @@ void Run() {
   
   Leader<InMemorySegment> leader{log_leader, 3110};
 
+  for (uint8_t b = 0; b != 0xff; ++b) {
+    log_leader->Append({b, b, b, b, b});
+  }
+
   while (true) {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     leader.Poll();
-
-    // TODO just write 100 bytes first?
-    log_leader->Append({1, 2, 3, 4, 5});
   }
 }
 
