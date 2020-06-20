@@ -108,56 +108,79 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
 
 // TODO(AD) Connect exceed limit, disconnect other replicas and try again
 
-// TEST_F(LeaderTest, TestReceiveDataOffset0) { 
-  // TempDir dir{};
-  // std::shared_ptr<Log<InMemorySegment>> log = std::make_shared<Log<InMemorySegment>>(dir.path(), 128'000'000);
+TEST_F(LeaderTest, TestReceiveDataOffset0) { 
+  const uint16_t port = 3104;
+
+  const std::vector<uint8_t> data{1, 2, 3, 4, 5};
+
+  TempDir leader_dir{};
+  std::shared_ptr<Log<InMemorySegment>> leader_log
+      = std::make_shared<Log<InMemorySegment>>(leader_dir.path(), kSegmentLimit);
+  leader_log->Append(data);
+
+  LeaderServer server{leader_log, port};
+  server.Start();
+
+  TempDir replica_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica_log
+      = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
   
-  // const LeaderAddress addr{"127.0.0.1", 3110};
-  // Replica<InMemorySegment> replica(log, addr);
+  const LeaderAddress addr{kLocalhost, port};
+  Replica<InMemorySegment> replica(replica_log, addr);
 
-  // replica.Poll();
-  // EXPECT_TRUE(replica.connected());
+  while (replica_log->size() < data.size()) {
+    replica.Poll();
+    ASSERT_TRUE(replica.connected());
+  }
 
-  // while (log->size() < 25) {
-    // replica.Poll();
-  // }
+  EXPECT_EQ(data.size(), replica_log->size());
+  EXPECT_EQ(data, replica_log->Lookup(0, data.size()));
+ 
+  server.Stop();
+}
 
-  // for (uint8_t i = 0; i != 5; ++i) {
-    // EXPECT_EQ(std::vector<uint8_t>({i, i, i, i, i}), log->Lookup(i * 5, 5));
-  // }
+TEST_F(LeaderTest, TestAppendToLeader) { 
+  const uint16_t port = 3105;
 
-  // std::cout << log->size() << std::endl;
-// }
+  TempDir leader_dir{};
+  std::shared_ptr<Log<InMemorySegment>> leader_log
+      = std::make_shared<Log<InMemorySegment>>(leader_dir.path(), kSegmentLimit);
 
-// // TODO setup by starting new leader and tear down at end
-// //
-// // want to be able to pass a log to the leader to read from
-// TEST_F(LeaderTest, TestReceiveDataOffset25) { 
-  // TempDir dir{};
-  // std::shared_ptr<Log<InMemorySegment>> log = std::make_shared<Log<InMemorySegment>>(dir.path(), 128'000'000);
-  // for (uint8_t b = 0; b != 0x5; ++b) {
-    // log->Append({b, b, b, b, b});
-  // }
+  LeaderServer server{leader_log, port};
+  server.Start();
+
+  TempDir replica_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica_log
+      = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
   
-  // const LeaderAddress addr{"127.0.0.1", 3110};
-  // Replica<InMemorySegment> replica(log, addr);
+  const LeaderAddress addr{kLocalhost, port};
+  Replica<InMemorySegment> replica(replica_log, addr);
 
-  // replica.Poll();
-  // EXPECT_TRUE(replica.connected());
+  for (int i = 0; i != 5; ++i) {
+    replica.Poll();
+    ASSERT_TRUE(replica.connected());
+  }
 
-  // while (log->size() < 50) {
-    // replica.Poll();
-  // }
+  EXPECT_EQ(0U, replica_log->size());
 
-  // for (uint8_t i = 5; i != 10; ++i) {
-    // EXPECT_EQ(std::vector<uint8_t>({i, i, i, i, i}), log->Lookup(i * 5, 5));
-  // }
+  // Append to log after the replica has started streaming.
+  const std::vector<uint8_t> data{1, 2, 3, 4, 5};
+  leader_log->Append(data);
 
-  // std::cout << log->size() << std::endl;
-/* } */
+  while (replica_log->size() < data.size()) {
+    replica.Poll();
+    ASSERT_TRUE(replica.connected());
+  }
 
-// TODO connect - send one byte a second for offset
+  EXPECT_EQ(data.size(), replica_log->size());
+  EXPECT_EQ(data, replica_log->Lookup(0, data.size()));
+ 
+  server.Stop();
+}
 
-// TODO exceed max replicas
+// TODO(AD) Test starting at non-zero offset.
+// TODO(AD) Test multiple replicas at different offsets.
+
+// TODO(AD) Slow connect - send one byte of the offset a second.
 
 }  // namespace wombat::log::testing

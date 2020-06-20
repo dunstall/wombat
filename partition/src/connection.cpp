@@ -13,7 +13,10 @@
 namespace wombat::log {
 
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
-    : connfd_{connfd}, addr_{addr}, buf_(kReadBufSize), state_{ConnectionState::kPending} {}
+    : connfd_{connfd}, addr_{addr}, buf_(kReadBufSize), state_{ConnectionState::kPending} {
+  LOG(INFO) << "accepted pending connection to...";  // TODO(ADDR)
+  offset_ = 0;
+}
 
 // TODO(AD) If read returns false leader must remove from map and fds
 bool Connection::Read() {

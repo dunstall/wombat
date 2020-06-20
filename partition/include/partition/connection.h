@@ -25,6 +25,8 @@ class Connection {
 
   uint32_t offset() const { return offset_; }
 
+  void set_offset(uint32_t offset) { offset_ = offset; }
+
   ConnectionState state() const { return state_; }
 
   // TODO(AD) Attempt to read the offset - buffer incase < 4 bytes read.

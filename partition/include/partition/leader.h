@@ -20,13 +20,13 @@ namespace wombat::log {
 template<class S>
 class Leader {
  public:
-  Leader(std::shared_ptr<Log<S>> log, uint16_t port) : port_{port} {
+  Leader(std::shared_ptr<Log<S>> log, uint16_t port)
+      : port_{port}, log_{log}, connections_{} {
     LOG(INFO) << "starting leader on port " << port;
     Listen();
   }
 
   void Poll() {
-
     int ready;
     ready = poll(fds_, max_fd_index_ + 1, 0);
     if (ready == -1) {
@@ -40,11 +40,18 @@ class Leader {
         return;
       }
     }
+
+    for (int i = 1; i <= max_fd_index_; ++i) {
+      if (PendingWrite(i)) {
+        Write(i);
+      }
+    }
   }
 
  private:
   static const int kListenBacklog = 10;
   static const int kMaxReplicas = 10;
+  static const int kMaxSend = 1024;
 
   void Listen() {
     struct sockaddr_in servaddr;
@@ -87,9 +94,9 @@ class Leader {
     for (int i = 1; i != kMaxReplicas + 1; ++i) {
       if (fds_[i].fd < 0) {
         fds_[i].fd = connfd;
-        fds_[i].events = POLLRDNORM;
+        fds_[i].events = POLLRDNORM | POLLWRNORM;
         max_fd_index_ = std::max(max_fd_index_, i);
-        // connections_.emplace(connfd, Connection(connfd, cliaddr)); TODO
+        connections_.emplace(connfd, Connection(connfd, cliaddr));
         Connection(connfd, cliaddr);
         return;
       }
@@ -100,8 +107,30 @@ class Leader {
     close(connfd);
   }
 
+  void Write(int i) {
+    int connfd = fds_[i].fd;
+    Connection& conn = connections_.at(connfd);
+
+    if (conn.offset() >= log_->size()) {
+      return;
+    }
+
+    // TODO(AD) Need to worry about race (append and send at same time)?
+    uint32_t written = log_->Send(conn.offset(), kMaxSend, connfd);
+    conn.set_offset(conn.offset() + written);
+
+    LOG(INFO) << "written " << written << " bytes to ...";  // TODO(AD)
+  }
+
   bool PendingConnection() const {
     return (fds_[0].revents & POLLRDNORM) != 0;
+  }
+
+  bool PendingWrite(int i) const {
+    if (fds_[i].fd == -1) {
+      return false;
+    }
+    return (fds_[i].revents & POLLWRNORM) != 0;
   }
 
   uint16_t port_;
@@ -111,6 +140,10 @@ class Leader {
   struct pollfd fds_[kMaxReplicas + 1];
 
   int max_fd_index_ = 0;
+
+  std::shared_ptr<Log<S>> log_;
+
+  std::unordered_map<int, Connection> connections_;
 };
 
 }  // namespace wombat::log
