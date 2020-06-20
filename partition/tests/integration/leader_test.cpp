@@ -1,13 +1,13 @@
 #include "gtest/gtest.h"
 
 #include <atomic>
-#include <chrono>
+#include <cstdint>
+#include <memory>
 #include <thread>
 
 #include "partition/leader.h"
 #include "partition/replica.h"
 #include "log/log.h"
-#include "log/logexception.h"
 #include "log/inmemorysegment.h"
 #include "log/tempdir.h"
 
@@ -53,7 +53,7 @@ class LeaderTest : public ::testing::Test {
 };
 
 TEST_F(LeaderTest, TestConnectOk) {
-  const uint16_t port = 12345;
+  const uint16_t port = 3100;
 
   TempDir leader_dir{};
   std::shared_ptr<Log<InMemorySegment>> leader_log
@@ -62,28 +62,51 @@ TEST_F(LeaderTest, TestConnectOk) {
   LeaderServer server{leader_log, port};
   server.Start();
 
+  TempDir replica_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica_log
+      = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
+  
   const LeaderAddress addr{kLocalhost, port};
+  for (int i = 0; i != 5; ++i) {
+    Replica<InMemorySegment> replica(replica_log, addr);
+    replica.Poll();
+    EXPECT_TRUE(replica.connected());
+  }
+
+  server.Stop();
+}
+
+TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
+  const uint16_t port = 3101;
+
+  TempDir leader_dir{};
+  std::shared_ptr<Log<InMemorySegment>> leader_log
+      = std::make_shared<Log<InMemorySegment>>(leader_dir.path(), kSegmentLimit);
+
+  LeaderServer server{leader_log, port};
+  server.Start();
 
   TempDir replica_dir{};
   std::shared_ptr<Log<InMemorySegment>> replica_log
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
   
-  Replica<InMemorySegment> replica1(replica_log, addr);
-  Replica<InMemorySegment> replica2(replica_log, addr);
-  Replica<InMemorySegment> replica3(replica_log, addr);
+  const LeaderAddress addr{kLocalhost, port};
+  for (int i = 0; i != 10; ++i) {
+    Replica<InMemorySegment> replica(replica_log, addr);
+    replica.Poll();
+    EXPECT_TRUE(replica.connected());
+  }
 
-  replica1.Poll();
-  replica2.Poll();
-  replica3.Poll();
-
-  EXPECT_TRUE(replica1.connected());
-  EXPECT_TRUE(replica2.connected());
-  EXPECT_TRUE(replica3.connected());
+  // Exceed the limit.
+  Replica<InMemorySegment> replica(replica_log, addr);
+  replica.Poll();
+  // Connection should fail.
+  EXPECT_FALSE(replica.connected());
 
   server.Stop();
 }
 
-// TODO connect exceed limit (make param?)
+// TODO(AD) Connect exceed limit, disconnect other replicas and try again
 
 // TEST_F(LeaderTest, TestReceiveDataOffset0) { 
   // TempDir dir{};
