@@ -40,6 +40,9 @@ jobs:
           name: Commit stage
           command: |
             sudo apt-get install -y cmake
+            cd log
+            make -j 4
+            cd ..
             cd partition
             make install
             make -j 4
