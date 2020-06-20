@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  commit-stage:
+  log-commit-stage:
     docker:
       - image: circleci/buildpack-deps:latest
 
@@ -16,7 +16,7 @@ jobs:
             make -j 4
             make -j 4 unittest
 
-  integration-test-stage:
+  log-integration-test-stage:
     docker:
       - image: circleci/buildpack-deps:latest
 
@@ -34,7 +34,7 @@ jobs:
 workflows:
   log:
     jobs:
-      - commit-stage
-      - integration-test-stage:
+      - log-commit-stage
+      - log-integration-test-stage:
           requires:
-            - commit-stage
+            - log-commit-stage
