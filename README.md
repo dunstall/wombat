@@ -130,3 +130,6 @@ physical node - but this is managable with some master to handle this logic)
 * Linux can handle atomic writes to files under 512(?) bytes
 
 TODO as part of log module have a method to send log to another node
+
+## TODO
+* For testing look into ducktape (see https://github.com/apache/kafka/tree/trunk/tests)
