@@ -22,6 +22,7 @@ class Leader {
  public:
   Leader(std::shared_ptr<Log<S>> log, uint16_t port)
       : port_{port}, log_{log}, connections_{} {
+    signal(SIGPIPE, SIG_IGN);
     LOG(INFO) << "starting leader on port " << port;
     Listen();
   }
