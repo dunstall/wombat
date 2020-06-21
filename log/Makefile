@@ -25,7 +25,7 @@ install:
 
 .PHONY: installtest
 installtest:
-	../bin/install.sh
+	../bin/installtest.sh
 
 TEST_DIR := tests
 
