@@ -22,7 +22,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 .PHONY: install
 install:
 	../bin/install.sh
-	../bin/installtest.sh
+
+.PHONY: installtest
+installtest:
+	../bin/install.sh
 
 TEST_DIR := tests
 

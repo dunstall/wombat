@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  server.leader:
+    build:
+      context: ..
+      dockerfile: ./dev/leader/Dockerfile
+    networks:
+      wombat-net:
+        aliases:
+         - server.leader
+
+  server.replica.1:
+    build:
+      context: ..
+      dockerfile: ./dev/replica/Dockerfile
+    networks:
+      wombat-net:
+        aliases:
+         - server.replica.1
+
+  server.replica.2:
+    build:
+      context: ..
+      dockerfile: ./dev/replica/Dockerfile
+    networks:
+      wombat-net:
+        aliases:
+         - server.replica.2
+
+  server.replica.3:
+    build:
+      context: ..
+      dockerfile: ./dev/replica/Dockerfile
+    networks:
+      wombat-net:
+        aliases:
+         - server.replica.3
+
+networks:
+  wombat-net:
+    driver: bridge
