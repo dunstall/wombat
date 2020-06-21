@@ -13,7 +13,7 @@ jobs:
             sudo apt-get install -y cmake
             cd log
             sudo make install
-            make installtest
+            sudo make installtest
             make -j 4
             make -j 4 unittest
 
@@ -29,7 +29,7 @@ jobs:
             sudo apt-get install -y cmake
             cd log
             sudo make install
-            make installtest
+            sudo make installtest
             make -j 4 integrationtest
 
   partition-commit-stage:
@@ -45,12 +45,12 @@ jobs:
             # TODO(AD) Use output of log commit stage
             cd log
             sudo make install
-            make installtest
+            sudo make installtest
             make -j 4
             cd ..
             cd partition
             sudo make install
-            make installtest
+            sudo make installtest
             make -j 4
             # TODO(AD) Unit tests
 
@@ -67,12 +67,12 @@ jobs:
             # TODO(AD) Use output of log commit stage
             cd log
             sudo make install
-            make installtest
+            sudo make installtest
             make -j 4
             cd ..
             cd partition
             sudo make install
-            make installtest
+            sudo make installtest
             make integrationtest
 
 
