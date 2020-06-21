@@ -65,7 +65,7 @@ TEST_F(LeaderTest, TestConnectOk) {
   TempDir replica_dir{};
   std::shared_ptr<Log<InMemorySegment>> replica_log
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
-  
+
   const LeaderAddress addr{kLocalhost, port};
   for (int i = 0; i != 5; ++i) {
     Replica<InMemorySegment> replica(replica_log, addr);
@@ -89,7 +89,7 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
   TempDir replica_dir{};
   std::shared_ptr<Log<InMemorySegment>> replica_log
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
-  
+
   const LeaderAddress addr{kLocalhost, port};
   // Keep replicas in memory to avoid closing.
   std::vector<Replica<InMemorySegment>> replicas{};
@@ -124,7 +124,7 @@ TEST_F(LeaderTest, TestConnectDisconnectedReplicaExceedLimit) {
   TempDir replica_dir{};
   std::shared_ptr<Log<InMemorySegment>> replica_log
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
-  
+
   const LeaderAddress addr{kLocalhost, port};
   // Keep replicas in memory to avoid closing.
   for (int i = 0; i != 10; ++i) {
@@ -142,7 +142,7 @@ TEST_F(LeaderTest, TestConnectDisconnectedReplicaExceedLimit) {
   server.Stop();
 }
 
-TEST_F(LeaderTest, TestReceiveDataOffsetZero) { 
+TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
   const uint16_t port = 3104;
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
@@ -158,7 +158,7 @@ TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
   TempDir replica_dir{};
   std::shared_ptr<Log<InMemorySegment>> replica_log
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
-  
+
   const LeaderAddress addr{kLocalhost, port};
   Replica<InMemorySegment> replica(replica_log, addr);
 
@@ -169,11 +169,11 @@ TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
 
   EXPECT_EQ(data.size(), replica_log->size());
   EXPECT_EQ(data, replica_log->Lookup(0, data.size()));
- 
+
   server.Stop();
 }
 
-TEST_F(LeaderTest, TestAppendToLeader) { 
+TEST_F(LeaderTest, TestAppendToLeader) {
   const uint16_t port = 3105;
 
   TempDir leader_dir{};
@@ -186,7 +186,7 @@ TEST_F(LeaderTest, TestAppendToLeader) {
   TempDir replica_dir{};
   std::shared_ptr<Log<InMemorySegment>> replica_log
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
-  
+
   const LeaderAddress addr{kLocalhost, port};
   Replica<InMemorySegment> replica(replica_log, addr);
 
@@ -208,11 +208,11 @@ TEST_F(LeaderTest, TestAppendToLeader) {
 
   EXPECT_EQ(data.size(), replica_log->size());
   EXPECT_EQ(data, replica_log->Lookup(0, data.size()));
- 
+
   server.Stop();
 }
 
-TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) { 
+TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) {
   const uint16_t port = 3106;
 
   const std::vector<uint8_t> data1{1, 2, 3, 4, 5};
@@ -232,7 +232,7 @@ TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) {
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
   // Start replica at offset 5.
   replica_log->Append(data1);
-  
+
   const LeaderAddress addr{kLocalhost, port};
   Replica<InMemorySegment> replica(replica_log, addr);
 
@@ -244,14 +244,83 @@ TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) {
   EXPECT_EQ(leader_log->size(), replica_log->size());
   EXPECT_EQ(data1, replica_log->Lookup(0, data1.size()));
   EXPECT_EQ(data2, replica_log->Lookup(5, data2.size()));
- 
+
   server.Stop();
 }
 
-// TODO(AD) Test multiple replicas at different offsets.
+TEST_F(LeaderTest, TestReplicasDifferentOffsets) {
+  const uint16_t port = 3109;
+
+  const std::vector<uint8_t> data1{1, 2, 3, 4, 5};
+  const std::vector<uint8_t> data2{6, 7, 8, 9, 10};
+  const std::vector<uint8_t> data3{11, 12, 13, 14, 15};
+
+  TempDir leader_dir{};
+  std::shared_ptr<Log<InMemorySegment>> leader_log
+      = std::make_shared<Log<InMemorySegment>>(leader_dir.path(), kSegmentLimit);
+  leader_log->Append(data1);
+  leader_log->Append(data2);
+  leader_log->Append(data3);
+
+  LeaderServer server{leader_log, port};
+  server.Start();
+
+  TempDir replica1_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica1_log
+      = std::make_shared<Log<InMemorySegment>>(replica1_dir.path(), kSegmentLimit);
+  // Start replica at offset 5.
+  replica1_log->Append(data1);
+
+  TempDir replica2_dir{};
+  // Start replica at offset 0.
+  std::shared_ptr<Log<InMemorySegment>> replica2_log
+      = std::make_shared<Log<InMemorySegment>>(replica2_dir.path(), kSegmentLimit);
+
+  TempDir replica3_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica3_log
+      = std::make_shared<Log<InMemorySegment>>(replica3_dir.path(), kSegmentLimit);
+  // Start replica at offset 10.
+  replica3_log->Append(data1);
+  replica3_log->Append(data2);
+
+  const LeaderAddress addr{kLocalhost, port};
+  Replica<InMemorySegment> replica1(replica1_log, addr);
+  Replica<InMemorySegment> replica2(replica2_log, addr);
+  Replica<InMemorySegment> replica3(replica3_log, addr);
+
+  while (replica1_log->size() < leader_log->size()) {
+    replica1.Poll();
+    ASSERT_TRUE(replica1.connected());
+  }
+
+  while (replica2_log->size() < leader_log->size()) {
+    replica2.Poll();
+    ASSERT_TRUE(replica2.connected());
+  }
+
+  while (replica3_log->size() < leader_log->size()) {
+    replica3.Poll();
+    ASSERT_TRUE(replica3.connected());
+  }
+
+  EXPECT_EQ(leader_log->size(), replica1_log->size());
+  EXPECT_EQ(data1, replica1_log->Lookup(0, data1.size()));
+  EXPECT_EQ(data2, replica1_log->Lookup(5, data2.size()));
+  EXPECT_EQ(data3, replica1_log->Lookup(10, data3.size()));
+
+  EXPECT_EQ(leader_log->size(), replica1_log->size());
+  EXPECT_EQ(data1, replica2_log->Lookup(0, data1.size()));
+  EXPECT_EQ(data2, replica2_log->Lookup(5, data2.size()));
+  EXPECT_EQ(data3, replica2_log->Lookup(10, data3.size()));
+
+  EXPECT_EQ(leader_log->size(), replica1_log->size());
+  EXPECT_EQ(data1, replica3_log->Lookup(0, data1.size()));
+  EXPECT_EQ(data2, replica3_log->Lookup(5, data2.size()));
+  EXPECT_EQ(data3, replica3_log->Lookup(10, data3.size()));
+
+  server.Stop();
+}
 
 // TODO(AD) Slow connect - send one byte of the offset a second.
-//
-// TODO(AD) Replica re-connect
 
 }  // namespace wombat::log::testing
