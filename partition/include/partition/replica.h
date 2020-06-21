@@ -32,14 +32,36 @@ class Replica {
   }
 
   ~Replica() {
-    close(sock_);
+    if (sock_ >= 0) {
+      LOG(INFO) << "replica closing connection";
+      close(sock_);
+    }
   }
 
   Replica(const Replica&) = delete;
   Replica& operator=(const Replica&) = delete;
 
-  Replica(Replica&&) = delete;
-  Replica& operator=(Replica&&) = delete;
+  Replica(Replica&& replica) {
+    log_ = replica.log_;
+    leader_ = replica.leader_;
+    sock_ = replica.sock_;
+    // Set to -1 so the connection is not closed.
+    replica.sock_ = -1;
+    buf_ = std::move(replica.buf_);
+    connected_ = replica.connected_;
+  }
+
+  Replica& operator=(Replica&& replica) {
+    log_ = replica.log_;
+    leader_ = replica.leader_;
+    sock_ = replica.sock_;
+    // Set to -1 so the connection is not closed.
+    replica.sock_ = -1;
+    buf_ = std::move(replica.buf_);
+    connected_ = replica.connected_;
+
+    return *this;
+  }
 
   // TODO(AD) Should be able to split more out here for unit testing
 
@@ -89,6 +111,7 @@ class Replica {
       throw LogException{"socket error", errno};
     }
 
+    // TODO(AD) remove timeout - just use non-blocking sockets (or poll is too slow)
     struct timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;

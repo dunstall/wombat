@@ -98,10 +98,9 @@ class Leader {
     for (int i = 1; i != kMaxReplicas + 1; ++i) {
       if (fds_[i].fd < 0) {
         fds_[i].fd = connfd;
-        fds_[i].events = POLLRDNORM | POLLWRNORM;
+        fds_[i].events = POLLRDNORM | POLLWRNORM | POLLERR;
         max_fd_index_ = std::max(max_fd_index_, i);
         connections_.emplace(connfd, Connection(connfd, cliaddr));
-        Connection(connfd, cliaddr);
         return;
       }
     }
@@ -114,7 +113,10 @@ class Leader {
   void Read(int i) {
     int connfd = fds_[i].fd;
     Connection& conn = connections_.at(connfd);
-    conn.Read();
+    if (!conn.Read()) {
+      connections_.erase(connfd);
+      fds_[i].fd = -1;
+    }
   }
 
   void Write(int i) {
@@ -141,12 +143,8 @@ class Leader {
       return false;
     }
 
-    int connfd = fds_[i].fd;
-    if (connections_.at(connfd).state() != ConnectionState::kPending) {
-      return false;
-    }
-
-    return (fds_[i].revents & POLLRDNORM) != 0;
+    return (fds_[i].revents & POLLRDNORM) != 0 ||
+        (fds_[i].revents & POLLERR) != 0;
   }
 
   bool PendingWrite(int i) const {

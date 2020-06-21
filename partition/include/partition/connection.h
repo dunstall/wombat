@@ -2,6 +2,7 @@
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <unistd.h>
 
 #include <cstdint>
 #include <vector>
@@ -20,6 +21,14 @@ class Connection {
  public:
   Connection(int connfd, const struct sockaddr_in& addr);
 
+  ~Connection();
+
+  Connection(const Connection& conn) = delete;
+  Connection& operator=(const Connection& conn) = delete;
+
+  Connection(Connection&& conn);
+  Connection& operator=(Connection&& conn);
+
   uint32_t offset() const { return offset_; }
 
   void set_offset(uint32_t offset) { offset_ = offset; }
@@ -37,8 +46,6 @@ class Connection {
   struct sockaddr_in addr_;
 
   uint32_t offset_;
-
-  int remaining_;
 
   std::vector<uint8_t> buf_;
 

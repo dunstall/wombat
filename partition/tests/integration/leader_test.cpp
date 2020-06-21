@@ -91,10 +91,13 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
       = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
   
   const LeaderAddress addr{kLocalhost, port};
+  // Keep replicas in memory to avoid closing.
+  std::vector<Replica<InMemorySegment>> replicas{};
   for (int i = 0; i != 10; ++i) {
     Replica<InMemorySegment> replica(replica_log, addr);
     replica.Poll();
     EXPECT_TRUE(replica.connected());
+    replicas.push_back(std::move(replica));
   }
 
   // Exceed the limit.
@@ -106,7 +109,38 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
   server.Stop();
 }
 
-// TODO(AD) Connect exceed limit, disconnect other replicas and try again
+// Open N > kMaxReplicas replica but close each so should be able to exceed the
+// limit.
+TEST_F(LeaderTest, TestConnectDisconnectedReplicaExceedLimit) {
+  const uint16_t port = 31011;
+
+  TempDir leader_dir{};
+  std::shared_ptr<Log<InMemorySegment>> leader_log
+      = std::make_shared<Log<InMemorySegment>>(leader_dir.path(), kSegmentLimit);
+
+  LeaderServer server{leader_log, port};
+  server.Start();
+
+  TempDir replica_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica_log
+      = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
+  
+  const LeaderAddress addr{kLocalhost, port};
+  // Keep replicas in memory to avoid closing.
+  for (int i = 0; i != 10; ++i) {
+    Replica<InMemorySegment> replica(replica_log, addr);
+    replica.Poll();
+    EXPECT_TRUE(replica.connected());
+  }
+
+  // Exceed the limit.
+  Replica<InMemorySegment> replica(replica_log, addr);
+  replica.Poll();
+  // Connection should succeed as other replicas have closed.
+  EXPECT_TRUE(replica.connected());
+
+  server.Stop();
+}
 
 TEST_F(LeaderTest, TestReceiveDataOffsetZero) { 
   const uint16_t port = 3104;
