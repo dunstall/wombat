@@ -42,6 +42,10 @@ class Leader {
     }
 
     for (int i = 1; i <= max_fd_index_; ++i) {
+      if (PendingRead(i)) {
+        Read(i);
+      }
+
       if (PendingWrite(i)) {
         Write(i);
       }
@@ -107,6 +111,12 @@ class Leader {
     close(connfd);
   }
 
+  void Read(int i) {
+    int connfd = fds_[i].fd;
+    Connection& conn = connections_.at(connfd);
+    conn.Read();
+  }
+
   void Write(int i) {
     int connfd = fds_[i].fd;
     Connection& conn = connections_.at(connfd);
@@ -126,10 +136,30 @@ class Leader {
     return (fds_[0].revents & POLLRDNORM) != 0;
   }
 
+  bool PendingRead(int i) const {
+    if (fds_[i].fd == -1) {
+      return false;
+    }
+
+    int connfd = fds_[i].fd;
+    if (connections_.at(connfd).state() != ConnectionState::kPending) {
+      return false;
+    }
+
+    return (fds_[i].revents & POLLRDNORM) != 0;
+  }
+
   bool PendingWrite(int i) const {
     if (fds_[i].fd == -1) {
       return false;
     }
+
+    int connfd = fds_[i].fd;
+    // Only write to the replica once its offset has been received.
+    if (connections_.at(connfd).state() != ConnectionState::kEstablished) {
+      return false;
+    }
+
     return (fds_[i].revents & POLLWRNORM) != 0;
   }
 

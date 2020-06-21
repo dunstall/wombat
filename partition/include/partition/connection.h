@@ -20,9 +20,6 @@ class Connection {
  public:
   Connection(int connfd, const struct sockaddr_in& addr);
 
-  // TODO(AD) Need connfd for sendfile. Must also increment offset after send.
-  int connfd() const { return connfd_; }
-
   uint32_t offset() const { return offset_; }
 
   void set_offset(uint32_t offset) { offset_ = offset; }

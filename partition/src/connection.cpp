@@ -34,27 +34,12 @@ bool Connection::Read() {
     close(connfd_);
     return false;
   } else {
-      // // // TODO(AD) Expect sockfd to be in pending connections (warn if not) - 
-      // // // try to read until buffer full then decode offset and create Connection
-      // // // to connections_
-
-      // // TODO if 4 then read offset
-
-    LOG(INFO) << "received " << n << " bytes";
-
-    // TODO keep reading till buf
-
+    // TODO(AD) Incramental read
     if (n == kReadBufSize) {
-      LOG(INFO) << buf_.size();
-      for (uint8_t b : buf_) {
-        LOG(INFO) << "BYTE " << (int)b;
-      }
-
       uint32_t offset = 0;
       memcpy(&offset, buf_.data(), kReadBufSize);
-      LOG(INFO) << "temp offset " << offset;
       offset_ = ntohl(offset);
-      LOG(INFO) << "connection established: offset: " << offset_ << std::endl;
+      LOG(INFO) << "connection established: offset: " << offset_ << std::endl;  // TODO(AD) Log addr
       state_ = ConnectionState::kEstablished;
     }
 

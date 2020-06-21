@@ -108,7 +108,7 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
 
 // TODO(AD) Connect exceed limit, disconnect other replicas and try again
 
-TEST_F(LeaderTest, TestReceiveDataOffset0) { 
+TEST_F(LeaderTest, TestReceiveDataOffsetZero) { 
   const uint16_t port = 3104;
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
@@ -178,9 +178,46 @@ TEST_F(LeaderTest, TestAppendToLeader) {
   server.Stop();
 }
 
-// TODO(AD) Test starting at non-zero offset.
+TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) { 
+  const uint16_t port = 3106;
+
+  const std::vector<uint8_t> data1{1, 2, 3, 4, 5};
+  const std::vector<uint8_t> data2{6, 7, 8, 9, 10};
+
+  TempDir leader_dir{};
+  std::shared_ptr<Log<InMemorySegment>> leader_log
+      = std::make_shared<Log<InMemorySegment>>(leader_dir.path(), kSegmentLimit);
+  leader_log->Append(data1);
+  leader_log->Append(data2);
+
+  LeaderServer server{leader_log, port};
+  server.Start();
+
+  TempDir replica_dir{};
+  std::shared_ptr<Log<InMemorySegment>> replica_log
+      = std::make_shared<Log<InMemorySegment>>(replica_dir.path(), kSegmentLimit);
+  // Start replica at offset 5.
+  replica_log->Append(data1);
+  
+  const LeaderAddress addr{kLocalhost, port};
+  Replica<InMemorySegment> replica(replica_log, addr);
+
+  while (replica_log->size() < leader_log->size()) {
+    replica.Poll();
+    ASSERT_TRUE(replica.connected());
+  }
+
+  EXPECT_EQ(leader_log->size(), replica_log->size());
+  EXPECT_EQ(data1, replica_log->Lookup(0, data1.size()));
+  EXPECT_EQ(data2, replica_log->Lookup(5, data2.size()));
+ 
+  server.Stop();
+}
+
 // TODO(AD) Test multiple replicas at different offsets.
 
 // TODO(AD) Slow connect - send one byte of the offset a second.
+//
+// TODO(AD) Replica re-connect
 
 }  // namespace wombat::log::testing
