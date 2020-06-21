@@ -11,7 +11,7 @@ namespace wombat::log {
 // uses globals (singletons) to manage state.
 class InMemorySegment : public Segment {
  public:
-  InMemorySegment(uint64_t id, const std::filesystem::path& dir, size_t limit);
+  InMemorySegment(uint32_t id, const std::filesystem::path& dir, uint32_t limit);
 
   ~InMemorySegment() override;
 };

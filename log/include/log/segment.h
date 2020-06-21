@@ -13,31 +13,31 @@ class Segment {
  public:
   virtual ~Segment() {};
 
-  uint64_t size() const { return size_; }
+  uint32_t size() const { return size_; }
 
   bool is_full() const { return size_ >= limit_; }
 
   void Append(const std::vector<uint8_t>& data);
 
-  std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size);
+  std::vector<uint8_t> Lookup(uint32_t offset, uint32_t size);
 
-  uint64_t Send(uint64_t offset, uint64_t size, int fd);
+  uint32_t Send(uint32_t offset, uint32_t size, int fd);
 
  protected:
-  Segment(const std::filesystem::path& path, uint64_t limit);
+  Segment(const std::filesystem::path& path, uint32_t limit);
 
-  uint64_t Size() const;
+  uint32_t Size() const;
 
   std::filesystem::path path_;
 
-  uint64_t size_;
+  uint32_t size_;
 
   int fd_;
 
  private:
-  uint64_t limit_;
+  uint32_t limit_;
 };
 
-std::string IdToName(uint64_t id);
+std::string IdToName(uint32_t id);
 
 }  // namespace wombat::log

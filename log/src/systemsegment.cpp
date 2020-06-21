@@ -11,9 +11,9 @@
 namespace wombat::log {
 
 SystemSegment::SystemSegment(
-    uint64_t id,
+    uint32_t id,
     const std::filesystem::path& dir,
-    size_t limit)
+    uint32_t limit)
   : Segment{dir / IdToName(id), limit}
 {
   std::filesystem::create_directories(dir);

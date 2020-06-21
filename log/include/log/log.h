@@ -12,12 +12,12 @@
 
 namespace wombat::log {
 
-constexpr uint64_t OFFSET_SEGMENT_ID = 0;
+constexpr uint32_t OFFSET_SEGMENT_ID = 0;
 
 template<class S>
 class Log {
  public:
-  Log(const std::filesystem::path& path, size_t segment_limit)
+  Log(const std::filesystem::path& path, uint32_t segment_limit)
     : offsets_{S{OFFSET_SEGMENT_ID, path, segment_limit}},
       path_{path},
       segments_{},
@@ -54,8 +54,8 @@ class Log {
     size_ += data.size();
   }
 
-  // TODO(AD) Replica uint64_t offset with uint32_t.
-  std::vector<uint8_t> Lookup(uint64_t offset, uint64_t size) {
+  // TODO(AD) Replica uint32_t offset with uint32_t.
+  std::vector<uint8_t> Lookup(uint32_t offset, uint32_t size) {
     uint32_t id;
     uint32_t starting_offset;
     if (!offsets_.Lookup(offset, &id, &starting_offset)) {
@@ -66,8 +66,8 @@ class Log {
     return LookupSegment(id).Lookup(offset - starting_offset, size);
   }
 
-  uint64_t Send(uint64_t offset, uint64_t size, int fd) {
-    uint64_t written = 0;
+  uint32_t Send(uint32_t offset, uint32_t size, int fd) {
+    uint32_t written = 0;
     while (written < size) {
       uint32_t id;
       uint32_t starting_offset;
@@ -77,7 +77,7 @@ class Log {
       }
 
       S segment = LookupSegment(id);
-      uint64_t n = segment.Send(offset - starting_offset, size - written, fd);
+      uint32_t n = segment.Send(offset - starting_offset, size - written, fd);
       // If reach EOF return the bytes already written.
       if (n == 0) {
         return written;
@@ -91,7 +91,7 @@ class Log {
   }
 
  private:
-  S LookupSegment(uint64_t id) {
+  S LookupSegment(uint32_t id) {
     // Lazily load the segments. TODO if too make open FDs is an issue could
     // only keep latest open (LRU cache).
     if (segments_.find(id) == segments_.end()) {
@@ -105,11 +105,11 @@ class Log {
 
   std::filesystem::path path_;
 
-  std::unordered_map<uint64_t, S> segments_;
+  std::unordered_map<uint32_t, S> segments_;
 
-  uint64_t active_;
+  uint32_t active_;
 
-  uint64_t segment_limit_;
+  uint32_t segment_limit_;
 
   uint32_t size_;
 };

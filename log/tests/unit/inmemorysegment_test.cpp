@@ -105,7 +105,7 @@ TEST_F(InMemorySegmentTest, SendOverflow) {
   if (fd == -1) FAIL();
 
   // Only return 3 bytes even though requesting 10.
-  uint64_t size = 10;
+  uint32_t size = 10;
   EXPECT_EQ(3U, segment.Send(0, size, fd));
 
   if (lseek(fd, 0, SEEK_SET) != 0) FAIL();

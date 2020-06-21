@@ -32,9 +32,9 @@ class InMemorySegmentState {
 };
 
 InMemorySegment::InMemorySegment(
-    uint64_t id,
+    uint32_t id,
     const std::filesystem::path& dir,
-    size_t limit
+    uint32_t limit
 ) : Segment{dir / IdToName(id), limit} {
   auto& state = InMemorySegmentState().GetInstance().state();
   if (state.find(path_.string()) == state.end()) {

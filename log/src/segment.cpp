@@ -30,7 +30,7 @@ void Segment::Append(const std::vector<uint8_t>& data) {
   size_ += data.size();
 }
 
-std::vector<uint8_t> Segment::Lookup(uint64_t offset, uint64_t size) {
+std::vector<uint8_t> Segment::Lookup(uint32_t offset, uint32_t size) {
   if (lseek(fd_, offset, SEEK_SET) == -1) {
     throw LogException{"segment lseek error", errno};
   }
@@ -48,7 +48,7 @@ std::vector<uint8_t> Segment::Lookup(uint64_t offset, uint64_t size) {
   return data;
 };
 
-uint64_t Segment::Send(uint64_t offset, uint64_t size, int fd) {
+uint32_t Segment::Send(uint32_t offset, uint32_t size, int fd) {
   off_t off = offset;
   ssize_t written = sendfile(fd, fd_, &off, size);
   if (written == -1) {
@@ -61,7 +61,7 @@ uint64_t Segment::Send(uint64_t offset, uint64_t size, int fd) {
   return written;
 }
 
-uint64_t Segment::Size() const {
+uint32_t Segment::Size() const {
   off_t seek = lseek(fd_, 0, SEEK_END);
   if (seek == -1) {
     throw LogException{"segment lseek failed", errno};
@@ -69,10 +69,10 @@ uint64_t Segment::Size() const {
   return seek;
 }
 
-Segment::Segment(const std::filesystem::path& path, uint64_t limit)
+Segment::Segment(const std::filesystem::path& path, uint32_t limit)
     : path_{path}, size_{0}, limit_{limit} {}
 
-std::string IdToName(uint64_t id) {
+std::string IdToName(uint32_t id) {
   std::string id_str = std::to_string(id);
   return "segment-" + std::string(ID_PADDING - id_str.length(), '0') + id_str;
 }

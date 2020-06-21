@@ -15,6 +15,7 @@
 
 namespace wombat::log {
 
+// TODO(AD) Unused
 template<class S>
 class Framing {
  public:
@@ -25,7 +26,7 @@ class Framing {
     log_.Append(data);
   }
 
-  bool Lookup(uint64_t offset, std::vector<uint8_t>* data, uint32_t* next) {
+  bool Lookup(uint32_t offset, std::vector<uint8_t>* data, uint32_t* next) {
     uint32_t size;
     if (!ReadU32(offset, &size)) {
       return false;
