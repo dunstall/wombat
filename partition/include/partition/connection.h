@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace wombat::log {
@@ -29,6 +30,8 @@ class Connection {
   Connection(Connection&& conn);
   Connection& operator=(Connection&& conn);
 
+  std::string address() const { return address_; }
+
   uint32_t offset() const { return offset_; }
 
   void set_offset(uint32_t offset) { offset_ = offset; }
@@ -41,15 +44,17 @@ class Connection {
  private:
   static const size_t kReadBufSize = 4;
 
-  int connfd_;
+  std::string AddrToString(const struct sockaddr_in& addr) const;
 
-  struct sockaddr_in addr_;
+  int connfd_;
 
   uint32_t offset_;
 
   std::vector<uint8_t> buf_;
 
   ConnectionState state_;
+
+  std::string address_;
 };
 
 }  // namespace wombat::log

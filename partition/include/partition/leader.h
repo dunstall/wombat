@@ -131,7 +131,7 @@ class Leader {
     uint32_t written = log_->Send(conn.offset(), kMaxSend, connfd);
     conn.set_offset(conn.offset() + written);
 
-    LOG(INFO) << "written " << written << " bytes to ...";  // TODO(AD)
+    LOG(INFO) << "written " << written << " bytes to " << conn.address();
   }
 
   bool PendingConnection() const {
