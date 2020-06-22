@@ -41,4 +41,4 @@ log
 !log/
 log_*
 
-libwombatpartition.a
+broker

@@ -8,9 +8,9 @@ CXXFLAGS += -std=c++17  -Wall -Werror -MMD
 INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR)
 LDFLAGS := -L../log -lwombatlog -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
-# TODO(AD) build lib
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
+	ar rvs libwombatpartition.a $(OBJ_FILES)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<

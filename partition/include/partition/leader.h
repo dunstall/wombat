@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <poll.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
