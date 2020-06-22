@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <filesystem>
 
+#include "log/logexception.h"
+
 namespace wombat::log {
 
 SystemSegment::SystemSegment(
@@ -21,6 +23,9 @@ SystemSegment::SystemSegment(
   // Note cannot use O_APPEND as this does not work with sendfile.
   // TODO(AD) O_ASYNC and O_NONBLOCK
   fd_ = open(path_.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+  if (fd_ == -1) {
+    throw LogException{"failed to open segment", errno};
+  }
 
   size_ = Size();
 }
