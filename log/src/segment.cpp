@@ -6,15 +6,36 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <iostream>
 #include <filesystem>
 
+#include <glog/logging.h>
 #include "log/logexception.h"
 
 namespace wombat::log {
 
+Segment::Segment(Segment&& segment) {
+  path_ = std::move(segment.path_);
+  size_ = segment.size_;
+  fd_ = segment.fd_;
+  // Set moved from fd to negative to avoid closing.
+  segment.fd_ = -1;
+}
+
+Segment& Segment::operator=(Segment&& segment) {
+  path_ = std::move(segment.path_);
+  size_ = segment.size_;
+  fd_ = segment.fd_;
+  // Set moved from fd to negative to avoid closing.
+  segment.fd_ = -1;
+
+  return *this;
+}
+
 void Segment::Append(const std::vector<uint8_t>& data) {
   // Must seek end as O_APPEND cannot be used.
   if (lseek(fd_, 0, SEEK_END) == -1) {
+    LOG(ERROR) << "segment append failed - lseek " << strerror(errno);
     throw LogException{"segment lseek error", errno};
   }
 

@@ -33,17 +33,17 @@ class Log {
     size_ = offsets_.MaxOffset() + LookupSegment(id).size();
   }
 
-/*   Log(const Log&) = delete; */
-  // Log& operator=(const Log&) = delete;
+  Log(const Log&) = delete;
+  Log& operator=(const Log&) = delete;
 
-  // Log(Log&&) = default;
-  /* Log& operator=(Log&&) = default; */
+  Log(Log&&) = default;
+  Log& operator=(Log&&) = default;
 
   uint32_t size() const { return size_; }
 
   void Append(const std::vector<uint8_t>& data) {
     // Allow at() to throw as should never happen if the id is in offsets.
-    S segment = segments_.at(active_);
+    S& segment = segments_.at(active_);
     segment.Append(data);
     if (segment.is_full()) {
       ++active_;
@@ -54,7 +54,6 @@ class Log {
     size_ += data.size();
   }
 
-  // TODO(AD) Replica uint32_t offset with uint32_t.
   std::vector<uint8_t> Lookup(uint32_t offset, uint32_t size) {
     uint32_t id;
     uint32_t starting_offset;
@@ -76,7 +75,7 @@ class Log {
         throw LogException("offset not found");
       }
 
-      S segment = LookupSegment(id);
+      S& segment = LookupSegment(id);
       uint32_t n = segment.Send(offset - starting_offset, size - written, fd);
       // If reach EOF return the bytes already written.
       if (n == 0) {
@@ -91,7 +90,7 @@ class Log {
   }
 
  private:
-  S LookupSegment(uint32_t id) {
+  S& LookupSegment(uint32_t id) {
     // Lazily load the segments. TODO if too make open FDs is an issue could
     // only keep latest open (LRU cache).
     if (segments_.find(id) == segments_.end()) {

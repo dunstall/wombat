@@ -14,6 +14,12 @@ class InMemorySegment : public Segment {
   InMemorySegment(uint32_t id, const std::filesystem::path& dir, uint32_t limit);
 
   ~InMemorySegment() override;
+
+  InMemorySegment(const InMemorySegment&) = delete;
+  InMemorySegment& operator=(const InMemorySegment&) = delete;
+
+  InMemorySegment(InMemorySegment&& segment) = default;
+  InMemorySegment& operator=(InMemorySegment&& segment) = default;
 };
 
 }  // namespace wombat::log

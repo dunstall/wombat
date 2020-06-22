@@ -10,7 +10,7 @@ class OffsetsTest : public ::testing::Test {};
 TEST_F(OffsetsTest, OpenEmpty) {
   InMemorySegment segment{0x2478, GeneratePath(), 3};
 
-  Offsets<InMemorySegment> offsets(segment);
+  Offsets<InMemorySegment> offsets(std::move(segment));
 
   uint32_t id;
   uint32_t start;
@@ -20,7 +20,7 @@ TEST_F(OffsetsTest, OpenEmpty) {
 TEST_F(OffsetsTest, LookupZeroOffset) {
   InMemorySegment segment{0x2478, GeneratePath(), 3};
 
-  Offsets<InMemorySegment> offsets(segment);
+  Offsets<InMemorySegment> offsets(std::move(segment));
 
   uint32_t id = 0xfa2d;
   uint32_t start = 0;
@@ -39,7 +39,7 @@ TEST_F(OffsetsTest, LookupZeroOffset) {
 TEST_F(OffsetsTest, LookupPositiveOffset) {
   InMemorySegment segment{0x2478, GeneratePath(), 3};
 
-  Offsets<InMemorySegment> offsets(segment);
+  Offsets<InMemorySegment> offsets(std::move(segment));
 
   uint32_t id = 0xfa2d;
   uint32_t start = 0xaa;
@@ -61,7 +61,7 @@ TEST_F(OffsetsTest, LookupPositiveOffset) {
 TEST_F(OffsetsTest, LookupMultiOffset) {
   InMemorySegment segment{0x2478, GeneratePath(), 3};
 
-  Offsets<InMemorySegment> offsets(segment);
+  Offsets<InMemorySegment> offsets(std::move(segment));
 
   uint32_t id1 = 0x01;
   uint32_t start1 = 0xa0;
@@ -94,7 +94,7 @@ TEST_F(OffsetsTest, LookupMultiOffset) {
 
 TEST_F(OffsetsTest, MaxOffset) {
   InMemorySegment segment{0x2478, GeneratePath(), 3};
-  Offsets<InMemorySegment> offsets(segment);
+  Offsets<InMemorySegment> offsets(std::move(segment));
 
   EXPECT_EQ(0U, offsets.MaxOffset());
 
@@ -109,17 +109,17 @@ TEST_F(OffsetsTest, LoadPersistent) {
 
   {
     InMemorySegment segment{0x2478, path, 100};
-    Offsets<InMemorySegment> offsets(segment);
+    Offsets<InMemorySegment> offsets(std::move(segment));
     offsets.Insert(0xa0, 0x1234);
   }
   {
     InMemorySegment segment{0x2478, path, 100};
-    Offsets<InMemorySegment> offsets(segment);
+    Offsets<InMemorySegment> offsets(std::move(segment));
     offsets.Insert(0xb0, 0xffaa);
   }
   {
     InMemorySegment segment{0x2478, path, 100};
-    Offsets<InMemorySegment> offsets(segment);
+    Offsets<InMemorySegment> offsets(std::move(segment));
 
     uint32_t id_lookup;
     uint32_t start_lookup;

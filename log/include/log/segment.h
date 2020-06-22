@@ -13,6 +13,12 @@ class Segment {
  public:
   virtual ~Segment() {};
 
+  Segment(const Segment&) = delete;
+  Segment& operator=(const Segment&) = delete;
+
+  Segment(Segment&& segment);
+  Segment& operator=(Segment&& segment);
+
   uint32_t size() const { return size_; }
 
   bool is_full() const { return size_ >= limit_; }

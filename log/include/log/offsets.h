@@ -13,7 +13,7 @@ namespace wombat::log {
 template<class S>
 class Offsets {
  public:
-  Offsets(S segment) : offsets_{}, segment_{segment} {
+  Offsets(S segment) : offsets_{}, segment_{std::move(segment)} {
     uint32_t offset = 0;
     while (LoadOffset(offset)) {
       offset += 8;

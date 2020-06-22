@@ -31,7 +31,9 @@ SystemSegment::SystemSegment(
 }
 
 SystemSegment::~SystemSegment() {
-  close(fd_);
+  if (fd_ > 0) {
+    close(fd_);
+  }
 }
 
 }  // namespace wombat::log

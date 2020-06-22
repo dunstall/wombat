@@ -12,6 +12,12 @@ class SystemSegment : public Segment {
   SystemSegment(uint32_t id, const std::filesystem::path& dir, uint32_t limit);
 
   ~SystemSegment() override;
+
+  SystemSegment(const SystemSegment&) = delete;
+  SystemSegment& operator=(const SystemSegment&) = delete;
+
+  SystemSegment(SystemSegment&& segment) = default;
+  SystemSegment& operator=(SystemSegment&& segment) = default;
 };
 
 }  // namespace wombat::log

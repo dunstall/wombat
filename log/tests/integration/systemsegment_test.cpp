@@ -68,6 +68,19 @@ TEST_F(SystemSegmentTest, OpenExisting) {
   EXPECT_EQ(data, segment_reader.Lookup(0U, 3U));
 }
 
+TEST_F(SystemSegmentTest, MoveDoesntCloseFile) {
+  TempDir dir{};
+  const std::string path = dir.path();
+
+  SystemSegment segment_original{0x2478, path, 3};
+  const std::vector<uint8_t> data{1, 2, 3};
+  segment_original.Append(data);
+
+  SystemSegment segment_clone{std::move(segment_original)};
+  // SystemSegment segment_clone{segment_original};
+  EXPECT_EQ(data, segment_clone.Lookup(0U, 3U));
+}
+
 TEST_F(SystemSegmentTest, OpenMulti) {
   TempDir dir{};
   const std::string path = dir.path();
