@@ -75,6 +75,39 @@ jobs:
             sudo make installtest
             make integrationtest
 
+  server-commit-stage:
+    docker:
+      - image: circleci/buildpack-deps:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Commit stage
+          command: |
+            sudo apt-get install -y cmake
+            cd server
+            sudo make install
+            sudo make installtest
+            make -j 4
+            # TODO(AD) Unit tests
+
+  server-integration-test-stage:
+    docker:
+      - image: circleci/buildpack-deps:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Integration Test stage
+          command: |
+            sudo apt-get install -y cmake
+            # TODO(AD) Use output of log commit stage
+            cd server
+            sudo make install
+            sudo make installtest
+            make integrationtest
+
+
 
 workflows:
   log:
@@ -90,3 +123,10 @@ workflows:
       - partition-integration-test-stage:
           requires:
             - partition-commit-stage
+
+  server:
+    jobs:
+      - server-commit-stage
+      - server-integration-test-stage:
+          requires:
+            - server-commit-stage
