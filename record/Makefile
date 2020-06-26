@@ -28,7 +28,7 @@ TEST_INC_FLAGS := -Ilib/googletest/googletest/include
 TEST_LDFLAGS := -Llib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
 # =============================================================================
-# Integration tests.
+# Unit tests.
 # =============================================================================
 
 UNITTEST_EXE := record_unittest

@@ -37,5 +37,4 @@ build/
 lib/
 
 # Test binary
-record*
-!record/
+record_unittest
