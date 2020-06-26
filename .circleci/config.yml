@@ -107,6 +107,21 @@ jobs:
             sudo make installtest
             make integrationtest
 
+  record-commit-stage:
+    docker:
+      - image: circleci/buildpack-deps:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Commit stage
+          command: |
+            sudo apt-get install -y cmake
+            cd record
+            sudo make install
+            sudo make installtest
+            make -j 4
+            make -j 4 unittest
 
 
 workflows:
@@ -130,3 +145,7 @@ workflows:
       - server-integration-test-stage:
           requires:
             - server-commit-stage
+
+  record:
+    jobs:
+      - record-commit-stage
