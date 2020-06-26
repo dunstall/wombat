@@ -118,7 +118,6 @@ jobs:
           command: |
             sudo apt-get install -y cmake
             cd record
-            sudo make install
             sudo make installtest
             make -j 4
             make -j 4 unittest
