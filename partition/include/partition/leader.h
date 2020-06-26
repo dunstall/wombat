@@ -29,8 +29,7 @@ class Leader {
   }
 
   void Poll() {
-    int ready;
-    ready = poll(fds_, max_fd_index_ + 1, 0);
+    int ready = poll(fds_, max_fd_index_ + 1, 0);
     if (ready == -1) {
       LOG(WARNING) << "leader poll error " << strerror(errno);
       return;
