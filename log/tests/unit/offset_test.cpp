@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "gtest/gtest.h"
 #include "log/inmemorysegment.h"
 #include "log/offsets.h"

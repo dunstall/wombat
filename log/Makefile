@@ -1,3 +1,5 @@
+# Copyright 2020 Andrew Dunstall
+
 INC_DIR := include
 SRC_DIR := src
 OBJ_DIR := build

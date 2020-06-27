@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <filesystem>
@@ -6,9 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include <glog/logging.h>
-#include "logexception.h"
-#include "offsets.h"
+#include "glog/logging.h"
+#include "log/logexception.h"
+#include "log/offsets.h"
 
 namespace wombat::broker {
 

@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "log/systemsegment.h"
 
 #include <fcntl.h>

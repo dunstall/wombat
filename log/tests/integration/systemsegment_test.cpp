@@ -1,13 +1,15 @@
+// Copyright 2020 Andrew Dunstall
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <random>
 #include <string>
-#include <unistd.h>
 
 #include "gtest/gtest.h"
 #include "log/systemsegment.h"

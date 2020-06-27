@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "log/segment.h"
 #include "gtest/gtest.h"
 

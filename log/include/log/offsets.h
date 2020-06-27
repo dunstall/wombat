@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <arpa/inet.h>
@@ -6,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace wombat::broker {
@@ -13,7 +16,7 @@ namespace wombat::broker {
 template<class S>
 class Offsets {
  public:
-  Offsets(S segment) : offsets_{}, segment_{std::move(segment)} {
+  explicit Offsets(S segment) : offsets_{}, segment_{std::move(segment)} {
     uint32_t offset = 0;
     while (LoadOffset(offset)) {
       offset += 8;

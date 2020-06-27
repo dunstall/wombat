@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <filesystem>
@@ -11,7 +13,7 @@ constexpr int ID_PADDING = 20;
 // Abstract class representing a segment of the log.
 class Segment {
  public:
-  virtual ~Segment() {};
+  virtual ~Segment() {}
 
   Segment(const Segment&) = delete;
   Segment& operator=(const Segment&) = delete;

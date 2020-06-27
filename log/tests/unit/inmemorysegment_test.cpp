@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/mman.h>

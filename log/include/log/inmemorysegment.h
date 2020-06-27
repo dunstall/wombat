@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <cstdint>
@@ -11,7 +13,9 @@ namespace wombat::broker {
 // uses globals (singletons) to manage state.
 class InMemorySegment : public Segment {
  public:
-  InMemorySegment(uint32_t id, const std::filesystem::path& dir, uint32_t limit);
+  InMemorySegment(uint32_t id,
+                  const std::filesystem::path& dir,
+                  uint32_t limit);
 
   ~InMemorySegment() override;
 

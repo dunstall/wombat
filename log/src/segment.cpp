@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "log/segment.h"
 
 #include <fcntl.h>
@@ -9,7 +11,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include <glog/logging.h>
+#include "glog/logging.h"
 #include "log/logexception.h"
 
 namespace wombat::broker {
@@ -67,7 +69,7 @@ std::vector<uint8_t> Segment::Lookup(uint32_t offset, uint32_t size) {
     remaining -= n;
   }
   return data;
-};
+}
 
 uint32_t Segment::Send(uint32_t offset, uint32_t size, int fd) {
   off_t off = offset;
