@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <netinet/in.h>

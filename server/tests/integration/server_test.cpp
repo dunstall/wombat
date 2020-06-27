@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -17,7 +19,7 @@ namespace wombat::broker::server {
 
 class BackgroundServer {
  public:
-  BackgroundServer(Server server) : server_{std::move(server)} {}
+  explicit BackgroundServer(Server server) : server_{std::move(server)} {}
 
   ~BackgroundServer() {
     Stop();
@@ -81,8 +83,8 @@ TEST_F(ServerTest, TestConnectOk) {
   struct timeval timeout;
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout));
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
 
   EXPECT_NE(connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
 
@@ -113,12 +115,12 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   struct timeval timeout;
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-  setsockopt(sock1, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock1, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock2, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock2, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock3, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock3, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout));
+  setsockopt(sock1, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock1, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock2, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock2, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock3, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock3, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
 
   EXPECT_NE(connect(sock1, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
 
@@ -162,8 +164,8 @@ TEST_F(ServerTest, TestSendProduceRecord) {
   struct timeval timeout;
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
-  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout));
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
 
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
@@ -174,7 +176,7 @@ TEST_F(ServerTest, TestSendProduceRecord) {
   const std::vector<uint8_t> encoded = record.Encode();
   EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
 
-  // TODO just have the poll in the test rather than background?
+  // TODO(AD) just have the poll in the test rather than background?
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   ASSERT_EQ(1U, server.Received().size());

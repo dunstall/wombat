@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <poll.h>
@@ -13,7 +15,7 @@ namespace wombat::broker::server {
 
 class Server {
  public:
-  Server(uint16_t port, int max_clients = 1024);
+  explicit Server(uint16_t port, int max_clients = 1024);
 
   Server(const Server& conn) = delete;
   Server& operator=(const Server& conn) = delete;

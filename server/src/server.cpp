@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "server/server.h"
 
 #include <netinet/in.h>
@@ -10,7 +12,7 @@
 #include <cstdint>
 #include <vector>
 
-#include <glog/logging.h>
+#include "glog/logging.h"
 #include "log/logexception.h"
 #include "record/producerecord.h"
 
@@ -124,7 +126,8 @@ bool Server::PendingRead(int i) const {
   if (fds_[i].fd == -1) {
     return false;
   }
-  return (fds_[i].revents & POLLRDNORM) != 0 || (fds_[i].revents & POLLERR) != 0;
+  return (fds_[i].revents & POLLRDNORM) != 0
+      || (fds_[i].revents & POLLERR) != 0;
 }
 
 bool Server::PendingWrite(int i) const {
