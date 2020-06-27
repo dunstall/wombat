@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 #include "record/consumerecord.h"
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 class ConsumeRecordTest : public ::testing::Test {};
 
@@ -39,4 +39,4 @@ TEST_F(ConsumeRecordTest, DecodeTooSmall) {
   EXPECT_FALSE(ConsumeRecord::Decode(enc));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record

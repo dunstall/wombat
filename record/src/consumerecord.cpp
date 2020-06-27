@@ -8,7 +8,7 @@
 
 #include "record/record.h"
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 ConsumeRecord::ConsumeRecord(uint32_t offset) : offset_{offset} {}
 
@@ -29,4 +29,4 @@ std::optional<ConsumeRecord> ConsumeRecord::Decode(
   return std::optional<ConsumeRecord>{*offset};
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record

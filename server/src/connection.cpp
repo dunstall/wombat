@@ -70,7 +70,8 @@ bool Connection::Read() {
     // TODO(AD) For now expect to read whole request at once.
     // TODO(AD) Handle reading multiple reqeusts and partial requests
 
-    const std::optional<ProduceRecord> record = ProduceRecord::Decode(buf_);
+    const std::optional<record::ProduceRecord> record
+        = record::ProduceRecord::Decode(buf_);
     if (record) {
       LOG(INFO) << "received record from " << address();
       received_.push_back(*record);
@@ -83,9 +84,9 @@ bool Connection::Read() {
   return false;
 }
 
-std::vector<ProduceRecord> Connection::Received() {
-  std::vector<ProduceRecord> recv = std::move(received_);
-  received_ = std::vector<ProduceRecord>{};
+std::vector<record::ProduceRecord> Connection::Received() {
+  std::vector<record::ProduceRecord> recv = std::move(received_);
+  received_ = std::vector<record::ProduceRecord>{};
   return recv;
 }
 

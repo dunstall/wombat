@@ -35,7 +35,7 @@ class Connection {
 
   bool Write();
 
-  std::vector<ProduceRecord> Received();
+  std::vector<record::ProduceRecord> Received();
 
   bool Send();  // Push response to buffer
 
@@ -50,7 +50,7 @@ class Connection {
 
   std::string address_;
 
-  std::vector<ProduceRecord> received_;
+  std::vector<record::ProduceRecord> received_;
 };
 
 }  // namespace wombat::broker::server

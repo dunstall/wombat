@@ -12,7 +12,7 @@
 #include "log/logexception.h"
 #include "log/offsets.h"
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 constexpr uint32_t OFFSET_SEGMENT_ID = 0;
 
@@ -115,4 +115,4 @@ class Log {
   uint32_t size_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

@@ -19,7 +19,7 @@
 #include "log/log.h"
 #include "log/logexception.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 struct LeaderAddress {
   std::string ip;
@@ -29,7 +29,7 @@ struct LeaderAddress {
 template<class S>
 class Replica {
  public:
-  Replica(std::shared_ptr<Log<S>> log, const LeaderAddress& leader)
+  Replica(std::shared_ptr<log::Log<S>> log, const LeaderAddress& leader)
       : log_{log}, leader_{leader}, buf_(kBufSize), connected_{false}
   {
     signal(SIGPIPE, SIG_IGN);
@@ -93,7 +93,7 @@ class Replica {
           return;
         }
 
-        throw LogException{"replica read error", errno};
+        throw log::LogException{"replica read error", errno};
       } else {
         return;
       }
@@ -110,11 +110,11 @@ class Replica {
     servaddr.sin_port = htons(leader_.port);
     int rv = inet_pton(AF_INET, leader_.ip.c_str(), &servaddr.sin_addr.s_addr);
     if (rv != 1) {
-      throw LogException{"bad leader IP"};
+      throw log::LogException{"bad leader IP"};
     }
 
     if ((sock_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      throw LogException{"socket error", errno};
+      throw log::LogException{"socket error", errno};
     }
 
     // TODO(AD) remove timeout - just use non-blocking sockets (or poll is
@@ -124,10 +124,10 @@ class Replica {
     timeout.tv_usec = 0;
 
     if (setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {  // NOLINT
-      throw LogException{"setsockopt error", errno};
+      throw log::LogException{"setsockopt error", errno};
     }
     if (setsockopt(sock_, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {  // NOLINT
-      throw LogException{"setsockopt error", errno};
+      throw log::LogException{"setsockopt error", errno};
     }
 
     if (connect(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
@@ -137,7 +137,7 @@ class Replica {
       if (errno == ECONNREFUSED) {
         return false;
       }
-      throw LogException{"failed to connect to server", errno};
+      throw log::LogException{"failed to connect to server", errno};
     }
 
     if (!SendOffset()) return false;
@@ -168,7 +168,7 @@ class Replica {
             connected_ = false;
             return false;
           }
-          throw LogException{"failed to write to leader", errno};
+          throw log::LogException{"failed to write to leader", errno};
         }
       }
       written += n;
@@ -177,7 +177,7 @@ class Replica {
     return true;
   }
 
-  std::shared_ptr<Log<S>> log_;
+  std::shared_ptr<log::Log<S>> log_;
 
   LeaderAddress leader_;
 
@@ -188,4 +188,4 @@ class Replica {
   bool connected_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

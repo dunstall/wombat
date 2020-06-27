@@ -9,7 +9,7 @@
 
 #include "glog/logging.h"
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 LogException::LogException(const std::string& msg) : msg_{msg} {
   LOG(ERROR) << msg_;
@@ -24,4 +24,4 @@ LogException::LogException(const std::string& msg, int err) : msg_{msg} {
   LOG(ERROR) << msg_;
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

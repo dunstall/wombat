@@ -8,7 +8,7 @@
 
 #include "record/record.h"
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 constexpr uint32_t ProduceRecord::kLimit;
 
@@ -46,4 +46,4 @@ std::optional<ProduceRecord> ProduceRecord::Decode(
   return std::optional<ProduceRecord>{data};
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record

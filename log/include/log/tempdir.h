@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <string>
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 const size_t PATH_LEN = 6;
 const std::string CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";  // NOLINT
@@ -25,4 +25,4 @@ class TempDir {
   std::filesystem::path path_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

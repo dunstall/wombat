@@ -26,7 +26,7 @@ Server::Server(uint16_t port, int max_clients)
   Listen();
 }
 
-std::vector<ProduceRecord> Server::Poll() {
+std::vector<record::ProduceRecord> Server::Poll() {
   int ready = poll(fds_.data(), max_fd_index_ + 1, 0);
   if (ready == -1) {
     LOG(WARNING) << "leader poll error " << strerror(errno);
@@ -40,10 +40,10 @@ std::vector<ProduceRecord> Server::Poll() {
     }
   }
 
-  std::vector<ProduceRecord> recv{};
+  std::vector<record::ProduceRecord> recv{};
   for (int i = 1; i <= max_fd_index_; ++i) {
     if (PendingRead(i)) {
-      std::vector<ProduceRecord> r = Read(i);
+      std::vector<record::ProduceRecord> r = Read(i);
       recv.insert(recv.end(), r.begin(), r.end());
     }
 
@@ -63,17 +63,17 @@ void Server::Listen() {
 
   if ((listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     LOG(ERROR) << "failed to create socket " << strerror(errno);
-    throw LogException{"socket error", errno};
+    throw log::LogException{"socket error", errno};
   }
 
   if (bind(listenfd_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
     LOG(ERROR) << "failed to bind socket " << strerror(errno);
-    throw LogException{"bind error", errno};
+    throw log::LogException{"bind error", errno};
   }
 
   if (listen(listenfd_, kListenBacklog) == -1) {
     LOG(ERROR) << "failed to listen socket " << strerror(errno);
-    throw LogException{"listen error", errno};
+    throw log::LogException{"listen error", errno};
   }
 
   fds_[0].fd = listenfd_;
@@ -108,7 +108,7 @@ void Server::Accept() {
   close(connfd);
 }
 
-std::vector<ProduceRecord> Server::Read(int i) {
+std::vector<record::ProduceRecord> Server::Read(int i) {
   int connfd = fds_[i].fd;
   Connection& conn = connections_.at(connfd);
   if (!conn.Read()) {

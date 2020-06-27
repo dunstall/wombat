@@ -10,7 +10,7 @@
 
 #include "log/logexception.h"
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 // Store in-memory segment state (file descripor) in a singeton to act like a
 // persistent filesystem.
@@ -57,4 +57,4 @@ InMemorySegment::~InMemorySegment() {
   // ok as only for testing.
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

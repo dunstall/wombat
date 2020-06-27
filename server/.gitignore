@@ -37,8 +37,4 @@ build/
 lib/
 
 # Test binary
-log
-!log/
-log_*
-
-broker
+server_integrationtest

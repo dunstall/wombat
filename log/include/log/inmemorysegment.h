@@ -7,7 +7,7 @@
 
 #include "log/segment.h"
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 // Implements Segment using an in-memory buffer. This is for testing only as
 // uses globals (singletons) to manage state.
@@ -26,4 +26,4 @@ class InMemorySegment : public Segment {
   InMemorySegment& operator=(InMemorySegment&& segment) = default;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

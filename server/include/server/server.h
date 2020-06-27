@@ -23,7 +23,7 @@ class Server {
   Server(Server&& conn) = default;
   Server& operator=(Server&& conn) = default;
 
-  std::vector<ProduceRecord> Poll();
+  std::vector<record::ProduceRecord> Poll();
 
  private:
   static const int kListenBacklog = 10;
@@ -32,7 +32,7 @@ class Server {
 
   void Accept();
 
-  std::vector<ProduceRecord> Read(int i);
+  std::vector<record::ProduceRecord> Read(int i);
 
   bool PendingConnection() const;
 

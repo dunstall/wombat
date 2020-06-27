@@ -7,7 +7,7 @@
 #include <random>
 #include <string>
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 std::filesystem::path GeneratePath() {
   std::mt19937 rg{
@@ -32,4 +32,4 @@ TempDir::~TempDir() {
   std::filesystem::remove_all(path_);
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

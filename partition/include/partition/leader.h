@@ -20,12 +20,12 @@
 #include "log/logexception.h"
 #include "partition/connection.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 template<class S>
 class Leader {
  public:
-  Leader(std::shared_ptr<Log<S>> log, uint16_t port)
+  Leader(std::shared_ptr<log::Log<S>> log, uint16_t port)
       : port_{port}, log_{log}, connections_{} {
     signal(SIGPIPE, SIG_IGN);
     LOG(INFO) << "starting leader on port " << port;
@@ -70,17 +70,17 @@ class Leader {
 
     if ((listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
       LOG(ERROR) << "failed to create socket " << strerror(errno);
-      throw LogException{"socket error", errno};
+      throw log::LogException{"socket error", errno};
     }
 
     if (bind(listenfd_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
       LOG(ERROR) << "failed to bind socket " << strerror(errno);
-      throw LogException{"bind error", errno};
+      throw log::LogException{"bind error", errno};
     }
 
     if (listen(listenfd_, kListenBacklog) == -1) {
       LOG(ERROR) << "failed to listen socket " << strerror(errno);
-      throw LogException{"listen error", errno};
+      throw log::LogException{"listen error", errno};
     }
 
     fds_[0].fd = listenfd_;
@@ -174,9 +174,9 @@ class Leader {
 
   int max_fd_index_ = 0;
 
-  std::shared_ptr<Log<S>> log_;
+  std::shared_ptr<log::Log<S>> log_;
 
   std::unordered_map<int, Connection> connections_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

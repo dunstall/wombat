@@ -8,7 +8,7 @@
 
 #include "record/record.h"
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 class ConsumeRecord : public Record {
  public:
@@ -28,4 +28,4 @@ class ConsumeRecord : public Record {
   uint32_t offset_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record

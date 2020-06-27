@@ -18,15 +18,15 @@
 namespace wombat::broker {
 
 void RunLeader() {
-  TempDir dir{};
-  std::shared_ptr<Log<SystemSegment>> log
-      = std::make_shared<Log<SystemSegment>>(dir.path(), 128'000'000);
-  Leader<SystemSegment> leader{log, 3110};
+  log::TempDir dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> log
+      = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
+  partition::Leader<log::SystemSegment> leader{log, 3110};
 
   server::Server server{3111};
 
   while (true) {
-    std::vector<ProduceRecord> requests = server.Poll();
+    std::vector<record::ProduceRecord> requests = server.Poll();
     for (const auto r : requests) {
       log->Append(r.Encode());
     }
@@ -37,10 +37,10 @@ void RunLeader() {
 }
 
 void RunReplica() {
-  TempDir dir{};
-  std::shared_ptr<Log<SystemSegment>> log
-      = std::make_shared<Log<SystemSegment>>(dir.path(), 128'000'000);
-  Replica<SystemSegment> replica{log, {"127.0.0.1", 3110}};
+  log::TempDir dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> log
+      = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
+  partition::Replica<log::SystemSegment> replica{log, {"127.0.0.1", 3110}};
 
   while (true) {
     replica.Poll();

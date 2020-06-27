@@ -35,7 +35,7 @@ unittest:
 # Integration tests.
 # =============================================================================
 
-INTEGRATIONTEST_EXE := log_integrationtest
+INTEGRATIONTEST_EXE := server_integrationtest
 
 INTEGRATIONTEST_OBJ_DIR = $(OBJ_DIR)/integration
 
@@ -55,7 +55,7 @@ $(OBJ_DIR)/integration/%.o: $(TEST_DIR)/integration/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(LIB_DIR) $(OBJ_DIR)
+	rm -rf $(LIB_DIR) $(OBJ_DIR) $(INTEGRATIONTEST_EXE)
 
 $(OBJ_DIR) $(INTEGRATIONTEST_OBJ_DIR):
 	mkdir -p $@

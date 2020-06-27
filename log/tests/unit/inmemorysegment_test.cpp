@@ -14,7 +14,7 @@
 #include "log/inmemorysegment.h"
 #include "log/tempdir.h"
 
-namespace wombat::broker::testing {
+namespace wombat::broker::log::testing {
 
 class InMemorySegmentTest : public ::testing::Test {};
 
@@ -118,4 +118,4 @@ TEST_F(InMemorySegmentTest, SendOverflow) {
   EXPECT_EQ(data, read);
 }
 
-}  // namespace wombat::broker::testing
+}  // namespace wombat::broker::log::testing

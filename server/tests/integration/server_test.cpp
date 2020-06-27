@@ -37,7 +37,7 @@ class BackgroundServer {
     }
   }
 
-  std::vector<ProduceRecord> Received() {
+  std::vector<record::ProduceRecord> Received() {
     std::lock_guard<std::mutex> lk(mtx_);
     return received_;
   }
@@ -45,7 +45,7 @@ class BackgroundServer {
  private:
   void Poll() {
     while (running_) {
-      const std::vector<ProduceRecord> recv = server_.Poll();
+      const std::vector<record::ProduceRecord> recv = server_.Poll();
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
       std::lock_guard<std::mutex> lk(mtx_);
@@ -55,7 +55,7 @@ class BackgroundServer {
 
   Server server_;
 
-  std::vector<ProduceRecord> received_;
+  std::vector<record::ProduceRecord> received_;
 
   std::mutex mtx_;
   std::thread thread_;
@@ -172,7 +172,7 @@ TEST_F(ServerTest, TestSendProduceRecord) {
   // Write record at once.
   // TODO(AD) Need test for writing one byte at a time (see test harness)
   const std::vector<uint8_t> data{1, 2, 3};
-  const ProduceRecord record{data};
+  const record::ProduceRecord record{data};
   const std::vector<uint8_t> encoded = record.Encode();
   EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
 

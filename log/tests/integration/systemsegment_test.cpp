@@ -15,7 +15,7 @@
 #include "log/systemsegment.h"
 #include "log/tempdir.h"
 
-namespace wombat::broker::testing {
+namespace wombat::broker::log::testing {
 
 class SystemSegmentTest : public ::testing::Test {};
 
@@ -156,4 +156,4 @@ TEST_F(SystemSegmentTest, SendOverflow) {
   EXPECT_EQ(data, read);
 }
 
-}  // namespace wombat::broker::testing
+}  // namespace wombat::broker::log::testing

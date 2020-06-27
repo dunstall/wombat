@@ -12,7 +12,7 @@
 
 #include "log/logexception.h"
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 SystemSegment::SystemSegment(
     uint32_t id,
@@ -38,4 +38,4 @@ SystemSegment::~SystemSegment() {
   }
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

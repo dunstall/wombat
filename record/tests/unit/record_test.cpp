@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 #include "record/record.h"
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 TEST(TestEncodeU32, Ok) {
   const uint32_t n = 0xaabbccdd;
@@ -22,4 +22,4 @@ TEST(TestDecodeU32, InvalidTooSmall) {
   EXPECT_EQ(std::nullopt, DecodeU32(enc));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record

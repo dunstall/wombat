@@ -8,7 +8,7 @@
 
 #include "record/record.h"
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 class ProduceRecord : public Record {
  public:
@@ -31,4 +31,4 @@ class ProduceRecord : public Record {
   std::vector<uint8_t> data_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record

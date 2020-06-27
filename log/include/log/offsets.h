@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 template<class S>
 class Offsets {
@@ -84,4 +84,4 @@ class Offsets {
   S segment_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

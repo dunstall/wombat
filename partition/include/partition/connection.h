@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 enum class ConnectionState {
   // Pending indicates the TCP connection has been setup but the handshake
@@ -59,4 +59,4 @@ class Connection {
   std::string address_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

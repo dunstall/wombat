@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 class LogException : public std::exception {
  public:
@@ -23,4 +23,4 @@ class LogException : public std::exception {
   std::string msg_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log

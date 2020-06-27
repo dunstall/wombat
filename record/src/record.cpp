@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace wombat::broker {
+namespace wombat::broker::record {
 
 std::vector<uint8_t> EncodeU32(uint32_t n) {
   std::vector<uint8_t> enc(sizeof(uint32_t));
@@ -28,4 +28,4 @@ std::optional<uint32_t> DecodeU32(const std::vector<uint8_t>& enc) {
   return ntohl(n);
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::record
