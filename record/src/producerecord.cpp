@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "record/producerecord.h"
 
 #include <cstdint>
@@ -28,8 +30,7 @@ std::vector<uint8_t> ProduceRecord::Encode() const {
 }
 
 std::optional<ProduceRecord> ProduceRecord::Decode(
-    const std::vector<uint8_t>& enc)
-{
+    const std::vector<uint8_t>& enc) {
   std::optional<uint32_t> size = DecodeU32(enc);
   if (!size || *size > kLimit) {
     return std::nullopt;

@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "record/record.h"
 
 #include <arpa/inet.h>

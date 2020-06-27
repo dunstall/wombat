@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "gtest/gtest.h"
 #include "record/producerecord.h"
 

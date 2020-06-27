@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <cstdint>
@@ -10,7 +12,7 @@ namespace wombat::broker {
 
 class ProduceRecord : public Record {
  public:
-  ProduceRecord(const std::vector<uint8_t>& data);
+  explicit ProduceRecord(const std::vector<uint8_t>& data);
 
   ~ProduceRecord() override {}
 
