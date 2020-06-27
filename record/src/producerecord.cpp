@@ -38,7 +38,10 @@ std::optional<ProduceRecord> ProduceRecord::Decode(
     return std::nullopt;
   }
 
-  std::vector<uint8_t> data(enc.begin() + sizeof(uint32_t), enc.end());
+  std::vector<uint8_t> data(
+      enc.begin() + sizeof(uint32_t),
+      enc.begin() + sizeof(uint32_t) + *size
+  );
   return std::optional<ProduceRecord>{data};
 }
 
