@@ -12,6 +12,7 @@
 
 #include <glog/logging.h>
 #include "log/logexception.h"
+#include "record/producerecord.h"
 
 namespace wombat::broker {
 
@@ -23,7 +24,7 @@ Server::Server(uint16_t port, int max_clients)
   Listen();
 }
 
-std::vector<Request> Server::Poll() {
+std::vector<ProduceRecord> Server::Poll() {
   int ready = poll(fds_.data(), max_fd_index_ + 1, 0);
   if (ready == -1) {
     LOG(WARNING) << "leader poll error " << strerror(errno);
@@ -37,9 +38,11 @@ std::vector<Request> Server::Poll() {
     }
   }
 
+  std::vector<ProduceRecord> recv{};
   for (int i = 1; i <= max_fd_index_; ++i) {
     if (PendingRead(i)) {
-      Read(i);
+      std::vector<ProduceRecord> r = Read(i);
+      recv.insert(recv.end(), r.begin(), r.end());
     }
 
     if (PendingWrite(i)) {
@@ -47,7 +50,7 @@ std::vector<Request> Server::Poll() {
     }
   }
 
-  return {};
+  return recv;
 }
 
 void Server::Listen() {
@@ -103,13 +106,14 @@ void Server::Accept() {
   close(connfd);
 }
 
-void Server::Read(int i) {
+std::vector<ProduceRecord> Server::Read(int i) {
   int connfd = fds_[i].fd;
   Connection& conn = connections_.at(connfd);
   if (!conn.Read()) {
     connections_.erase(connfd);
     fds_[i].fd = -1;
   }
+  return conn.Received();
 }
 
 bool Server::PendingConnection() const {

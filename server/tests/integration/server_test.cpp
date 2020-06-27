@@ -6,9 +6,11 @@
 
 #include <atomic>
 #include <chrono>
+#include <mutex>
 #include <thread>
 
 #include "gtest/gtest.h"
+#include "record/producerecord.h"
 #include "server/server.h"
 
 namespace wombat::broker {
@@ -16,6 +18,10 @@ namespace wombat::broker {
 class BackgroundServer {
  public:
   BackgroundServer(Server server) : server_{std::move(server)} {}
+
+  ~BackgroundServer() {
+    Stop();
+  }
 
   void Start() {
     running_ = true;
@@ -29,16 +35,27 @@ class BackgroundServer {
     }
   }
 
+  std::vector<ProduceRecord> Received() {
+    std::lock_guard<std::mutex> lk(mtx_);
+    return received_;
+  }
+
  private:
   void Poll() {
     while (running_) {
-      server_.Poll();
+      const std::vector<ProduceRecord> recv = server_.Poll();
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+      std::lock_guard<std::mutex> lk(mtx_);
+      received_.insert(received_.end(), recv.begin(), recv.end());
     }
   }
 
   Server server_;
 
+  std::vector<ProduceRecord> received_;
+
+  std::mutex mtx_;
   std::thread thread_;
   std::atomic_bool running_;
 };
@@ -130,11 +147,42 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
 }
 
 TEST_F(ServerTest, TestSendProduceRecord) {
-  // ProduceRecord record{}...
+  const uint16_t port = 4105;
 
-  // sock.write(record.Encode())
+  BackgroundServer server{Server{port}};
+  server.Start();
 
-  // server.Poll() expect record
+  struct sockaddr_in servaddr;
+  servaddr.sin_family = AF_INET;
+  servaddr.sin_port = htons(port);
+  inet_pton(AF_INET, kLocalhost.c_str(), &servaddr.sin_addr.s_addr);
+
+  int sock = socket(AF_INET, SOCK_STREAM, 0);
+
+  struct timeval timeout;
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout));
+
+  connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
+
+  // Write record at once.
+  // TODO(AD) Need test for writing one byte at a time (see test harness)
+  const std::vector<uint8_t> data{1, 2, 3};
+  const ProduceRecord record{data};
+  const std::vector<uint8_t> encoded = record.Encode();
+  EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
+
+  // TODO just have the poll in the test rather than background?
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  ASSERT_EQ(1U, server.Received().size());
+  EXPECT_EQ(record, server.Received()[0]);
+
+  close(sock);
+
+  server.Stop();
 }
 
 }  // namespace wombat::broker

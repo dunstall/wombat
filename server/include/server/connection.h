@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "record/producerecord.h"
+
 namespace wombat::broker {
 
 // Represents connection from leader to replica
@@ -25,9 +27,13 @@ class Connection {
 
   std::string address() const { return address_; }
 
+  // TODO(AD) Cleanup interface
+
   bool Read();
 
   bool Write();
+
+  std::vector<ProduceRecord> Received();
 
   bool Send();  // Push response to buffer
 
@@ -41,6 +47,8 @@ class Connection {
   std::vector<uint8_t> buf_;
 
   std::string address_;
+
+  std::vector<ProduceRecord> received_;
 };
 
 }  // namespace wombat::broker

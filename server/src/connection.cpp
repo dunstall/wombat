@@ -7,15 +7,17 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include <glog/logging.h>
+#include "record/producerecord.h"
 
 namespace wombat::broker {
 
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
-    : connfd_{connfd}, buf_(kReadBufSize) {
+    : connfd_{connfd}, buf_(kReadBufSize), received_{} {
   address_ = AddrToString(addr);
   LOG(INFO) << "accepted pending connection to " << address();
 }
@@ -63,18 +65,26 @@ bool Connection::Read() {
   } else {
     // TODO(AD) Read requests
 
-    // // TODO(AD) Incramental read
-    // if (n == kReadBufSize) {
-      // uint32_t offset = 0;
-      // memcpy(&offset, buf_.data(), kReadBufSize);
-      // offset_ = ntohl(offset);
-      // LOG(INFO) << "connection established to " << address_ << " offset: " << offset_;
-      // state_ = ConnectionState::kEstablished;
-    // }
+    // TODO(AD) For now expect to read whole request at once.
+    // TODO(AD) Handle reading multiple reqeusts and partial requests
+
+    const std::optional<ProduceRecord> record = ProduceRecord::Decode(buf_);
+    if (record) {
+      LOG(INFO) << "received record from " << address();
+      received_.push_back(*record);
+    } else {
+      LOG(WARNING) << "received invalid record from " << address();
+    }
 
     return true;
   }
   return false;
+}
+
+std::vector<ProduceRecord> Connection::Received() {
+  std::vector<ProduceRecord> recv = std::move(received_);
+  received_ = std::vector<ProduceRecord>{};
+  return recv;
 }
 
 std::string Connection::AddrToString(const struct sockaddr_in& addr) const {

@@ -6,14 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "record/producerecord.h"
 #include "server/connection.h"
 
 namespace wombat::broker {
-
-// TODO(AD) Only handling produce for now
-struct Request {
-  std::vector<uint8_t> data;
-};
 
 class Server {
  public:
@@ -25,7 +21,7 @@ class Server {
   Server(Server&& conn) = default;
   Server& operator=(Server&& conn) = default;
 
-  std::vector<Request> Poll();
+  std::vector<ProduceRecord> Poll();
 
  private:
   static const int kListenBacklog = 10;
@@ -34,7 +30,7 @@ class Server {
 
   void Accept();
 
-  void Read(int i);
+  std::vector<ProduceRecord> Read(int i);
 
   bool PendingConnection() const;
 
