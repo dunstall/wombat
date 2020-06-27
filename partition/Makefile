@@ -21,15 +21,14 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 install:
 	../bin/install.sh
 
-.PHONY: installtest
-installtest:
-	../bin/installtest.sh
-
 TEST_DIR := tests
 
-TEST_INC_FLAGS := -Ilib/googletest/googletest/include
-TEST_LDFLAGS := -Llib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
+TEST_INC_FLAGS := -I../lib/googletest/googletest/include
+TEST_LDFLAGS := -L../lib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
+.PHONY: unittest
+unittest:
+	echo "No unittests"
 
 # =============================================================================
 # Integration tests.

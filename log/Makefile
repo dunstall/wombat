@@ -22,14 +22,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 install:
 	../bin/install.sh
 
-.PHONY: installtest
-installtest:
-	../bin/installtest.sh
-
 TEST_DIR := tests
 
-TEST_INC_FLAGS := -I$(LIB_DIR)/googletest/googletest/include
-TEST_LDFLAGS := -L$(LIB_DIR)/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
+TEST_INC_FLAGS := -I../$(LIB_DIR)/googletest/googletest/include
+TEST_LDFLAGS := -L../$(LIB_DIR)/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
 
 # =============================================================================

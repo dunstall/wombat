@@ -25,9 +25,13 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 install:
 	../bin/install.sh
 
-.PHONY: installtest
-installtest:
-	../bin/installtest.sh
+.PHONY: unittest
+unittest:
+	echo "No unittests"
+
+.PHONY: integrationtest
+integrationtest:
+	echo "No integrationtest"
 
 .PHONY: clean
 clean:

@@ -18,14 +18,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(OBJ_FILES:.o=.d)
 
-.PHONY: installtest
-installtest:
-	../bin/installtest.sh
-
 TEST_DIR := tests
 
-TEST_INC_FLAGS := -Ilib/googletest/googletest/include
-TEST_LDFLAGS := -Llib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
+TEST_INC_FLAGS := -I../lib/googletest/googletest/include
+TEST_LDFLAGS := -L../lib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
 
 # =============================================================================
 # Unit tests.
@@ -48,6 +44,10 @@ $(OBJ_DIR)/unit/%.o: $(TEST_DIR)/unit/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
 
 -include $(UNITTEST_OBJ_FILES:.o=.d)
+
+.PHONY: integrationtest
+integrationtest:
+	echo "No integrationtests"
 
 .PHONY: clean
 clean:

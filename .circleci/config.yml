@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  log-commit-stage:
+  commit-stage:
     docker:
       - image: circleci/buildpack-deps:latest
 
@@ -11,13 +11,14 @@ jobs:
           name: Commit stage
           command: |
             sudo apt-get install -y cmake
-            cd log
-            sudo make install
-            sudo make installtest
-            make -j 4
-            make -j 4 unittest
+            sudo ./bin/install.sh
+            sudo ./bin/installtest.sh
 
-  log-integration-test-stage:
+            ./bin/exec.py build
+            ./bin/exec.py unittest
+
+
+  integration-test-stage:
     docker:
       - image: circleci/buildpack-deps:latest
 
@@ -27,135 +28,17 @@ jobs:
           name: Integration Test stage
           command: |
             sudo apt-get install -y cmake
-            cd log
-            sudo make install
-            sudo make installtest
-            make -j 4 integrationtest
+            sudo ./bin/install.sh
+            sudo ./bin/installtest.sh
 
-  partition-commit-stage:
-    docker:
-      - image: circleci/buildpack-deps:latest
-
-    steps:
-      - checkout
-      - run:
-          name: Commit stage
-          command: |
-            sudo apt-get install -y cmake
-            # TODO(AD) Use output of log commit stage
-            cd log
-            sudo make install
-            sudo make installtest
-            make -j 4
-            cd ..
-            cd partition
-            sudo make install
-            sudo make installtest
-            make -j 4
-            # TODO(AD) Unit tests
-
-  partition-integration-test-stage:
-    docker:
-      - image: circleci/buildpack-deps:latest
-
-    steps:
-      - checkout
-      - run:
-          name: Integration Test stage
-          command: |
-            sudo apt-get install -y cmake
-            # TODO(AD) Use output of log commit stage
-            cd log
-            sudo make install
-            sudo make installtest
-            make -j 4
-            cd ..
-            cd partition
-            sudo make install
-            sudo make installtest
-            make integrationtest
-
-  server-commit-stage:
-    docker:
-      - image: circleci/buildpack-deps:latest
-
-    steps:
-      - checkout
-      - run:
-          name: Commit stage
-          command: |
-            sudo apt-get install -y cmake
-            cd record
-            sudo make installtest
-            make -j 4
-            cd ..
-
-            cd server
-            sudo make install
-            sudo make installtest
-            make -j 4
-            # TODO(AD) Unit tests
-
-  server-integration-test-stage:
-    docker:
-      - image: circleci/buildpack-deps:latest
-
-    steps:
-      - checkout
-      - run:
-          name: Integration Test stage
-          command: |
-            sudo apt-get install -y cmake
-
-            cd record
-            sudo make installtest
-            make -j 4
-            cd ..
-
-            # TODO(AD) Use output of log commit stage
-            cd server
-            sudo make install
-            sudo make installtest
-            make integrationtest
-
-  record-commit-stage:
-    docker:
-      - image: circleci/buildpack-deps:latest
-
-    steps:
-      - checkout
-      - run:
-          name: Commit stage
-          command: |
-            sudo apt-get install -y cmake
-            cd record
-            sudo make installtest
-            make -j 4
-            make -j 4 unittest
+            ./bin/exec.py build
+            ./bin/exec.py integrationtest
 
 
 workflows:
-  log:
+  broker:
     jobs:
-      - log-commit-stage
-      - log-integration-test-stage:
+      - commit-stage
+      - integration-test-stage:
           requires:
-            - log-commit-stage
-
-  partition:
-    jobs:
-      - partition-commit-stage
-      - partition-integration-test-stage:
-          requires:
-            - partition-commit-stage
-
-  server:
-    jobs:
-      - server-commit-stage
-      - server-integration-test-stage:
-          requires:
-            - server-commit-stage
-
-  record:
-    jobs:
-      - record-commit-stage
+            - commit-stage
