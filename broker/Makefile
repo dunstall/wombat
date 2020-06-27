@@ -6,8 +6,8 @@ LIB_DIR := lib
 SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
-INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I../partition/$(INC_DIR)
-LDFLAGS := -L../log -lwombatlog -L../partition -lwombatpartition -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
+INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I../partition/$(INC_DIR) -I../record/$(INC_DIR) -I../server/$(INC_DIR)
+LDFLAGS := -L../log -lwombatlog -L../partition -lwombatpartition -L../server -lwombatserver -L../record -lwombatrecord -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
 EXE := broker
 

@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <thread>
+#include <vector>
 
 #include <glog/logging.h>
 #include "log/log.h"
@@ -9,6 +10,8 @@
 #include "log/tempdir.h"
 #include "partition/leader.h"
 #include "partition/replica.h"
+#include "record/producerecord.h"
+#include "server/server.h"
 
 void PrintUsage() {
   std::cout << "USAGE:" << std::endl;
@@ -33,7 +36,14 @@ int main(int argc, char** argv) {
         = std::make_shared<wombat::broker::Log<wombat::broker::SystemSegment>>(dir.path(), 128'000'000);
     wombat::broker::Leader<wombat::broker::SystemSegment> leader{log, 3110};
 
+    wombat::broker::server::Server server{3111};
+
     while (true) {
+      std::vector<wombat::broker::ProduceRecord> requests = server.Poll();
+      for (const auto r : requests) {
+        log->Append(r.Encode());
+      }
+
       leader.Poll();
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
