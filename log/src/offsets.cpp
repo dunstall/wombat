@@ -1,5 +1,5 @@
 #include "log/offsets.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 constexpr int ID_PADDING = 20;
 
@@ -46,4 +46,4 @@ class Segment {
 
 std::string IdToName(uint32_t id);
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

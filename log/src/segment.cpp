@@ -12,7 +12,7 @@
 #include <glog/logging.h>
 #include "log/logexception.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 Segment::Segment(Segment&& segment) {
   path_ = std::move(segment.path_);
@@ -98,4 +98,4 @@ std::string IdToName(uint32_t id) {
   return "segment-" + std::string(ID_PADDING - id_str.length(), '0') + id_str;
 }
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

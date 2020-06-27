@@ -12,7 +12,7 @@
 
 #include <glog/logging.h>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
     : connfd_{connfd}, buf_(kReadBufSize), state_{ConnectionState::kPending} {
@@ -91,4 +91,4 @@ std::string Connection::AddrToString(const struct sockaddr_in& addr) const {
   return s + ":" + std::to_string(ntohs(addr.sin_port));
 }
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

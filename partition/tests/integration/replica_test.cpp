@@ -9,7 +9,7 @@
 #include "log/inmemorysegment.h"
 #include "log/tempdir.h"
 
-namespace wombat::log::testing {
+namespace wombat::broker::testing {
 
 class ReplicaTest : public ::testing::Test {};
 
@@ -74,4 +74,4 @@ class ReplicaTest : public ::testing::Test {};
 
 // TODO(AD) server never accepts connection (but is listening on port)
 
-}  // namespace wombat::log::testing
+}  // namespace wombat::broker::testing

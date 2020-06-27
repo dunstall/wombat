@@ -7,7 +7,7 @@
 
 #include <glog/logging.h>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 class LogException : public std::exception {
  public:
@@ -32,4 +32,4 @@ class LogException : public std::exception {
   std::string msg_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

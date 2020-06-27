@@ -5,7 +5,7 @@
 
 #include "log/segment.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 class SystemSegment : public Segment {
  public:
@@ -20,4 +20,4 @@ class SystemSegment : public Segment {
   SystemSegment& operator=(SystemSegment&& segment) = default;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

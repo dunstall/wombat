@@ -16,7 +16,7 @@
 #include "log/logexception.h"
 #include "partition/connection.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 template<class S>
 class Leader {
@@ -175,4 +175,4 @@ class Leader {
   std::unordered_map<int, Connection> connections_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 class Record {
  public:
@@ -12,4 +12,4 @@ class Record {
   virtual std::vector<uint8_t> Encode() const = 0;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

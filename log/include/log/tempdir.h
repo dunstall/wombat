@@ -2,7 +2,7 @@
 #include <random>
 #include <string>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 const size_t PATH_LEN = 6;
 const std::string CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -36,4 +36,4 @@ class TempDir {
   std::filesystem::path path_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

@@ -11,7 +11,7 @@
 #include "log/systemsegment.h"
 #include "log/tempdir.h"
 
-namespace wombat::log::testing {
+namespace wombat::broker::testing {
 
 // TODO repeat this with test harness for replica tests
 template<class S>
@@ -323,4 +323,4 @@ TEST_F(LeaderTest, TestReplicasDifferentOffsets) {
 
 // TODO(AD) Slow connect - send one byte of the offset a second.
 
-}  // namespace wombat::log::testing
+}  // namespace wombat::broker::testing

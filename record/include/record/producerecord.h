@@ -6,7 +6,7 @@
 
 #include "record/record.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 class ProduceRecord : public Record {
  public:
@@ -17,4 +17,4 @@ class ProduceRecord : public Record {
   static std::optional<ProduceRecord> Decode(const std::vector<uint8_t>& data);
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

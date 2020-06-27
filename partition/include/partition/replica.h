@@ -15,7 +15,7 @@
 #include "log/log.h"
 #include "log/logexception.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 struct LeaderAddress {
   std::string ip;
@@ -180,4 +180,4 @@ class Replica {
   bool connected_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

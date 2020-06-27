@@ -13,7 +13,7 @@
 #include <glog/logging.h>
 #include "log/logexception.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 // TODO(AD) Duplication between Server and Leader - make both subclasses
 Server::Server(uint16_t port, int max_clients)
@@ -130,4 +130,4 @@ bool Server::PendingWrite(int i) const {
   return (fds_[i].revents & POLLWRNORM) != 0;
 }
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

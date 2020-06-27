@@ -11,7 +11,7 @@
 #include "gtest/gtest.h"
 #include "server/server.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 class BackgroundServer {
  public:
@@ -129,4 +129,12 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   server.Stop();
 }
 
-}  // namespace wombat::log
+TEST_F(ServerTest, TestSendProduceRecord) {
+  // ProduceRecord record{}...
+
+  // sock.write(record.Encode())
+
+  // server.Poll() expect record
+}
+
+}  // namespace wombat::broker

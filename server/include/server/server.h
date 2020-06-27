@@ -8,7 +8,7 @@
 
 #include "server/connection.h"
 
-namespace wombat::log {
+namespace wombat::broker {
 
 // TODO(AD) Only handling produce for now
 struct Request {
@@ -55,4 +55,4 @@ class Server {
   int max_clients_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

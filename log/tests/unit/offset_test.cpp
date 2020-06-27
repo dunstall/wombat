@@ -3,7 +3,7 @@
 #include "log/offsets.h"
 #include "log/tempdir.h"
 
-namespace wombat::log::testing {
+namespace wombat::broker::testing {
 
 class OffsetsTest : public ::testing::Test {};
 
@@ -141,4 +141,4 @@ TEST_F(OffsetsTest, LoadPersistent) {
   }
 }
 
-}  // namespace wombat::log::testing
+}  // namespace wombat::broker::testing

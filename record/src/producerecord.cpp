@@ -4,7 +4,7 @@
 #include <optional>
 #include <vector>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 std::vector<uint8_t> ProduceRecord::Encode() const {
   return {};
@@ -16,4 +16,4 @@ std::optional<ProduceRecord> ProduceRecord::Decode(
   return std::optional<ProduceRecord>{};
 }
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

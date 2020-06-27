@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 // Represents connection from leader to replica
 class Connection {
@@ -43,4 +43,4 @@ class Connection {
   std::string address_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker

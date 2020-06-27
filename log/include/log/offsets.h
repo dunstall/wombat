@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 
-namespace wombat::log {
+namespace wombat::broker {
 
 template<class S>
 class Offsets {
@@ -81,4 +81,4 @@ class Offsets {
   S segment_;
 };
 
-}  // namespace wombat::log
+}  // namespace wombat::broker
