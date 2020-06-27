@@ -15,7 +15,7 @@
 #include "record/producerecord.h"
 #include "server/server.h"
 
-namespace wombat::broker::server {
+namespace wombat::broker::produceserver {
 
 class BackgroundServer {
  public:
@@ -187,4 +187,4 @@ TEST_F(ServerTest, TestSendProduceRecord) {
   server.Stop();
 }
 
-}  // namespace wombat::broker::server
+}  // namespace wombat::broker::produceserver

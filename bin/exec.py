@@ -7,7 +7,7 @@ import subprocess
 MODULES = [
     "record",
     "log",
-    "server",
+    "produceserver",
     "partition",
     "broker"
 ]

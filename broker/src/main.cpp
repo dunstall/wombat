@@ -23,7 +23,7 @@ void RunLeader() {
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
   partition::Leader<log::SystemSegment> leader{log, 3110};
 
-  server::Server server{3111};
+  produceserver::Server server{3111};
 
   while (true) {
     std::vector<record::ProduceRecord> requests = server.Poll();

@@ -56,24 +56,24 @@ class LeaderTest : public ::testing::Test {
 TEST_F(LeaderTest, TestConnectOk) {
   const uint16_t port = 3100;
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
 
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica_dir.path(), kSegmentLimit
       );
 
   const LeaderAddress addr{kLocalhost, port};
   for (int i = 0; i != 5; ++i) {
-    Replica<SystemSegment> replica(replica_log, addr);
+    Replica<log::SystemSegment> replica(replica_log, addr);
     replica.Poll();
     EXPECT_TRUE(replica.connected());
   }
@@ -84,33 +84,33 @@ TEST_F(LeaderTest, TestConnectOk) {
 TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
   const uint16_t port = 3101;
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
 
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica_dir.path(), kSegmentLimit
       );
 
   const LeaderAddress addr{kLocalhost, port};
   // Keep replicas in memory to avoid closing.
-  std::vector<Replica<SystemSegment>> replicas{};
+  std::vector<Replica<log::SystemSegment>> replicas{};
   for (int i = 0; i != 10; ++i) {
-    Replica<SystemSegment> replica(replica_log, addr);
+    Replica<log::SystemSegment> replica(replica_log, addr);
     replica.Poll();
     EXPECT_TRUE(replica.connected());
     replicas.push_back(std::move(replica));
   }
 
   // Exceed the limit.
-  Replica<SystemSegment> replica(replica_log, addr);
+  Replica<log::SystemSegment> replica(replica_log, addr);
   replica.Poll();
   // Connection should fail.
   EXPECT_FALSE(replica.connected());
@@ -123,31 +123,31 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
 TEST_F(LeaderTest, TestConnectDisconnectedReplicaExceedLimit) {
   const uint16_t port = 31011;
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
 
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica_dir.path(), kSegmentLimit
       );
 
   const LeaderAddress addr{kLocalhost, port};
   // Keep replicas in memory to avoid closing.
   for (int i = 0; i != 10; ++i) {
-    Replica<SystemSegment> replica(replica_log, addr);
+    Replica<log::SystemSegment> replica(replica_log, addr);
     replica.Poll();
     EXPECT_TRUE(replica.connected());
   }
 
   // Exceed the limit.
-  Replica<SystemSegment> replica(replica_log, addr);
+  Replica<log::SystemSegment> replica(replica_log, addr);
   replica.Poll();
   // Connection should succeed as other replicas have closed.
   EXPECT_TRUE(replica.connected());
@@ -160,9 +160,9 @@ TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
   leader_log->Append(data);
@@ -170,14 +170,14 @@ TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica_dir.path(), kSegmentLimit
       );
 
   const LeaderAddress addr{kLocalhost, port};
-  Replica<SystemSegment> replica(replica_log, addr);
+  Replica<log::SystemSegment> replica(replica_log, addr);
 
   while (replica_log->size() < data.size()) {
     replica.Poll();
@@ -193,23 +193,23 @@ TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
 TEST_F(LeaderTest, TestAppendToLeader) {
   const uint16_t port = 3105;
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
 
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica_dir.path(), kSegmentLimit
       );
 
   const LeaderAddress addr{kLocalhost, port};
-  Replica<SystemSegment> replica(replica_log, addr);
+  Replica<log::SystemSegment> replica(replica_log, addr);
 
   for (int i = 0; i != 5; ++i) {
     replica.Poll();
@@ -239,9 +239,9 @@ TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) {
   const std::vector<uint8_t> data1{1, 2, 3, 4, 5};
   const std::vector<uint8_t> data2{6, 7, 8, 9, 10};
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
   leader_log->Append(data1);
@@ -250,16 +250,16 @@ TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) {
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica_dir.path(), kSegmentLimit
       );
   // Start replica at offset 5.
   replica_log->Append(data1);
 
   const LeaderAddress addr{kLocalhost, port};
-  Replica<SystemSegment> replica(replica_log, addr);
+  Replica<log::SystemSegment> replica(replica_log, addr);
 
   while (replica_log->size() < leader_log->size()) {
     replica.Poll();
@@ -280,9 +280,9 @@ TEST_F(LeaderTest, TestReplicasDifferentOffsets) {
   const std::vector<uint8_t> data2{6, 7, 8, 9, 10};
   const std::vector<uint8_t> data3{11, 12, 13, 14, 15};
 
-  TempDir leader_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> leader_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir leader_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> leader_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           leader_dir.path(), kSegmentLimit
       );
   leader_log->Append(data1);
@@ -292,24 +292,24 @@ TEST_F(LeaderTest, TestReplicasDifferentOffsets) {
   LeaderServer server{leader_log, port};
   server.Start();
 
-  TempDir replica1_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica1_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica1_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica1_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica1_dir.path(), kSegmentLimit
       );
   // Start replica at offset 5.
   replica1_log->Append(data1);
 
-  TempDir replica2_dir{};
+  log::TempDir replica2_dir{};
   // Start replica at offset 0.
-  std::shared_ptr<log::Log<SystemSegment>> replica2_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  std::shared_ptr<log::Log<log::SystemSegment>> replica2_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica2_dir.path(), kSegmentLimit
       );
 
-  TempDir replica3_dir{};
-  std::shared_ptr<log::Log<SystemSegment>> replica3_log
-      = std::make_shared<log::Log<SystemSegment>>(
+  log::TempDir replica3_dir{};
+  std::shared_ptr<log::Log<log::SystemSegment>> replica3_log
+      = std::make_shared<log::Log<log::SystemSegment>>(
           replica3_dir.path(), kSegmentLimit
       );
   // Start replica at offset 10.
@@ -317,9 +317,9 @@ TEST_F(LeaderTest, TestReplicasDifferentOffsets) {
   replica3_log->Append(data2);
 
   const LeaderAddress addr{kLocalhost, port};
-  Replica<SystemSegment> replica1(replica1_log, addr);
-  Replica<SystemSegment> replica2(replica2_log, addr);
-  Replica<SystemSegment> replica3(replica3_log, addr);
+  Replica<log::SystemSegment> replica1(replica1_log, addr);
+  Replica<log::SystemSegment> replica2(replica2_log, addr);
+  Replica<log::SystemSegment> replica3(replica3_log, addr);
 
   while (replica1_log->size() < leader_log->size()) {
     replica1.Poll();
