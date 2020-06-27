@@ -17,6 +17,8 @@ jobs:
             ./bin/exec.py build
             ./bin/exec.py unittest
 
+            pip3 install cpplint
+            ./bin/staticanalysis.sh
 
   integration-test-stage:
     docker:
