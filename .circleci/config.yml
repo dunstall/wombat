@@ -85,6 +85,11 @@ jobs:
           name: Commit stage
           command: |
             sudo apt-get install -y cmake
+            cd record
+            sudo make installtest
+            make -j 4
+            cd ..
+
             cd server
             sudo make install
             sudo make installtest
@@ -101,6 +106,12 @@ jobs:
           name: Integration Test stage
           command: |
             sudo apt-get install -y cmake
+
+            cd record
+            sudo make installtest
+            make -j 4
+            cd ..
+
             # TODO(AD) Use output of log commit stage
             cd server
             sudo make install
