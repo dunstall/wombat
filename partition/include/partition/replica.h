@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <arpa/inet.h>
@@ -9,9 +11,11 @@
 #include <unistd.h>
 
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
-#include <glog/logging.h>
+#include "glog/logging.h"
 #include "log/log.h"
 #include "log/logexception.h"
 
@@ -77,7 +81,8 @@ class Replica {
     ssize_t n = read(sock_, buf_.data(), kBufSize);
     LOG(INFO) << "replica read " << n;
     if (n == 0) {
-      LOG(WARNING) << "connection closed by leader " << leader_.ip << ":" << leader_.port;
+      LOG(WARNING) << "connection closed by leader "
+          << leader_.ip << ":" << leader_.port;
       connected_ = false;
       return;
     } else if (n == -1) {
@@ -103,7 +108,8 @@ class Replica {
     struct sockaddr_in servaddr;
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(leader_.port);
-    if (inet_pton(AF_INET, leader_.ip.c_str(), &servaddr.sin_addr.s_addr) != 1) {
+    int rv = inet_pton(AF_INET, leader_.ip.c_str(), &servaddr.sin_addr.s_addr);
+    if (rv != 1) {
       throw LogException{"bad leader IP"};
     }
 
@@ -111,21 +117,23 @@ class Replica {
       throw LogException{"socket error", errno};
     }
 
-    // TODO(AD) remove timeout - just use non-blocking sockets (or poll is too slow)
+    // TODO(AD) remove timeout - just use non-blocking sockets (or poll is
+    // too slow)
     struct timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    if (setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout)) == -1)
+    if (setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {  // NOLINT
       throw LogException{"setsockopt error", errno};
-
-    if (setsockopt(sock_, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {
+    }
+    if (setsockopt(sock_, SOL_SOCKET, SO_SNDTIMEO, (char*) &timeout, sizeof(timeout)) == -1) {  // NOLINT
       throw LogException{"setsockopt error", errno};
     }
 
     if (connect(sock_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
       close(sock_);
-      LOG(WARNING) << "failed to connect to " << leader_.ip << ":" << leader_.port;
+      LOG(WARNING) << "failed to connect to "
+          << leader_.ip << ":" << leader_.port;
       if (errno == ECONNREFUSED) {
         return false;
       }

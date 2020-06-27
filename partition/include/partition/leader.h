@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <arpa/inet.h>
@@ -8,10 +10,12 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 
-#include <glog/logging.h>
+#include "glog/logging.h"
 #include "log/log.h"
 #include "log/logexception.h"
 #include "partition/connection.h"

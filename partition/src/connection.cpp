@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "partition/connection.h"
 
 #include <arpa/inet.h>
@@ -10,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <glog/logging.h>
+#include "glog/logging.h"
 
 namespace wombat::broker {
 
@@ -76,7 +78,8 @@ bool Connection::Read() {
       uint32_t offset = 0;
       memcpy(&offset, buf_.data(), kReadBufSize);
       offset_ = ntohl(offset);
-      LOG(INFO) << "connection established to " << address_ << " offset: " << offset_;
+      LOG(INFO) << "connection established to "
+          << address_ << " offset: " << offset_;
       state_ = ConnectionState::kEstablished;
     }
 
@@ -87,7 +90,12 @@ bool Connection::Read() {
 
 std::string Connection::AddrToString(const struct sockaddr_in& addr) const {
   std::string s(INET_ADDRSTRLEN, '\0');
-  inet_ntop(AF_INET, &addr.sin_addr.s_addr, (char*) s.c_str(), INET_ADDRSTRLEN);
+  inet_ntop(
+      AF_INET,
+      &addr.sin_addr.s_addr,
+      const_cast<char*>(s.c_str()),
+      INET_ADDRSTRLEN
+  );
   return s + ":" + std::to_string(ntohs(addr.sin_port));
 }
 

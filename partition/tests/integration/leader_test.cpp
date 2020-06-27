@@ -1,10 +1,11 @@
-#include "gtest/gtest.h"
+// Copyright 2020 Andrew Dunstall
 
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <thread>
 
+#include "gtest/gtest.h"
 #include "partition/leader.h"
 #include "partition/replica.h"
 #include "log/log.h"
@@ -13,7 +14,7 @@
 
 namespace wombat::broker::testing {
 
-// TODO repeat this with test harness for replica tests
+// TODO(AD) repeat this with test harness for replica tests
 template<class S>
 class LeaderServer {
  public:
@@ -64,7 +65,9 @@ TEST_F(LeaderTest, TestConnectOk) {
 
   TempDir replica_dir{};
   std::shared_ptr<Log<SystemSegment>> replica_log
-      = std::make_shared<Log<SystemSegment>>(replica_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica_dir.path(), kSegmentLimit
+      );
 
   const LeaderAddress addr{kLocalhost, port};
   for (int i = 0; i != 5; ++i) {
@@ -88,7 +91,9 @@ TEST_F(LeaderTest, TestConnectExceedReplicaLimit) {
 
   TempDir replica_dir{};
   std::shared_ptr<Log<SystemSegment>> replica_log
-      = std::make_shared<Log<SystemSegment>>(replica_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica_dir.path(), kSegmentLimit
+      );
 
   const LeaderAddress addr{kLocalhost, port};
   // Keep replicas in memory to avoid closing.
@@ -123,7 +128,9 @@ TEST_F(LeaderTest, TestConnectDisconnectedReplicaExceedLimit) {
 
   TempDir replica_dir{};
   std::shared_ptr<Log<SystemSegment>> replica_log
-      = std::make_shared<Log<SystemSegment>>(replica_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica_dir.path(), kSegmentLimit
+      );
 
   const LeaderAddress addr{kLocalhost, port};
   // Keep replicas in memory to avoid closing.
@@ -157,7 +164,9 @@ TEST_F(LeaderTest, TestReceiveDataOffsetZero) {
 
   TempDir replica_dir{};
   std::shared_ptr<Log<SystemSegment>> replica_log
-      = std::make_shared<Log<SystemSegment>>(replica_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica_dir.path(), kSegmentLimit
+      );
 
   const LeaderAddress addr{kLocalhost, port};
   Replica<SystemSegment> replica(replica_log, addr);
@@ -185,7 +194,9 @@ TEST_F(LeaderTest, TestAppendToLeader) {
 
   TempDir replica_dir{};
   std::shared_ptr<Log<SystemSegment>> replica_log
-      = std::make_shared<Log<SystemSegment>>(replica_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica_dir.path(), kSegmentLimit
+      );
 
   const LeaderAddress addr{kLocalhost, port};
   Replica<SystemSegment> replica(replica_log, addr);
@@ -229,7 +240,9 @@ TEST_F(LeaderTest, TestReceiveDataOffsetNonZero) {
 
   TempDir replica_dir{};
   std::shared_ptr<Log<SystemSegment>> replica_log
-      = std::make_shared<Log<SystemSegment>>(replica_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica_dir.path(), kSegmentLimit
+      );
   // Start replica at offset 5.
   replica_log->Append(data1);
 
@@ -267,18 +280,24 @@ TEST_F(LeaderTest, TestReplicasDifferentOffsets) {
 
   TempDir replica1_dir{};
   std::shared_ptr<Log<SystemSegment>> replica1_log
-      = std::make_shared<Log<SystemSegment>>(replica1_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica1_dir.path(), kSegmentLimit
+      );
   // Start replica at offset 5.
   replica1_log->Append(data1);
 
   TempDir replica2_dir{};
   // Start replica at offset 0.
   std::shared_ptr<Log<SystemSegment>> replica2_log
-      = std::make_shared<Log<SystemSegment>>(replica2_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica2_dir.path(), kSegmentLimit
+      );
 
   TempDir replica3_dir{};
   std::shared_ptr<Log<SystemSegment>> replica3_log
-      = std::make_shared<Log<SystemSegment>>(replica3_dir.path(), kSegmentLimit);
+      = std::make_shared<Log<SystemSegment>>(
+          replica3_dir.path(), kSegmentLimit
+      );
   // Start replica at offset 10.
   replica3_log->Append(data1);
   replica3_log->Append(data2);
