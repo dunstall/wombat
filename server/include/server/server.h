@@ -9,7 +9,7 @@
 #include "record/producerecord.h"
 #include "server/connection.h"
 
-namespace wombat::broker {
+namespace wombat::broker::server {
 
 class Server {
  public:
@@ -51,4 +51,4 @@ class Server {
   int max_clients_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::server

@@ -10,7 +10,7 @@
 
 #include "record/producerecord.h"
 
-namespace wombat::broker {
+namespace wombat::broker::server {
 
 // Represents connection from leader to replica
 class Connection {
@@ -51,4 +51,4 @@ class Connection {
   std::vector<ProduceRecord> received_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::server
