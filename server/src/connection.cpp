@@ -62,10 +62,6 @@ bool Connection::Read() {
     return false;
   } else {
     // TODO(AD) Read requests
-    // // If already established discard data as only reading to detect errors.
-    // if (state_ == ConnectionState::kEstablished) {
-      // return true;
-    // }
 
     // // TODO(AD) Incramental read
     // if (n == kReadBufSize) {
