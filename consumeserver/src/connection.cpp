@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "produceserver/connection.h"
+#include "consumeserver/connection.h"
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -14,9 +14,9 @@
 #include <vector>
 
 #include "glog/logging.h"
-#include "record/producerecord.h"
+#include "record/consumerecord.h"
 
-namespace wombat::broker::produceserver {
+namespace wombat::broker::consumeserver {
 
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
     : connfd_{connfd}, buf_(kReadBufSize), received_{} {
@@ -70,8 +70,8 @@ bool Connection::Read() {
     // TODO(AD) For now expect to read whole request at once.
     // TODO(AD) Handle reading multiple reqeusts and partial requests
 
-    const std::optional<record::ProduceRecord> record
-        = record::ProduceRecord::Decode(buf_);
+    const std::optional<record::ConsumeRecord> record
+        = record::ConsumeRecord::Decode(buf_);
     if (record) {
       LOG(INFO) << "received record from " << address();
       received_.push_back(*record);
@@ -84,9 +84,9 @@ bool Connection::Read() {
   return false;
 }
 
-std::vector<record::ProduceRecord> Connection::Received() {
-  std::vector<record::ProduceRecord> recv = std::move(received_);
-  received_ = std::vector<record::ProduceRecord>{};
+std::vector<record::ConsumeRecord> Connection::Received() {
+  std::vector<record::ConsumeRecord> recv = std::move(received_);
+  received_ = std::vector<record::ConsumeRecord>{};
   return recv;
 }
 
@@ -101,4 +101,4 @@ std::string Connection::AddrToString(const struct sockaddr_in& addr) const {
   return s + ":" + std::to_string(ntohs(addr.sin_port));
 }
 
-}  // namespace wombat::broker::produceserver
+}  // namespace wombat::broker::consumeserver

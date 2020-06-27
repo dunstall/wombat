@@ -12,8 +12,10 @@
 #include "log/tempdir.h"
 #include "partition/leader.h"
 #include "partition/replica.h"
+#include "record/consumerecord.h"
 #include "record/producerecord.h"
-#include "server/server.h"
+#include "consumeserver/server.h"
+#include "produceserver/server.h"
 
 namespace wombat::broker {
 
@@ -42,7 +44,12 @@ void RunReplica() {
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
   partition::Replica<log::SystemSegment> replica{log, {"127.0.0.1", 3110}};
 
+  consumeserver::Server server{3112};
+
   while (true) {
+    std::vector<record::ConsumeRecord> requests = server.Poll();
+    // TODO(AD) handle consuume requests
+
     replica.Poll();
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }

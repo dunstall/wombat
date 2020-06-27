@@ -11,7 +11,7 @@ LDFLAGS := -L../record -lwombatrecord -L../log -lwombatlog -lstdc++fs -lglog -lp
 
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
-	ar rvs libwombatproduceserver.a $(OBJ_FILES)
+	ar rvs libwombatconsumeserver.a $(OBJ_FILES)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<

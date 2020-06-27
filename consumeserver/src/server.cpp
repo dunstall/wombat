@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "produceserver/server.h"
+#include "consumeserver/server.h"
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -14,9 +14,9 @@
 
 #include "glog/logging.h"
 #include "log/logexception.h"
-#include "record/producerecord.h"
+#include "record/consumerecord.h"
 
-namespace wombat::broker::produceserver {
+namespace wombat::broker::consumeserver {
 
 // TODO(AD) Duplication between Server and Leader - make both subclasses
 Server::Server(uint16_t port, int max_clients)
@@ -26,7 +26,7 @@ Server::Server(uint16_t port, int max_clients)
   Listen();
 }
 
-std::vector<record::ProduceRecord> Server::Poll() {
+std::vector<record::ConsumeRecord> Server::Poll() {
   int ready = poll(fds_.data(), max_fd_index_ + 1, 0);
   if (ready == -1) {
     LOG(WARNING) << "leader poll error " << strerror(errno);
@@ -40,10 +40,10 @@ std::vector<record::ProduceRecord> Server::Poll() {
     }
   }
 
-  std::vector<record::ProduceRecord> recv{};
+  std::vector<record::ConsumeRecord> recv{};
   for (int i = 1; i <= max_fd_index_; ++i) {
     if (PendingRead(i)) {
-      std::vector<record::ProduceRecord> r = Read(i);
+      std::vector<record::ConsumeRecord> r = Read(i);
       recv.insert(recv.end(), r.begin(), r.end());
     }
 
@@ -108,7 +108,7 @@ void Server::Accept() {
   close(connfd);
 }
 
-std::vector<record::ProduceRecord> Server::Read(int i) {
+std::vector<record::ConsumeRecord> Server::Read(int i) {
   int connfd = fds_[i].fd;
   Connection& conn = connections_.at(connfd);
   if (!conn.Read()) {
@@ -137,4 +137,4 @@ bool Server::PendingWrite(int i) const {
   return (fds_[i].revents & POLLWRNORM) != 0;
 }
 
-}  // namespace wombat::broker::produceserver
+}  // namespace wombat::broker::consumeserver

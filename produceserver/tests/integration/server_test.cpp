@@ -13,7 +13,7 @@
 
 #include "gtest/gtest.h"
 #include "record/producerecord.h"
-#include "server/server.h"
+#include "produceserver/server.h"
 
 namespace wombat::broker::produceserver {
 

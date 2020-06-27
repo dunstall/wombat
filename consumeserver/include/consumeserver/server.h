@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "record/producerecord.h"
-#include "server/connection.h"
+#include "record/consumerecord.h"
+#include "consumeserver/connection.h"
 
-namespace wombat::broker::produceserver {
+namespace wombat::broker::consumeserver {
 
 class Server {
  public:
@@ -23,7 +23,7 @@ class Server {
   Server(Server&& conn) = default;
   Server& operator=(Server&& conn) = default;
 
-  std::vector<record::ProduceRecord> Poll();
+  std::vector<record::ConsumeRecord> Poll();
 
  private:
   static const int kListenBacklog = 10;
@@ -32,7 +32,7 @@ class Server {
 
   void Accept();
 
-  std::vector<record::ProduceRecord> Read(int i);
+  std::vector<record::ConsumeRecord> Read(int i);
 
   bool PendingConnection() const;
 
@@ -53,4 +53,4 @@ class Server {
   int max_clients_;
 };
 
-}  // namespace wombat::broker::produceserver
+}  // namespace wombat::broker::consumeserver
