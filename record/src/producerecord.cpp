@@ -34,7 +34,7 @@ std::optional<ProduceRecord> ProduceRecord::Decode(
   if (!size || *size > kLimit) {
     return std::nullopt;
   }
-  if (*size != enc.size() - sizeof(uint32_t)) {
+  if (*size > enc.size() - sizeof(uint32_t)) {
     return std::nullopt;
   }
 

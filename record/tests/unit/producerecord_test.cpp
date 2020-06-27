@@ -59,8 +59,8 @@ TEST_F(ProduceRecordTest, DecodeExceedsLimit) {
 }
 
 TEST_F(ProduceRecordTest, DecodeSizesDontMatch) {
-  std::vector<uint8_t> enc{0x0, 0x0, 0x0, 0xff};
-  const std::vector<uint8_t> data(0x020f, 0xff);
+  std::vector<uint8_t> enc{0x0, 0x0, 0x1, 0xff};
+  const std::vector<uint8_t> data(0x000f, 0xff);
   enc.insert(enc.end(), data.begin(), data.end());
 
   EXPECT_FALSE(ProduceRecord::Decode(enc));
