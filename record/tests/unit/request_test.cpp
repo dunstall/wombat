@@ -89,4 +89,13 @@ TEST_F(RequestTest, DecodePayloadTooSmall) {
   EXPECT_FALSE(Request::Decode(enc));
 }
 
+TEST_F(RequestTest, DecodeEncoded) {
+  const RequestType type = RequestType::kConsumeRecord;
+  const std::vector<uint8_t> payload{0xa, 0xb, 0xc, 0xd};
+  const Request request{type, payload};
+
+  EXPECT_TRUE(Request::Decode(request.Encode()));
+  EXPECT_EQ(request, *Request::Decode(request.Encode()));
+}
+
 }  // namespace wombat::broker::record
