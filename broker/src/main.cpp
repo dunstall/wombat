@@ -12,6 +12,7 @@
 #include "log/systemsegment.h"
 #include "log/tempdir.h"
 #include "partition/leader.h"
+#include "partition/partition.h"
 #include "partition/replica.h"
 #include "record/consumerecord.h"
 #include "record/producerecord.h"
@@ -23,19 +24,16 @@ void RunLeader() {
   log::TempDir dir{};
   std::shared_ptr<log::Log<log::SystemSegment>> log
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
-  partition::Leader<log::SystemSegment> leader{log, 3110};
 
   server::Server<record::ProduceRecord> server{3111};
+  server.Start();
 
+  partition::PartitionLeader partition{log, 3110};
+  partition.Start();
+
+  // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {
-    std::optional<record::ProduceRecord> record;
-    while ((record = server.queue()->TryPop()) && record) {
-      // TODO(AD) handle - send to partition queue
-      log->Append((*record).Encode());
-    }
-
-    leader.Poll();
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    partition.queue()->Push(server.queue()->WaitAndPop());
   }
 }
 

@@ -65,6 +65,7 @@ class Server {
     }
   }
 
+ private:
   void Poll() {
     while (running_) {
       // TODO(AD) if connections returned and writable - keep reference here so
@@ -100,7 +101,6 @@ class Server {
     }
   }
 
- private:
   static const int kListenBacklog = 10;
 
   void Listen() {

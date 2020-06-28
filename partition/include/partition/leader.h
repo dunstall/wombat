@@ -22,6 +22,8 @@
 
 namespace wombat::broker::partition {
 
+// TODO(AD) Use generic server. Listen for offset request to get a connection
+// object to write to.
 template<class S>
 class Leader {
  public:
