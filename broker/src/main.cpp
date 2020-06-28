@@ -32,7 +32,6 @@ void Run(Type type) {
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
 
   server::Server server{3111};
-  server.Start();
 
   std::unique_ptr<partition::Syncer<log::SystemSegment>> syncer;
   switch(type) {
@@ -56,7 +55,7 @@ void Run(Type type) {
 
   // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {
-    partition.queue()->Push(server.queue()->WaitAndPop());
+    partition.queue()->Push(server.events()->WaitAndPop().request);
   }
 }
 
