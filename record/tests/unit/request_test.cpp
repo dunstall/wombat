@@ -89,6 +89,23 @@ TEST_F(RequestTest, DecodePayloadTooSmall) {
   EXPECT_FALSE(Request::Decode(enc));
 }
 
+TEST_F(RequestTest, DecodePayloadExceedsSize) {
+  const std::vector<uint8_t> payload(0x10, 0xff);
+
+  std::vector<uint8_t> enc{
+    0x00, 0x00, 0x00, 0x01,  // Type
+    0x00, 0x00, 0x00, 0x05,  // Size is only 5.
+  };
+  enc.insert(enc.end(), payload.begin(), payload.end());
+
+  const RequestType type = RequestType::kConsumeRecord;
+  const std::vector<uint8_t> payload_small(0x5, 0xff);
+  const Request expected{type, payload_small};
+
+  EXPECT_TRUE(Request::Decode(enc));
+  EXPECT_EQ(expected, *Request::Decode(enc));
+}
+
 TEST_F(RequestTest, DecodeEncoded) {
   const RequestType type = RequestType::kConsumeRecord;
   const std::vector<uint8_t> payload{0xa, 0xb, 0xc, 0xd};

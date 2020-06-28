@@ -54,7 +54,10 @@ std::optional<Request> Request::Decode(const std::vector<uint8_t>& enc) {
 
   return Request{
     static_cast<RequestType>(*type),
-    std::vector<uint8_t>(enc.begin() + (sizeof(uint32_t) * 2), enc.end())
+    std::vector<uint8_t>(
+        enc.begin() + (sizeof(uint32_t) * 2),
+        enc.begin() + (sizeof(uint32_t) * 2) + *size
+    )
   };
 }
 
