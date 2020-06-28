@@ -18,6 +18,7 @@
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/logexception.h"
+#include "partition/syncer.h"
 
 namespace wombat::broker::partition {
 
@@ -27,7 +28,7 @@ struct LeaderAddress {
 };
 
 template<class S>
-class Replica {
+class Replica : public Syncer<S> {
  public:
   Replica(std::shared_ptr<log::Log<S>> log, const LeaderAddress& leader)
       : log_{log}, leader_{leader}, buf_(kBufSize), connected_{false}
@@ -71,7 +72,7 @@ class Replica {
 
   bool connected() const { return connected_; }
 
-  void Poll() {
+  void Poll() override {
     if (!connected_) {
       if (!Connect()) {
         return;

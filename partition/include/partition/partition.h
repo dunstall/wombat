@@ -6,45 +6,45 @@
 #include <cstdint>
 #include <memory>
 #include <thread>
+#include <utility>
 
 #include "log/log.h"
 #include "partition/leader.h"
-#include "record/consumerecord.h"
-#include "record/producerecord.h"
+#include "partition/replica.h"
+#include "partition/syncer.h"
+#include "record/request.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker::partition {
 
-enum class PartitionType {
-  kLeader,
-  kReplica
-};
-
+// TODO(AD) Untested
 template<class S>
-class PartitionLeader {
+class Partition {
  public:
-  PartitionLeader(std::shared_ptr<log::Log<S>> log, uint16_t port)
-      : log_{log}, leader_{log, port} {}
+  Partition(std::shared_ptr<log::Log<S>> log,
+            uint16_t port,
+            std::unique_ptr<Syncer<S>> syncer)
+      : log_{log}, syncer_{std::move(syncer)} {}
 
-  ~PartitionLeader() {
+  ~Partition() {
     Stop();
   }
 
-  PartitionLeader(const PartitionLeader& conn) = delete;
-  PartitionLeader& operator=(const PartitionLeader& conn) = delete;
+  Partition(const Partition& conn) = delete;
+  Partition& operator=(const Partition& conn) = delete;
 
-  PartitionLeader(PartitionLeader&& conn) = default;
-  PartitionLeader& operator=(PartitionLeader&& conn) = default;
+  Partition(Partition&& conn) = default;
+  Partition& operator=(Partition&& conn) = default;
 
   // TODO(AD) Have queue member for write only and read only - using same
   // structure (like Go channels)
-  std::shared_ptr<util::ThreadSafeQueue<record::ProduceRecord>> queue() const {
+  std::shared_ptr<util::ThreadSafeQueue<record::Request>> queue() const {
     return queue_;
   }
 
   void Start() {
     running_ = true;
-    thread_ = std::thread{&PartitionLeader::Poll, this};
+    thread_ = std::thread{&Partition::Poll, this};
   }
 
   void Stop() {
@@ -57,23 +57,25 @@ class PartitionLeader {
  private:
   void Poll() {
     while (running_) {
-      std::optional<record::ProduceRecord> record;
-      while ((record = queue_->TryPop()) && record) {
-        log_->Append((*record).Encode());
+      std::optional<record::Request> request;
+      while ((request = queue_->TryPop()) && request) {
+        // TODO(AD) Handle - check type and decode
+        // log_->Append((*record).Encode());
       }
 
-      leader_.Poll();
+      syncer_->Poll();
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
   }
 
   std::shared_ptr<log::Log<S>> log_;
-  Leader<S> leader_;
+  // TODO(AD) both leader and replica - make siblings? Syncer?
+  std::unique_ptr<Syncer<S>> syncer_;
 
   std::thread thread_;
   std::atomic_bool running_;
 
-  std::shared_ptr<util::ThreadSafeQueue<record::ProduceRecord>> queue_;
+  std::shared_ptr<util::ThreadSafeQueue<record::Request>> queue_;
 };
 
 }  // namespace wombat::broker::partition

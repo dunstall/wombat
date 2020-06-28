@@ -19,13 +19,14 @@
 #include "log/log.h"
 #include "log/logexception.h"
 #include "partition/connection.h"
+#include "partition/syncer.h"
 
 namespace wombat::broker::partition {
 
 // TODO(AD) Use generic server. Listen for offset request to get a connection
 // object to write to.
 template<class S>
-class Leader {
+class Leader : public Syncer<S> {
  public:
   Leader(std::shared_ptr<log::Log<S>> log, uint16_t port)
       : port_{port}, log_{log}, connections_{} {
@@ -34,7 +35,7 @@ class Leader {
     Listen();
   }
 
-  void Poll() {
+  void Poll() override {
     int ready = poll(fds_, max_fd_index_ + 1, 0);
     if (ready == -1) {
       LOG(WARNING) << "leader poll error " << strerror(errno);
