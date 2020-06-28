@@ -26,14 +26,19 @@
 
 namespace wombat::broker::server {
 
+Event::Event(record::Request _request, std::shared_ptr<Connection> _connection)
+    : request{_request}, connection{_connection} {
+}
+
 Server::Server(uint16_t port, int max_clients)
     : port_{port},
       fds_(max_clients),
       max_clients_{max_clients},
-      queue_{std::make_shared<util::ThreadSafeQueue<record::Request>>()} {
+      event_queue_{std::make_shared<EventQueue>()} {
   signal(SIGPIPE, SIG_IGN);
-  LOG(INFO) << "starting server on port " << port;
+  LOG(INFO) << "server listening on port " << port;
   Listen();
+  Start();
 }
 
 Server::~Server() {
@@ -54,15 +59,7 @@ void Server::Stop() {
 
 void Server::Poll() {
   while (running_) {
-    // TODO(AD) if connections returned and writable - keep reference here so
-    // can close and write etc.
-
-    // TODO(AD) Try to block waiting rather than sleep
-    // Wait for conn, readable, or connection with pending write (not socket
-    // write)
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    int ready = poll(fds_.data(), max_fd_index_ + 1, 0);
+    int ready = poll(fds_.data(), max_fd_index_ + 1, kPollTimeoutMS);
     if (ready == -1) {
       LOG(WARNING) << "leader poll error " << strerror(errno);
       continue;
@@ -78,10 +75,6 @@ void Server::Poll() {
     for (int i = 1; i <= max_fd_index_; ++i) {
       if (PendingRead(i)) {
         Read(i);
-      }
-
-      if (PendingWrite(i)) {
-        // Write(i);
       }
     }
   }
@@ -131,7 +124,7 @@ void Server::Accept() {
       fds_[i].events = POLLRDNORM | POLLWRNORM | POLLERR;
       max_fd_index_ = std::max(max_fd_index_, i);
       connections_.emplace(
-          connfd, Connection(connfd, cliaddr)
+          connfd, std::make_shared<Connection>(connfd, cliaddr)
       );
       return;
     }
@@ -144,13 +137,16 @@ void Server::Accept() {
 
 void Server::Read(int i) {
   int connfd = fds_[i].fd;
-  Connection& conn = connections_.at(connfd);
-  if (!conn.Read()) {
+  std::shared_ptr<Connection> conn = connections_.at(connfd);
+  try {
+    std::optional<record::Request> request = conn->Receive();
+    if (request) {
+      Event e{*request, conn};
+      event_queue_->Push(e);
+    }
+  } catch (const ConnectionException& e) {
     connections_.erase(connfd);
     fds_[i].fd = -1;
-  }
-  for (const record::Request& r : conn.Received()) {
-    queue_->Push(r);
   }
 }
 

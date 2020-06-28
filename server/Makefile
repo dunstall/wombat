@@ -55,7 +55,7 @@ $(OBJ_DIR)/integration/%.o: $(TEST_DIR)/integration/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(LIB_DIR) $(OBJ_DIR) $(INTEGRATIONTEST_EXE)
+	rm -rf $(LIB_DIR) $(OBJ_DIR) $(INTEGRATIONTEST_EXE) *.a
 
 $(OBJ_DIR) $(INTEGRATIONTEST_OBJ_DIR):
 	mkdir -p $@

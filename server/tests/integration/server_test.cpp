@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <random>
 #include <thread>
 
 #include "gtest/gtest.h"
@@ -18,27 +19,20 @@ namespace wombat::broker::server {
 class ServerTest : public ::testing::Test {
  protected:
   const std::string kLocalhost = "127.0.0.1";
+
+  int CreateSocket() const;
+
+  struct sockaddr_in ServerAddr(uint16_t port) const;
+
+  uint16_t RandomPort() const;
 };
 
 TEST_F(ServerTest, TestConnectOk) {
-  const uint16_t port = 4100;
-
+  const uint16_t port = RandomPort();
   Server server{port};
-  server.Start();
+  struct sockaddr_in servaddr = ServerAddr(port);
 
-  struct sockaddr_in servaddr;
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_port = htons(port);
-  inet_pton(AF_INET, kLocalhost.c_str(), &servaddr.sin_addr.s_addr);
-
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-
-  struct timeval timeout;
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
-  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-
+  int sock = CreateSocket();
   EXPECT_NE(connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
 
   std::vector<uint8_t> buf(5);
@@ -49,29 +43,13 @@ TEST_F(ServerTest, TestConnectOk) {
 }
 
 TEST_F(ServerTest, TestConnectExceedClientLimit) {
-  const uint16_t port = 4101;
-
+  const uint16_t port = RandomPort();
   Server server{port, 1};
-  server.Start();
+  struct sockaddr_in servaddr = ServerAddr(port);
 
-  struct sockaddr_in servaddr;
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_port = htons(port);
-  inet_pton(AF_INET, kLocalhost.c_str(), &servaddr.sin_addr.s_addr);
-
-  int sock1 = socket(AF_INET, SOCK_STREAM, 0);
-  int sock2 = socket(AF_INET, SOCK_STREAM, 0);
-  int sock3 = socket(AF_INET, SOCK_STREAM, 0);
-
-  struct timeval timeout;
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
-  setsockopt(sock1, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock1, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock2, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock2, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock3, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock3, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  int sock1 = CreateSocket();
+  int sock2 = CreateSocket();
+  int sock3 = CreateSocket();
 
   EXPECT_NE(connect(sock1, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
 
@@ -97,41 +75,95 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   close(sock3);
 }
 
-TEST_F(ServerTest, TestSendRequest) {
-  const uint16_t port = 4105;
-
+TEST_F(ServerTest, TestSendRequests) {
+  const uint16_t port = RandomPort();
   Server server{port};
-  server.Start();
+  struct sockaddr_in servaddr = ServerAddr(port);
 
+  int sock = CreateSocket();
+  connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
+
+  const std::vector<uint8_t> payload{1, 2, 3};
+  const record::Request request{record::RequestType::kProduceRecord, payload};
+  const std::vector<uint8_t> encoded = request.Encode();
+
+  const int n_requests = 3;
+  for (int i = 0; i != n_requests; ++i) {
+    EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
+  }
+
+  for (int i = 0; i != n_requests; ++i) {
+    // TODO(AD) queue.WaitFor
+    Event e = server.events()->WaitAndPop();
+    EXPECT_EQ(request, e.request);
+  }
+  
+  close(sock);
+}
+
+TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
+  const uint16_t port = RandomPort();
+  Server server{port};
+  struct sockaddr_in servaddr = ServerAddr(port);
+
+  int sock = CreateSocket();
+  connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
+
+  const std::vector<uint8_t> payload{1, 2, 3};
+  const record::Request request{record::RequestType::kProduceRecord, payload};
+  const std::vector<uint8_t> encoded = request.Encode();
+
+  const int n_requests = 3;
+  for (int i = 0; i != n_requests; ++i) {
+    for (size_t i = 0; i != encoded.size(); ++i) {
+      // Just one byte - small sleep so server reads return less than the full
+      // request.
+      EXPECT_EQ(1, write(sock, encoded.data() + i, 1));
+      std::this_thread::sleep_for(std::chrono::milliseconds{10});
+    }
+  }
+
+  for (int i = 0; i != n_requests; ++i) {
+    // TODO(AD) queue.WaitFor
+    Event e = server.events()->WaitAndPop();
+    EXPECT_EQ(request, e.request);
+  }
+
+  close(sock);
+}
+
+struct sockaddr_in ServerTest::ServerAddr(uint16_t port) const {
   struct sockaddr_in servaddr;
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(port);
   inet_pton(AF_INET, kLocalhost.c_str(), &servaddr.sin_addr.s_addr);
+  return servaddr;
+}
 
+int ServerTest::CreateSocket() const {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
 
   struct timeval timeout;
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
-  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));  // NOLINT
+  setsockopt(
+      sock, SOL_SOCKET, SO_RCVTIMEO,
+      reinterpret_cast<char*>(&timeout), sizeof(timeout)
+  );
+  setsockopt(
+      sock, SOL_SOCKET, SO_SNDTIMEO,
+      reinterpret_cast<char*>(&timeout), sizeof(timeout)
+  );
 
-  connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
+  return sock;
+}
 
-  // Write record at once.
-  // TODO(AD) Need test for writing one byte at a time (see test harness)
-  const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Request request{record::RequestType::kProduceRecord, payload};
-  const std::vector<uint8_t> encoded = request.Encode();
-  EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
-
-  // TODO(AD) wait for
-  record::Request r = server.queue()->WaitAndPop();
-
-  // ASSERT_EQ(1U, server.Received().size());
-  EXPECT_EQ(request, r);
-
-  close(sock);
+uint16_t ServerTest::RandomPort() const {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> distrib(1024, 0xffff);
+  uint16_t a =  distrib(gen);
+  return a;
 }
 
 }  // namespace wombat::broker::server

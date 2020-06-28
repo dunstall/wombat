@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <exception>
 #include <optional>
 #include <string>
 #include <utility>
@@ -18,6 +19,8 @@
 #include "record/request.h"
 
 namespace wombat::broker::server {
+
+class ConnectionException : public std::exception {};
 
 class Connection {
  public:
@@ -34,19 +37,20 @@ class Connection {
 
   std::string address() const { return address_; }
 
-  // TODO(AD) Cleanup interface
-  // Send(T) - need something that manages polling connections for writing
-
-  bool Read();
-
-  bool Write();
-
-  std::vector<record::Request> Received();
-
-  bool Send();  // Push response to buffer
+  // Returns the request received from the connection or nullopt if no request
+  // has been received. If an error occurs or the connection is closed throws
+  // a ConnectionException.
+  std::optional<record::Request> Receive();
 
  private:
-  static const size_t kReadBufSize = 1024;  // TODO(AD)
+  enum class State {
+    kHeaderPending,
+    kPayloadPending
+  };
+
+  static const size_t kReadBufSize = 1024;
+
+  std::optional<record::Request> HandleRead(int n);
 
   std::string AddrToString(const struct sockaddr_in& addr) const;
 
@@ -56,7 +60,10 @@ class Connection {
 
   std::string address_;
 
-  std::vector<record::Request> received_;
+  State state_;
+  int request_bytes_remaining_;  // TODO init to Request::kHeaderSize
+  int n_read_ = 0;
+  std::optional<record::RequestHeader> header_;
 };
 
 }  // namespace wombat::broker::server

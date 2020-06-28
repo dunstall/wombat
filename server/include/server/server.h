@@ -4,28 +4,30 @@
 
 #include <poll.h>
 
-#include <algorithm>
 #include <atomic>
-#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
-#include "glog/logging.h"
-#include "log/logexception.h"
 #include "record/request.h"
 #include "server/connection.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker::server {
 
-// TODO(AD) use in Leader, ConsumeServer, ProduceServer (test well)
-// write R to queue
+struct Event {
+  Event(record::Request _request, std::shared_ptr<Connection> _connection);
 
-// TODO(AD) Just return Request{Type, Payload}
-// then the correct handler can decode payload as required
+  record::Request request;
+  std::shared_ptr<Connection> connection;
+};
+
+using EventQueue = util::ThreadSafeQueue<Event>;
+
+// Server handles reading requests from connections to clients. This does
+// not write to the clients (thats left to responder).
 class Server {
  public:
   explicit Server(uint16_t port, int max_clients = 1024);
@@ -38,16 +40,15 @@ class Server {
   Server(Server&& conn) = default;
   Server& operator=(Server&& conn) = default;
 
-  std::shared_ptr<util::ThreadSafeQueue<record::Request>> queue() const {
-    return queue_;
-  }
+  std::shared_ptr<EventQueue> events() const { return event_queue_; }
+
+ private:
+  static constexpr int kListenBacklog = 10;
+  static constexpr int kPollTimeoutMS = 1000;
 
   void Start();
 
   void Stop();
-
- private:
-  static constexpr int kListenBacklog = 10;
 
   void Poll();
 
@@ -63,22 +64,22 @@ class Server {
 
   bool PendingWrite(int i) const;
 
-  uint16_t port_;
-
   int listenfd_;
 
-  std::vector<struct pollfd> fds_;
+  std::unordered_map<int, std::shared_ptr<Connection>> connections_;
 
   int max_fd_index_ = 0;
-
-  std::unordered_map<int, Connection> connections_;
-
-  int max_clients_;
 
   std::thread thread_;
   std::atomic_bool running_;
 
-  std::shared_ptr<util::ThreadSafeQueue<record::Request>> queue_;
+  uint16_t port_;
+
+  std::vector<struct pollfd> fds_;
+
+  int max_clients_;
+
+  std::shared_ptr<EventQueue> event_queue_;
 };
 
 }  // namespace wombat::broker::server
