@@ -37,10 +37,14 @@ void Run(Type type) {
   std::unique_ptr<partition::Syncer<log::SystemSegment>> syncer;
   switch(type) {
     case Type::kLeader:
-     syncer = std::make_unique<partition::Leader<log::SystemSegment>>(log, 3110);
+     syncer = std::make_unique<partition::Leader<log::SystemSegment>>(
+         log, 3110
+     );
      break;
     case Type::kReplica:
-     syncer = std::make_unique<partition::Replica<log::SystemSegment>>(log, partition::LeaderAddress{"127.0.0.1", 3110});
+     syncer = std::make_unique<partition::Replica<log::SystemSegment>>(
+         log, partition::LeaderAddress{"127.0.0.1", 3110}
+     );
      break;
     default:
      std::exit(1);
