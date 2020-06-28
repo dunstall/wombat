@@ -34,7 +34,8 @@ std::vector<uint8_t> RequestHeader::Encode() const {
   return enc;
 }
 
-std::optional<RequestHeader> RequestHeader::Decode(const std::vector<uint8_t>& enc) {
+std::optional<RequestHeader> RequestHeader::Decode(
+    const std::vector<uint8_t>& enc) {
   std::optional<uint32_t> type = DecodeU32(enc);
   if (!type) {
     return std::nullopt;

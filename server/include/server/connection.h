@@ -61,7 +61,7 @@ class Connection {
   std::string address_;
 
   State state_;
-  int request_bytes_remaining_;  // TODO init to Request::kHeaderSize
+  int request_bytes_remaining_;
   int n_read_ = 0;
   std::optional<record::RequestHeader> header_;
 };

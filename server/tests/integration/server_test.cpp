@@ -89,7 +89,10 @@ TEST_F(ServerTest, TestSendRequests) {
 
   const int n_requests = 3;
   for (int i = 0; i != n_requests; ++i) {
-    EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
+    EXPECT_EQ(
+        (int) encoded.size(),
+        write(sock, encoded.data(), encoded.size())
+    );
   }
 
   for (int i = 0; i != n_requests; ++i) {
@@ -97,7 +100,7 @@ TEST_F(ServerTest, TestSendRequests) {
     Event e = server.events()->WaitAndPop();
     EXPECT_EQ(request, e.request);
   }
-  
+
   close(sock);
 }
 
