@@ -12,6 +12,8 @@ namespace wombat::broker::record {
 
 class ProduceRecord : public Record {
  public:
+  ProduceRecord() = default;
+
   explicit ProduceRecord(const std::vector<uint8_t>& data);
 
   ~ProduceRecord() override {}

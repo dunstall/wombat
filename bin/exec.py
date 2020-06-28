@@ -8,8 +8,6 @@ MODULES = [
     "record",
     "log",
     "server",
-    "consumeserver",
-    "produceserver",
     "partition",
     "broker"
 ]

@@ -25,14 +25,17 @@
 
 namespace wombat::broker::server {
 
-// TODO use in Leader, ConsumeServer, ProduceServer (test well)
+// TODO(AD) use in Leader, ConsumeServer, ProduceServer (test well)
 // write R to queue
 
 template<class R>
 class Server {
  public:
-  explicit Server(uint16_t port, std::shared_ptr<util::ThreadSafeQueue<R>> queue, int max_clients = 1024)
-      : port_{port}, fds_(max_clients), max_clients_{max_clients}, queue_{queue} {
+  explicit Server(uint16_t port, int max_clients = 1024)
+      : port_{port},
+        fds_(max_clients),
+        max_clients_{max_clients},
+        queue_{std::make_shared<util::ThreadSafeQueue<R>>()} {
     signal(SIGPIPE, SIG_IGN);
     LOG(INFO) << "starting server on port " << port;
     Listen();
@@ -64,7 +67,7 @@ class Server {
 
   void Poll() {
     while (running_) {
-      // TODO if connections returned and writable - keep reference here so
+      // TODO(AD) if connections returned and writable - keep reference here so
       // can close and write etc.
 
       // TODO(AD) Try to block waiting rather than sleep

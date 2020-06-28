@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <thread>
 #include <vector>
 
@@ -14,8 +15,7 @@
 #include "partition/replica.h"
 #include "record/consumerecord.h"
 #include "record/producerecord.h"
-#include "consumeserver/server.h"
-#include "produceserver/server.h"
+#include "server/server.h"
 
 namespace wombat::broker {
 
@@ -25,12 +25,13 @@ void RunLeader() {
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
   partition::Leader<log::SystemSegment> leader{log, 3110};
 
-  produceserver::Server server{3111};
+  server::Server<record::ProduceRecord> server{3111};
 
   while (true) {
-    std::vector<record::ProduceRecord> requests = server.Poll();
-    for (const auto r : requests) {
-      log->Append(r.Encode());
+    std::optional<record::ProduceRecord> record;
+    while ((record = server.queue()->TryPop()) && record) {
+      // TODO(AD) handle - send to partition queue
+      log->Append((*record).Encode());
     }
 
     leader.Poll();
@@ -44,11 +45,13 @@ void RunReplica() {
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
   partition::Replica<log::SystemSegment> replica{log, {"127.0.0.1", 3110}};
 
-  consumeserver::Server server{3112};
+  server::Server<record::ConsumeRecord> server{3112};
 
   while (true) {
-    std::vector<record::ConsumeRecord> requests = server.Poll();
-    // TODO(AD) handle consuume requests
+    std::optional<record::ConsumeRecord> record;
+    while ((record = server.queue()->TryPop()) && record) {
+      // TODO(AD) handle - send to partition queue
+    }
 
     replica.Poll();
     std::this_thread::sleep_for(std::chrono::milliseconds(50));

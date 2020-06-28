@@ -23,10 +23,7 @@ class ServerTest : public ::testing::Test {
 TEST_F(ServerTest, TestConnectOk) {
   const uint16_t port = 4100;
 
-  Server<record::ProduceRecord> server{
-      port,
-      std::make_shared<util::ThreadSafeQueue<record::ProduceRecord>>()
-  };
+  Server<record::ProduceRecord> server{port};
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -56,11 +53,7 @@ TEST_F(ServerTest, TestConnectOk) {
 TEST_F(ServerTest, TestConnectExceedClientLimit) {
   const uint16_t port = 4101;
 
-  Server<record::ProduceRecord> server{
-      port,
-      std::make_shared<util::ThreadSafeQueue<record::ProduceRecord>>(),
-      1
-  };
+  Server<record::ProduceRecord> server{port, 1};
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -111,10 +104,7 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
 TEST_F(ServerTest, TestSendProduceRecord) {
   const uint16_t port = 4105;
 
-  Server<record::ProduceRecord> server{
-      port,
-      std::make_shared<util::ThreadSafeQueue<record::ProduceRecord>>()
-  };
+  Server<record::ProduceRecord> server{port};
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -139,7 +129,7 @@ TEST_F(ServerTest, TestSendProduceRecord) {
   const std::vector<uint8_t> encoded = record.Encode();
   EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
 
-  // TODO wait for?
+  // TODO(AD) wait for
   record::ProduceRecord r = server.queue()->WaitAndPop();
 
   // ASSERT_EQ(1U, server.Received().size());

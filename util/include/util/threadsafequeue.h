@@ -1,8 +1,12 @@
+// Copyright 2020 Andrew Dunstall
+
 #pragma once
 
 #include <condition_variable>
+#include <optional>
 #include <mutex>
 #include <queue>
+#include <utility>
 
 namespace wombat::broker::util {
 
@@ -25,14 +29,14 @@ class ThreadSafeQueue {
     return val;
   }
 
-  bool TryPop(T* val) {
+  std::optional<T> TryPop() {
     std::lock_guard<std::mutex> lk(mut_);
     if (data_queue_.empty()) {
-      return false;
+      return std::nullopt;
     }
-    *val = std::move(data_queue_.front());
+    T val = std::move(data_queue_.front());
     data_queue_.pop();
-    return true;
+    return val;
   }
 
   bool empty() const {
