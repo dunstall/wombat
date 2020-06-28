@@ -12,6 +12,44 @@
 
 namespace wombat::broker::record {
 
+RequestHeader::RequestHeader(RequestType type, uint32_t payload_size)
+    : type_{type}, payload_size_{payload_size} {
+  if (payload_size_ > kLimit) {
+    throw std::invalid_argument{"payload size exceeds limit"};
+  }
+}
+
+bool RequestHeader::operator==(const RequestHeader& header) const {
+  return type_ == header.type_ && payload_size_ == header.payload_size_;
+}
+
+bool RequestHeader::operator!=(const RequestHeader& header) const {
+  return !(*this == header);
+}
+
+std::vector<uint8_t> RequestHeader::Encode() const {
+  std::vector<uint8_t> enc = EncodeU32(static_cast<uint32_t>(type_));
+  std::vector<uint8_t> size = EncodeU32(payload_size_);
+  enc.insert(enc.end(), size.begin(), size.end());
+  return enc;
+}
+
+std::optional<RequestHeader> RequestHeader::Decode(const std::vector<uint8_t>& enc) {
+  std::optional<uint32_t> type = DecodeU32(enc);
+  if (!type) {
+    return std::nullopt;
+  }
+
+  std::optional<uint32_t> payload_size = DecodeU32(
+      std::vector<uint8_t>(enc.begin() + sizeof(uint32_t), enc.end())
+  );
+  if (!payload_size) {
+    return std::nullopt;
+  }
+
+  return RequestHeader{static_cast<RequestType>(*type), *payload_size};
+}
+
 Request::Request(RequestType type, const std::vector<uint8_t>& payload)
     : type_{type}, payload_{payload} {
   if (payload_.size() > kLimit) {

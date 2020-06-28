@@ -8,6 +8,69 @@
 
 namespace wombat::broker::record {
 
+class RequestHeaderTest : public ::testing::Test {};
+
+TEST_F(RequestHeaderTest, Get) {
+  const RequestType type = RequestType::kProduceRecord;
+  const uint32_t payload_size = 0xff;
+  const RequestHeader header{type, payload_size};
+  EXPECT_EQ(type, header.type());
+  EXPECT_EQ(payload_size, header.payload_size());
+}
+
+TEST_F(RequestHeaderTest, ExceedSizeLimit) {
+  EXPECT_THROW(
+      RequestHeader(RequestType::kProduceRecord, 513),
+      std::invalid_argument
+  );
+}
+
+TEST_F(RequestHeaderTest, Encode) {
+  const RequestType type = RequestType::kConsumeRecord;
+  const uint32_t payload_size = 0xff;
+  const RequestHeader header{type, payload_size};
+
+  const std::vector<uint8_t> expected{
+    0x00, 0x00, 0x00, 0x01,  // Type
+    0x00, 0x00, 0x00, 0xff,  // Payload size
+  };
+  EXPECT_EQ(expected, header.Encode());
+}
+
+TEST_F(RequestHeaderTest, EncodeLimit) {
+  const RequestType type = RequestType::kConsumeRecord;
+  const uint32_t payload_size = 0x200;
+  const RequestHeader header{type, payload_size};
+
+  std::vector<uint8_t> expected{
+    0x00, 0x00, 0x00, 0x01,  // Type
+    0x00, 0x00, 0x02, 0x00,  // Payload size
+  };
+
+  EXPECT_EQ(expected, header.Encode());
+}
+
+TEST_F(RequestHeaderTest, DecodeOk) {
+  const std::vector<uint8_t> enc{
+    0x00, 0x00, 0x00, 0x01,  // Type
+    0x00, 0x00, 0x00, 0xfa,  // Payload size
+  };
+
+  const RequestHeader expected{RequestType::kConsumeRecord, 0xfa};
+
+  EXPECT_TRUE(RequestHeader::Decode(enc));
+  EXPECT_EQ(expected, *RequestHeader::Decode(enc));
+}
+
+TEST_F(RequestHeaderTest, DecodeHeaderTooSmall) {
+  std::vector<uint8_t> enc{
+    0x00, 0x00, 0x00, 0x01,
+    0x00, 0x00,
+  };
+
+  EXPECT_FALSE(RequestHeader::Decode(enc));
+}
+
 class RequestTest : public ::testing::Test {};
 
 TEST_F(RequestTest, Get) {

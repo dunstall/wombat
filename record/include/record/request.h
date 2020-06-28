@@ -14,6 +14,34 @@ enum class RequestType : uint32_t {
   // TODO(AD) Replica/leader
 };
 
+class RequestHeader {
+ public:
+  static constexpr int kSize = 8;
+
+  RequestHeader(RequestType type, uint32_t payload_size);
+
+  bool operator==(const RequestHeader& header) const;
+
+  bool operator!=(const RequestHeader& header) const;
+
+  RequestType type() const { return type_; }
+
+  uint32_t payload_size() const { return payload_size_; }
+
+  std::vector<uint8_t> Encode() const;
+
+  static std::optional<RequestHeader> Decode(const std::vector<uint8_t>& enc);
+
+ private:
+  // Maximum record data size.
+  static constexpr uint32_t kLimit = 512;
+
+  RequestType type_;
+
+  uint32_t payload_size_;
+};
+
+// TODO(AD) Remove?
 class Request {
  public:
   Request(RequestType type, const std::vector<uint8_t>& payload);
