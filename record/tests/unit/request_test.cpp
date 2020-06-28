@@ -25,6 +25,13 @@ TEST_F(RequestHeaderTest, ExceedSizeLimit) {
   );
 }
 
+TEST_F(RequestHeaderTest, ZeroSize) {
+  EXPECT_THROW(
+      RequestHeader(RequestType::kProduceRecord, 0),
+      std::invalid_argument
+  );
+}
+
 TEST_F(RequestHeaderTest, Encode) {
   const RequestType type = RequestType::kConsumeRecord;
   const uint32_t payload_size = 0xff;
@@ -66,6 +73,24 @@ TEST_F(RequestHeaderTest, DecodeHeaderTooSmall) {
   std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,
     0x00, 0x00,
+  };
+
+  EXPECT_FALSE(RequestHeader::Decode(enc));
+}
+
+TEST_F(RequestHeaderTest, DecodeZeroPayload) {
+  std::vector<uint8_t> enc{
+    0x00, 0x00, 0x00, 0x01,
+    0x00, 0x00, 0x00, 0x00
+  };
+
+  EXPECT_FALSE(RequestHeader::Decode(enc));
+}
+
+TEST_F(RequestHeaderTest, DecodeExceedsLimit) {
+  std::vector<uint8_t> enc{
+    0x00, 0x00, 0x00, 0x01,
+    0x00, 0x00, 0x02, 0x01
   };
 
   EXPECT_FALSE(RequestHeader::Decode(enc));

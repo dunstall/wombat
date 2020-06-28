@@ -14,8 +14,8 @@ namespace wombat::broker::record {
 
 RequestHeader::RequestHeader(RequestType type, uint32_t payload_size)
     : type_{type}, payload_size_{payload_size} {
-  if (payload_size_ > kLimit) {
-    throw std::invalid_argument{"payload size exceeds limit"};
+  if (payload_size_ > kLimit || payload_size == 0) {
+    throw std::invalid_argument{"invalid payload size"};
   }
 }
 
@@ -43,7 +43,7 @@ std::optional<RequestHeader> RequestHeader::Decode(const std::vector<uint8_t>& e
   std::optional<uint32_t> payload_size = DecodeU32(
       std::vector<uint8_t>(enc.begin() + sizeof(uint32_t), enc.end())
   );
-  if (!payload_size) {
+  if (!payload_size || payload_size > kLimit || payload_size == 0) {
     return std::nullopt;
   }
 

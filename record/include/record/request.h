@@ -41,7 +41,6 @@ class RequestHeader {
   uint32_t payload_size_;
 };
 
-// TODO(AD) Remove?
 class Request {
  public:
   Request(RequestType type, const std::vector<uint8_t>& payload);
