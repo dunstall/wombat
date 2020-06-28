@@ -23,7 +23,7 @@ class ServerTest : public ::testing::Test {
 TEST_F(ServerTest, TestConnectOk) {
   const uint16_t port = 4100;
 
-  Server<record::ProduceRecord> server{port};
+  Server server{port};
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -46,14 +46,12 @@ TEST_F(ServerTest, TestConnectOk) {
   EXPECT_EQ(EWOULDBLOCK, errno);
 
   close(sock);
-
-  server.Stop();
 }
 
 TEST_F(ServerTest, TestConnectExceedClientLimit) {
   const uint16_t port = 4101;
 
-  Server<record::ProduceRecord> server{port, 1};
+  Server server{port, 1};
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -97,14 +95,12 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   EXPECT_EQ(EWOULDBLOCK, errno);
 
   close(sock3);
-
-  server.Stop();
 }
 
-TEST_F(ServerTest, TestSendProduceRecord) {
+TEST_F(ServerTest, TestSendRequest) {
   const uint16_t port = 4105;
 
-  Server<record::ProduceRecord> server{port};
+  Server server{port};
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -124,16 +120,16 @@ TEST_F(ServerTest, TestSendProduceRecord) {
 
   // Write record at once.
   // TODO(AD) Need test for writing one byte at a time (see test harness)
-  const std::vector<uint8_t> data{1, 2, 3};
-  const record::ProduceRecord record{data};
-  const std::vector<uint8_t> encoded = record.Encode();
+  const std::vector<uint8_t> payload{1, 2, 3};
+  const record::Request request{record::RequestType::kProduceRecord, payload};
+  const std::vector<uint8_t> encoded = request.Encode();
   EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
 
   // TODO(AD) wait for
-  record::ProduceRecord r = server.queue()->WaitAndPop();
+  record::Request r = server.queue()->WaitAndPop();
 
   // ASSERT_EQ(1U, server.Received().size());
-  EXPECT_EQ(record, r);
+  EXPECT_EQ(request, r);
 
   close(sock);
 }
