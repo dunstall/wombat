@@ -10,25 +10,36 @@
 #include <sys/types.h>
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <memory>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 #include "glog/logging.h"
 #include "log/logexception.h"
 #include "server/connection.h"
+#include "util/threadsafequeue.h"
 
 namespace wombat::broker::server {
+
+// TODO use in Leader, ConsumeServer, ProduceServer (test well)
+// write R to queue
 
 template<class R>
 class Server {
  public:
-  // TODO(AD) pass protected queue
-  explicit Server(uint16_t port, int max_clients = 1024)
-      : port_{port}, fds_(max_clients), max_clients_{max_clients} {
+  explicit Server(uint16_t port, std::shared_ptr<util::ThreadSafeQueue<R>> queue, int max_clients = 1024)
+      : port_{port}, fds_(max_clients), max_clients_{max_clients}, queue_{queue} {
     signal(SIGPIPE, SIG_IGN);
     LOG(INFO) << "starting server on port " << port;
     Listen();
+  }
+
+  ~Server() {
+    Stop();
   }
 
   Server(const Server& conn) = delete;
@@ -37,37 +48,53 @@ class Server {
   Server(Server&& conn) = default;
   Server& operator=(Server&& conn) = default;
 
-  // TODO(AD) Start
+  std::shared_ptr<util::ThreadSafeQueue<R>> queue() const { return queue_; }
 
-  // TODO(AD) Stop
+  void Start() {
+    running_ = true;
+    thread_ = std::thread{&Server::Poll, this};
+  }
 
-  std::vector<R> Poll() {
-    int ready = poll(fds_.data(), max_fd_index_ + 1, 0);
-    if (ready == -1) {
-      LOG(WARNING) << "leader poll error " << strerror(errno);
-      return {};
+  void Stop() {
+    running_ = false;
+    if (thread_.joinable()) {
+      thread_.join();
     }
+  }
 
-    if (PendingConnection()) {
-      Accept();
-      if (--ready <= 0) {
-        return {};
+  void Poll() {
+    while (running_) {
+      // TODO if connections returned and writable - keep reference here so
+      // can close and write etc.
+
+      // TODO(AD) Try to block waiting rather than sleep
+      // Wait for conn, readable, or connection with pending write (not socket
+      // write)
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+      int ready = poll(fds_.data(), max_fd_index_ + 1, 0);
+      if (ready == -1) {
+        LOG(WARNING) << "leader poll error " << strerror(errno);
+        continue;
+      }
+
+      if (PendingConnection()) {
+        Accept();
+        if (--ready <= 0) {
+          continue;
+        }
+      }
+
+      for (int i = 1; i <= max_fd_index_; ++i) {
+        if (PendingRead(i)) {
+          Read(i);
+        }
+
+        if (PendingWrite(i)) {
+          // Write(i);
+        }
       }
     }
-
-    std::vector<R> recv{};
-    for (int i = 1; i <= max_fd_index_; ++i) {
-      if (PendingRead(i)) {
-        std::vector<R> r = Read(i);
-        recv.insert(recv.end(), r.begin(), r.end());
-      }
-
-      if (PendingWrite(i)) {
-        // Write(i);
-      }
-    }
-
-    return recv;
   }
 
  private:
@@ -126,14 +153,16 @@ class Server {
     close(connfd);
   }
 
-  std::vector<R> Read(int i) {
+  void Read(int i) {
     int connfd = fds_[i].fd;
     Connection<R>& conn = connections_.at(connfd);
     if (!conn.Read()) {
       connections_.erase(connfd);
       fds_[i].fd = -1;
     }
-    return conn.Received();
+    for (const R& r : conn.Received()) {
+      queue_->Push(r);
+    }
   }
 
   bool PendingConnection() const {
@@ -166,6 +195,11 @@ class Server {
   std::unordered_map<int, Connection<R>> connections_;
 
   int max_clients_;
+
+  std::thread thread_;
+  std::atomic_bool running_;
+
+  std::shared_ptr<util::ThreadSafeQueue<R>> queue_;
 };
 
 }  // namespace wombat::broker::server

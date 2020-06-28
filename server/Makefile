@@ -6,7 +6,7 @@ LIB_DIR := lib
 SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
-INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I ../record/$(INC_DIR)
+INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I ../record/$(INC_DIR) -I../util/$(INC_DIR)
 LDFLAGS := -L../record -lwombatrecord -L../log -lwombatlog -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
 .PHONY: all

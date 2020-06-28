@@ -6,62 +6,14 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include <atomic>
-#include <chrono>
-#include <mutex>
 #include <thread>
 
 #include "gtest/gtest.h"
 #include "record/producerecord.h"
 #include "server/server.h"
+#include "util/threadsafequeue.h"
 
 namespace wombat::broker::server {
-
-class BackgroundServer {
- public:
-  explicit BackgroundServer(Server<record::ProduceRecord> server)
-      : server_{std::move(server)} {}
-
-  ~BackgroundServer() {
-    Stop();
-  }
-
-  void Start() {
-    running_ = true;
-    thread_ = std::thread{&BackgroundServer::Poll, this};
-  }
-
-  void Stop() {
-    running_ = false;
-    if (thread_.joinable()) {
-      thread_.join();
-    }
-  }
-
-  std::vector<record::ProduceRecord> Received() {
-    std::lock_guard<std::mutex> lk(mtx_);
-    return received_;
-  }
-
- private:
-  void Poll() {
-    while (running_) {
-      const std::vector<record::ProduceRecord> recv = server_.Poll();
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-      std::lock_guard<std::mutex> lk(mtx_);
-      received_.insert(received_.end(), recv.begin(), recv.end());
-    }
-  }
-
-  Server<record::ProduceRecord> server_;
-
-  std::vector<record::ProduceRecord> received_;
-
-  std::mutex mtx_;
-  std::thread thread_;
-  std::atomic_bool running_;
-};
 
 class ServerTest : public ::testing::Test {
  protected:
@@ -71,7 +23,10 @@ class ServerTest : public ::testing::Test {
 TEST_F(ServerTest, TestConnectOk) {
   const uint16_t port = 4100;
 
-  BackgroundServer server{Server<record::ProduceRecord>{port}};
+  Server<record::ProduceRecord> server{
+      port,
+      std::make_shared<util::ThreadSafeQueue<record::ProduceRecord>>()
+  };
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -101,7 +56,11 @@ TEST_F(ServerTest, TestConnectOk) {
 TEST_F(ServerTest, TestConnectExceedClientLimit) {
   const uint16_t port = 4101;
 
-  BackgroundServer server{Server<record::ProduceRecord>{port, 1}};
+  Server<record::ProduceRecord> server{
+      port,
+      std::make_shared<util::ThreadSafeQueue<record::ProduceRecord>>(),
+      1
+  };
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -152,7 +111,10 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
 TEST_F(ServerTest, TestSendProduceRecord) {
   const uint16_t port = 4105;
 
-  BackgroundServer server{Server<record::ProduceRecord>{port}};
+  Server<record::ProduceRecord> server{
+      port,
+      std::make_shared<util::ThreadSafeQueue<record::ProduceRecord>>()
+  };
   server.Start();
 
   struct sockaddr_in servaddr;
@@ -177,15 +139,13 @@ TEST_F(ServerTest, TestSendProduceRecord) {
   const std::vector<uint8_t> encoded = record.Encode();
   EXPECT_EQ((int) encoded.size(), write(sock, encoded.data(), encoded.size()));
 
-  // TODO(AD) just have the poll in the test rather than background?
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // TODO wait for?
+  record::ProduceRecord r = server.queue()->WaitAndPop();
 
-  ASSERT_EQ(1U, server.Received().size());
-  EXPECT_EQ(record, server.Received()[0]);
+  // ASSERT_EQ(1U, server.Received().size());
+  EXPECT_EQ(record, r);
 
   close(sock);
-
-  server.Stop();
 }
 
 }  // namespace wombat::broker::server
