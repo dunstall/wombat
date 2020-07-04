@@ -35,6 +35,8 @@ class Connection {
 
   Connection& operator=(Connection&& conn);
 
+  int connfd() const { return connfd_; }
+
   std::string address() const { return address_; }
 
   // Returns the request received from the connection or nullopt if no request

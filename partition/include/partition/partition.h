@@ -5,6 +5,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <thread>
 #include <utility>
 
@@ -13,6 +14,7 @@
 #include "partition/leader.h"
 #include "partition/replica.h"
 #include "partition/syncer.h"
+#include "record/consumerecord.h"
 #include "record/request.h"
 #include "server/server.h"
 #include "util/threadsafequeue.h"
@@ -76,10 +78,24 @@ class Partition {
         log_->Append(request.payload());
         break;
       case record::RequestType::kConsumeRecord:
-        // TODO(AD) Lookup size by reading the record:
-        // TODO(AD) Handle keep sending until full size sent. And prefix
-        // with the size so the client knows what to wait for (ConsumeRecord)
-        // log_->Send(request.payload(), ..., conn.fd);
+        std::optional<record::ConsumeRecord> record
+            = record::ConsumeRecord::Decode(request.payload());
+        if (!record) {
+          // TODO(AD) Close connection as invalid request?
+        }
+
+        std::optional<uint32_t> size = record::DecodeU32(
+            log_.Lookup(record->offset(), 4)
+        );
+        if (!size) {
+          // TODO(AD) Assume log empty
+        }
+
+        // TODO(AD) Handle keep sending until all sent. Also queue data sent
+        // to client to avoid interleaving.
+        log_.Send(
+            record->offset(), sizeof(uint32_t) + *size, connection->connfd()
+        );
         break;
       default:
         LOG(WARNING) << "unknown request type";
