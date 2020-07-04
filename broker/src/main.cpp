@@ -53,7 +53,9 @@ void Run(Type type) {
 
   partition::Partition partition{log};
 
-  partition::Listener listener{partition, std::move(syncer), responder.events()};
+  partition::Listener listener{
+    partition, std::move(syncer), responder.events()
+  };
 
   // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {

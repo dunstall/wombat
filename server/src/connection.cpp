@@ -55,7 +55,9 @@ Connection& Connection::operator=(Connection&& conn) {
 }
 
 std::optional<record::Request> Connection::Receive() {
-  int n = read(connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_);
+  int n = read(
+      connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_
+  );
   if (n < 1) {
     if ((n == -1 && errno == ECONNRESET) || n == 0) {
       LOG(WARNING) << "connection reset by client";
@@ -70,7 +72,8 @@ std::optional<record::Request> Connection::Receive() {
 
 bool Connection::Send(const std::vector<uint8_t> data) {
   // TODO(AD) Use outgoing_buf_. For now just assume all data can be written.
-  return write(connfd_, data.data(), data.size()) == (int) data.size();
+  return (write(connfd_, data.data(), data.size())
+      == static_cast<int>(data.size()));
 }
 
 std::optional<record::Request> Connection::HandleRead(int n) {
@@ -95,7 +98,8 @@ std::optional<record::Request> Connection::HandleRead(int n) {
     return record::Request{
         header_->type(),
         std::vector<uint8_t>(
-            incoming_buf_.begin(), incoming_buf_.begin() + header_->payload_size()
+            incoming_buf_.begin(),
+            incoming_buf_.begin() + header_->payload_size()
         )
     };
   }

@@ -41,7 +41,7 @@ void Responder::Poll() {
 
     // TODO(AD) Handle partial writes - keep set of pending connections
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(50)); // TODO(AD)
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));  // TODO(AD)
   }
 }
 
