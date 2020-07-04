@@ -16,15 +16,18 @@
 #include "partition/syncer.h"
 #include "record/consumerecord.h"
 #include "record/request.h"
+#include "record/response.h"
 #include "server/server.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker::partition {
 
-// TODO(AD) Untested
+// TODO(AD) A consumer is like a replica but pull rather than push (does replica
+// need to be pull too, to avoid overloading as no backoff?)
 template<class S>
 class Partition {
  public:
+  // TODO response queue
   Partition(std::shared_ptr<log::Log<S>> log,
             uint16_t port,
             std::unique_ptr<Syncer<S>> syncer)
@@ -75,7 +78,7 @@ class Partition {
                      std::shared_ptr<server::Connection> connection) {
     switch (request.type()) {
       case record::RequestType::kProduceRecord:
-        log_->Append(request.payload());
+        Produce(request.payload());
         break;
       case record::RequestType::kConsumeRecord:
         std::optional<record::ConsumeRecord> record
@@ -84,23 +87,33 @@ class Partition {
           // TODO(AD) Close connection as invalid request?
         }
 
-        std::optional<uint32_t> size = record::DecodeU32(
-            log_.Lookup(record->offset(), 4)
-        );
-        if (!size) {
-          // TODO(AD) Assume log empty
-        }
-
-        // TODO(AD) Handle keep sending until all sent. Also queue data sent
-        // to client to avoid interleaving.
-        log_.Send(
-            record->offset(), sizeof(uint32_t) + *size, connection->connfd()
-        );
+        Produce(*record);
         break;
       default:
         LOG(WARNING) << "unknown request type";
         break;
     }
+  }
+
+  void Produce(const std::vector<uint8_t>& record) {
+    // TODO(AD) Validate record (size) before appending
+    log_->Append(record);
+  }
+
+  void Consume(const record::ConsumeRecord request) {
+    std::optional<uint32_t> size = record::DecodeU32(
+        log_->Lookup(request.offset(), 4)
+    );
+    // If the log is empty do nothing.
+    if (!size) return;
+
+    // Must succeed unless record is invalid.
+    const std::vector<uint8_t> record = log_->Lookup(
+        request.offset(), sizeof(uint32_t) + *size
+    );
+
+    record::Response response{record::ResponseType::kConsumeResponse, request};
+    // TODO(AD) Push response
   }
 
   std::shared_ptr<log::Log<S>> log_;
