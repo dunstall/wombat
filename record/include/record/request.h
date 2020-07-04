@@ -9,8 +9,8 @@
 namespace wombat::broker::record {
 
 enum class RequestType : uint32_t {
-  kProduceRecord,
-  kConsumeRecord,
+  kProduce,
+  kConsume,
   // TODO(AD) Replica/leader
 };
 
