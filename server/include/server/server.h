@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "record/response.h"
 #include "record/request.h"
 #include "server/connection.h"
 #include "util/threadsafequeue.h"
@@ -25,6 +26,16 @@ struct Event {
 };
 
 using EventQueue = util::ThreadSafeQueue<Event>;
+
+struct ResponseEvent {
+  ResponseEvent(record::Response _response, std::shared_ptr<Connection> _connection);
+
+  record::Response response;
+  std::shared_ptr<Connection> connection;
+};
+
+using ReponseEventQueue = util::ThreadSafeQueue<ResponseEvent>;
+
 
 // Server handles reading requests from connections to clients. This does
 // not write to the clients (thats left to responder).
