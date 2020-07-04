@@ -5,6 +5,7 @@ import subprocess
 
 
 MODULES = [
+    "util",
     "record",
     "log",
     "server",
