@@ -12,11 +12,10 @@
 #include "log/systemsegment.h"
 #include "log/tempdir.h"
 #include "partition/leader.h"
+#include "partition/listener.h"
 #include "partition/partition.h"
 #include "partition/replica.h"
 #include "partition/syncer.h"
-#include "record/consumerecord.h"
-#include "record/producerecord.h"
 #include "server/server.h"
 
 namespace wombat::broker {
@@ -50,12 +49,16 @@ void Run(Type type) {
      break;
   }
 
-  partition::Partition partition{log, 3110, std::move(syncer)};
-  partition.Start();
+  partition::Partition partition{log};
 
-  // TODO(AD) Broker will handle routing requests to the correct partition.
+  // TODO(AD) Responder
+  std::shared_ptr<server::ResponseEventQueue> responses
+      = std::make_shared<server::ResponseEventQueue>();
+  partition::Listener listener{partition, std::move(syncer), responses};
+
+  // // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {
-    partition.queue()->Push(server.events()->WaitAndPop().request);
+    listener.queue()->Push(server.events()->WaitAndPop());
   }
 }
 

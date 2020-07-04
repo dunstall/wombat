@@ -1,5 +1,7 @@
 // Copyright 2020 Andrew Dunstall
 
+#pragma once
+
 #include <optional>
 #include <memory>
 

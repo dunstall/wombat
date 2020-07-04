@@ -54,8 +54,8 @@ class Listener {
       std::optional<server::Event> event;
       while ((event = queue_->TryPop()) && event) {
         const auto resp = partition_.Handle(event->request);
-        if (!resp) {
-          responses_->Push(server::ResponseEvent{resp, event->connection});
+        if (resp) {
+          responses_->Push(server::ResponseEvent{*resp, event->connection});
         }
       }
 
