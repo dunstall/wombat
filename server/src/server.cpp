@@ -20,20 +20,9 @@
 
 #include "glog/logging.h"
 #include "log/logexception.h"
-#include "record/request.h"
 #include "server/connection.h"
-#include "util/threadsafequeue.h"
 
 namespace wombat::broker::server {
-
-Event::Event(record::Request _request, std::shared_ptr<Connection> _connection)
-    : request{_request}, connection{_connection} {
-}
-
-ResponseEvent::ResponseEvent(record::Response _response,
-                             std::shared_ptr<Connection> _connection)
-    : response{_response}, connection{_connection} {
-}
 
 Server::Server(uint16_t port, int max_clients)
     : port_{port},
