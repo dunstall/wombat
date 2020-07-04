@@ -21,7 +21,7 @@ namespace wombat::broker::server {
 
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
     : connfd_{connfd},
-      buf_(kReadBufSize),
+      incoming_buf_(kReadBufSize),
       request_bytes_remaining_{record::RequestHeader::kSize} {
   address_ = AddrToString(addr);
   LOG(INFO) << "accepted connection to " << address();
@@ -39,7 +39,8 @@ Connection::Connection(Connection&& conn) {
   // Set to -1 so the socket is not closed.
   conn.connfd_ = -1;
 
-  buf_ = std::move(conn.buf_);
+  outgoing_buf_ = std::move(conn.outgoing_buf_);
+  incoming_buf_ = std::move(conn.incoming_buf_);
   address_ = std::move(conn.address_);
 }
 
@@ -48,13 +49,13 @@ Connection& Connection::operator=(Connection&& conn) {
   // Set to -1 so the socket is not closed.
   conn.connfd_ = -1;
 
-  buf_ = std::move(conn.buf_);
+  outgoing_buf_ = std::move(conn.outgoing_buf_);
   address_ = std::move(conn.address_);
   return *this;
 }
 
 std::optional<record::Request> Connection::Receive() {
-  int n = read(connfd_, buf_.data() + n_read_, request_bytes_remaining_);
+  int n = read(connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_);
   if (n < 1) {
     if ((n == -1 && errno == ECONNRESET) || n == 0) {
       LOG(WARNING) << "connection reset by client";
@@ -67,12 +68,17 @@ std::optional<record::Request> Connection::Receive() {
   return HandleRead(n);
 }
 
+bool Connection::Send(const std::vector<uint8_t> data) {
+  // TODO(AD) Use outgoing_buf_. For now just assume all data can be written.
+  return write(connfd_, data.data(), data.size()) == (int) data.size();
+}
+
 std::optional<record::Request> Connection::HandleRead(int n) {
   request_bytes_remaining_ -= n;
   n_read_ += n;
 
   if (state_ == State::kHeaderPending && request_bytes_remaining_ == 0) {
-    header_ = record::RequestHeader::Decode(buf_);
+    header_ = record::RequestHeader::Decode(incoming_buf_);
     if (!header_) {
       LOG(WARNING) << "received invalid request header (" << address() << ")";
       throw ConnectionException{};
@@ -89,7 +95,7 @@ std::optional<record::Request> Connection::HandleRead(int n) {
     return record::Request{
         header_->type(),
         std::vector<uint8_t>(
-            buf_.begin(), buf_.begin() + header_->payload_size()
+            incoming_buf_.begin(), incoming_buf_.begin() + header_->payload_size()
         )
     };
   }

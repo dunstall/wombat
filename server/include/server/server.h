@@ -27,8 +27,8 @@ class Server {
   Server(const Server& conn) = delete;
   Server& operator=(const Server& conn) = delete;
 
-  Server(Server&& conn) = default;
-  Server& operator=(Server&& conn) = default;
+  Server(Server&& conn) = delete;
+  Server& operator=(Server&& conn) = delete;
 
   std::shared_ptr<EventQueue> events() const { return event_queue_; }
 
@@ -52,7 +52,7 @@ class Server {
 
   bool PendingRead(int i) const;
 
-  bool PendingWrite(int i) const;
+  bool PendingWrite(int i) const;  // TODO(AD) Redundent
 
   int listenfd_;
 

@@ -44,6 +44,12 @@ class Connection {
   // a ConnectionException.
   std::optional<record::Request> Receive();
 
+  // Adds data to the outgoing buffer (if not empty) and attempts to write
+  // to the connection. Returns true if the outgoing buffer was fully sent
+  // otherwise false. If an error occurs or the connection is closed throws
+  // a ConnectionException.
+  bool Send(const std::vector<uint8_t> data);
+
  private:
   enum class State {
     kHeaderPending,
@@ -58,7 +64,9 @@ class Connection {
 
   int connfd_;
 
-  std::vector<uint8_t> buf_;
+  std::vector<uint8_t> outgoing_buf_;
+
+  std::vector<uint8_t> incoming_buf_;
 
   std::string address_;
 

@@ -16,6 +16,7 @@
 #include "partition/partition.h"
 #include "partition/replica.h"
 #include "partition/syncer.h"
+#include "server/responder.h"
 #include "server/server.h"
 
 namespace wombat::broker {
@@ -31,6 +32,7 @@ void Run(Type type) {
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
 
   server::Server server{3111};
+  server::Responder responder{};
 
   std::unique_ptr<partition::Syncer<log::SystemSegment>> syncer;
   switch(type) {
@@ -51,12 +53,9 @@ void Run(Type type) {
 
   partition::Partition partition{log};
 
-  // TODO(AD) Responder
-  std::shared_ptr<server::ResponseEventQueue> responses
-      = std::make_shared<server::ResponseEventQueue>();
-  partition::Listener listener{partition, std::move(syncer), responses};
+  partition::Listener listener{partition, std::move(syncer), responder.events()};
 
-  // // TODO(AD) Broker will handle routing requests to the correct partition.
+  // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {
     listener.queue()->Push(server.events()->WaitAndPop());
   }
