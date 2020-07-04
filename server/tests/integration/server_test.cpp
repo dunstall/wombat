@@ -10,7 +10,7 @@
 #include <thread>
 
 #include "gtest/gtest.h"
-#include "record/producerecord.h"
+#include "record/record.h"
 #include "server/server.h"
 #include "util/threadsafequeue.h"
 
@@ -84,7 +84,7 @@ TEST_F(ServerTest, TestSendRequests) {
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Request request{record::RequestType::kProduceRecord, payload};
+  const record::Request request{record::RequestType::kProduce, payload};
   const std::vector<uint8_t> encoded = request.Encode();
 
   const int n_requests = 3;
@@ -113,7 +113,7 @@ TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Request request{record::RequestType::kProduceRecord, payload};
+  const record::Request request{record::RequestType::kProduce, payload};
   const std::vector<uint8_t> encoded = request.Encode();
 
   const int n_requests = 3;

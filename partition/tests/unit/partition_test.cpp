@@ -25,7 +25,9 @@ TEST_F(PartitionTest, HandleProduceOk) {
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
   const record::Record record{data};
-  const record::Request request{record::RequestType::kProduce, record.Encode()};
+  const record::Request request{
+      record::RequestType::kProduce, record.Encode()
+  };
 
   EXPECT_EQ(std::nullopt, partition.Handle(request));
 
@@ -65,7 +67,9 @@ TEST_F(PartitionTest, HandleConsumeRequestOk) {
 
   const uint32_t offset = 0x05;
   const record::ConsumeRequest consume{offset};
-  const record::Request request{record::RequestType::kConsume, consume.Encode()};
+  const record::Request request{
+    record::RequestType::kConsume, consume.Encode()
+  };
 
   std::optional<record::Response> response = partition.Handle(request);
 
@@ -85,7 +89,9 @@ TEST_F(PartitionTest, HandleConsumeRequestOffsetNotFound) {
 
   const uint32_t offset = 0x05;
   const record::ConsumeRequest consume{offset};
-  const record::Request request{record::RequestType::kConsume, consume.Encode()};
+  const record::Request request{
+    record::RequestType::kConsume, consume.Encode()
+  };
 
   std::optional<record::Response> response = partition.Handle(request);
 
@@ -117,7 +123,9 @@ TEST_F(PartitionTest, HandleUnrecognizedRecord) {
   Partition<log::InMemorySegment> partition{log};
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Request request{static_cast<record::RequestType>(0xff), payload};
+  const record::Request request{
+    static_cast<record::RequestType>(0xff), payload
+  };
 
   EXPECT_EQ(std::nullopt, partition.Handle(request));
 

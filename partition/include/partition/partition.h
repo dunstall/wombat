@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <memory>
+#include <vector>
 
 #include "glog/logging.h"
 #include "log/log.h"
@@ -17,7 +18,7 @@ namespace wombat::broker::partition {
 template<class S>
 class Partition {
  public:
-  Partition(std::shared_ptr<log::Log<S>> log) : log_{log} {}
+  explicit Partition(std::shared_ptr<log::Log<S>> log) : log_{log} {}
 
   std::optional<record::Response> Handle(const record::Request& request) {
     switch (request.type()) {

@@ -30,7 +30,8 @@ struct Event {
 using EventQueue = util::ThreadSafeQueue<Event>;
 
 struct ResponseEvent {
-  ResponseEvent(record::Response _response, std::shared_ptr<Connection> _connection);
+  ResponseEvent(record::Response _response,
+                std::shared_ptr<Connection> _connection);
 
   record::Response response;
   std::shared_ptr<Connection> connection;

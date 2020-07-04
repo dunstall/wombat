@@ -5,6 +5,7 @@
 #include <atomic>
 #include <memory>
 #include <thread>
+#include <utility>
 
 #include "partition/partition.h"
 #include "partition/syncer.h"
