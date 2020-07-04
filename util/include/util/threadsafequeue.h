@@ -13,20 +13,39 @@ namespace wombat::broker::util {
 template<class T>
 class ThreadSafeQueue {
  public:
-  ThreadSafeQueue() : data_queue_{} {}
+  ThreadSafeQueue() : data_queue_{}, cv_{} {}
+
+  ThreadSafeQueue(const ThreadSafeQueue& conn) = delete;
+  ThreadSafeQueue& operator=(const ThreadSafeQueue& conn) = delete;
+
+  ThreadSafeQueue(ThreadSafeQueue&& conn) = delete;
+  ThreadSafeQueue& operator=(ThreadSafeQueue&& conn) = delete;
 
   void Push(T val) {
     std::lock_guard<std::mutex> lk(mut_);
     data_queue_.push(val);
-    data_cond_.notify_one();
+    cv_.notify_one();
   }
+
+  // TODO(AD) use cond wait_for
 
   T WaitAndPop() {
     std::unique_lock<std::mutex> lk(mut_);
-    data_cond_.wait(lk, [this]{ return !data_queue_.empty(); });
+    cv_.wait(lk, [this]{ return !data_queue_.empty(); });
     T val = std::move(data_queue_.front());
     data_queue_.pop();
     return val;
+  }
+
+  template <typename Rep, typename Period>
+  std::optional<T> WaitForAndPop(const std::chrono::duration<Rep, Period>& dur) {
+    std::unique_lock<std::mutex> lk(mut_);
+    if (cv_.wait_for(lk, dur, [this]{ return !data_queue_.empty(); })) {
+      T val = std::move(data_queue_.front());
+      data_queue_.pop();
+      return val;
+    }
+    return std::nullopt;
   }
 
   std::optional<T> TryPop() {
@@ -39,7 +58,7 @@ class ThreadSafeQueue {
     return val;
   }
 
-  bool empty() const {
+  bool empty() {
     std::lock_guard<std::mutex> lk(mut_);
     return data_queue_.empty();
   }
@@ -47,7 +66,7 @@ class ThreadSafeQueue {
  private:
   std::queue<T> data_queue_;
 
-  std::condition_variable data_cond_;
+  std::condition_variable cv_;
 
   std::mutex mut_;
 };
