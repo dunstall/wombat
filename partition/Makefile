@@ -76,7 +76,7 @@ $(OBJ_DIR)/integration/%.o: $(TEST_DIR)/integration/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf log log.d lib $(OBJ_DIR) $(UNITTEST_EXE) $(INTEGRATIONTEST_EXE)
+	rm -rf log log.d *.a lib $(OBJ_DIR) $(UNITTEST_EXE) $(INTEGRATIONTEST_EXE)
 
 $(OBJ_DIR) $(UNITTEST_OBJ_DIR) $(INTEGRATIONTEST_OBJ_DIR):
 	mkdir -p $@

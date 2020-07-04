@@ -36,8 +36,7 @@ struct ResponseEvent {
   std::shared_ptr<Connection> connection;
 };
 
-using ReponseEventQueue = util::ThreadSafeQueue<ResponseEvent>;
-
+using ResponseEventQueue = util::ThreadSafeQueue<ResponseEvent>;
 
 // Server handles reading requests from connections to clients. This does
 // not write to the clients (thats left to responder).

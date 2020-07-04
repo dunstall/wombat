@@ -10,7 +10,7 @@
 #include "record/request.h"
 #include "record/response.h"
 
-namespace wombat::broker::partition::testing {
+namespace wombat::broker::partition {
 
 template<class S>
 class Partition {
@@ -70,4 +70,4 @@ class Partition {
   std::shared_ptr<log::Log<S>> log_;
 };
 
-}  // namespace wombat::broker::partition::testing
+}  // namespace wombat::broker::partition
