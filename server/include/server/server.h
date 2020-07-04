@@ -18,6 +18,8 @@
 
 namespace wombat::broker::server {
 
+// TODO(AD) Move these event queues
+
 struct Event {
   Event(record::Request _request, std::shared_ptr<Connection> _connection);
 
