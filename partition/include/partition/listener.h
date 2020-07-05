@@ -2,32 +2,20 @@
 
 #pragma once
 
-#include <atomic>
 #include <memory>
-#include <thread>
-#include <utility>
 
 #include "partition/partition.h"
 #include "partition/syncer.h"
 #include "server/server.h"
+#include "util/pollable.h"
 
 namespace wombat::broker::partition {
 
-template<class S>
-class Listener {
+class Listener : public util::Pollable {
  public:
-  Listener(Partition<S> partition,
-           std::unique_ptr<Syncer<S>> syncer,
-           std::shared_ptr<server::ResponseEventQueue> responses)
-      : partition_{partition},
-        syncer_{std::move(syncer)},
-        responses_{responses} {
-    Start();
-  }
-
-  ~Listener() {
-    Stop();
-  }
+  Listener(Partition partition,
+           std::unique_ptr<util::Pollable> syncer,
+           std::shared_ptr<server::ResponseEventQueue> responses);
 
   Listener(const Listener& conn) = delete;
   Listener& operator=(const Listener& conn) = delete;
@@ -37,40 +25,12 @@ class Listener {
 
   std::shared_ptr<server::EventQueue> queue() const { return queue_; }
 
+  void Poll();
+
  private:
-  void Start() {
-    running_ = true;
-    thread_ = std::thread{&Listener::Poll, this};
-  }
+  Partition partition_;
 
-  void Stop() {
-    running_ = false;
-    if (thread_.joinable()) {
-      thread_.join();
-    }
-  }
-
-  void Poll() {
-    while (running_) {
-      std::optional<server::Event> event;
-      while ((event = queue_->TryPop()) && event) {
-        const auto resp = partition_.Handle(event->request);
-        if (resp) {
-          responses_->Push(server::ResponseEvent{*resp, event->connection});
-        }
-      }
-
-      syncer_->Poll();
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-  }
-
-  Partition<S> partition_;
-
-  std::unique_ptr<Syncer<S>> syncer_;
-
-  std::thread thread_;
-  std::atomic_bool running_;
+  std::unique_ptr<util::Pollable> syncer_;
 
   std::shared_ptr<server::EventQueue> queue_;
 
