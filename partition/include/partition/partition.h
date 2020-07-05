@@ -8,8 +8,8 @@
 
 #include "glog/logging.h"
 #include "log/log.h"
-#include "record/consumerequest.h"
 #include "record/record.h"
+#include "record/recordrequest.h"
 #include "record/request.h"
 #include "record/response.h"
 
@@ -46,8 +46,8 @@ class Partition {
   }
 
   std::optional<record::Response> Consume(const record::Request& request) {
-    std::optional<record::ConsumeRequest> cr
-        = record::ConsumeRequest::Decode(request.payload());
+    std::optional<record::RecordRequest> cr
+        = record::RecordRequest::Decode(request.payload());
     if (!cr) {
       // If invalid request return nothing.
       return std::nullopt;

@@ -8,8 +8,8 @@
 #include "log/log.h"
 #include "log/inmemorysegment.h"
 #include "log/tempdir.h"
-#include "record/consumerequest.h"
 #include "record/record.h"
+#include "record/recordrequest.h"
 #include "record/request.h"
 
 namespace wombat::broker::partition::testing {
@@ -51,7 +51,7 @@ TEST_F(PartitionTest, HandleProduceInvalid) {
   EXPECT_TRUE(log->Lookup(0U, 5U).empty());
 }
 
-TEST_F(PartitionTest, HandleConsumeRequestOk) {
+TEST_F(PartitionTest, HandleRecordRequestOk) {
   std::shared_ptr<log::Log<log::InMemorySegment>> log
       = std::make_shared<log::Log<log::InMemorySegment>>(
           log::GeneratePath(), 10'000
@@ -66,7 +66,7 @@ TEST_F(PartitionTest, HandleConsumeRequestOk) {
   log->Append(record.Encode());
 
   const uint32_t offset = 0x05;
-  const record::ConsumeRequest consume{offset};
+  const record::RecordRequest consume{offset};
   const record::Request request{
     record::RequestType::kConsume, consume.Encode()
   };
@@ -77,7 +77,7 @@ TEST_F(PartitionTest, HandleConsumeRequestOk) {
   EXPECT_EQ(response->payload(), record.Encode());
 }
 
-TEST_F(PartitionTest, HandleConsumeRequestOffsetNotFound) {
+TEST_F(PartitionTest, HandleRecordRequestOffsetNotFound) {
   std::shared_ptr<log::Log<log::InMemorySegment>> log
       = std::make_shared<log::Log<log::InMemorySegment>>(
           log::GeneratePath(), 10'000
@@ -88,7 +88,7 @@ TEST_F(PartitionTest, HandleConsumeRequestOffsetNotFound) {
   log->Append({0, 0, 0, 0, 0});
 
   const uint32_t offset = 0x05;
-  const record::ConsumeRequest consume{offset};
+  const record::RecordRequest consume{offset};
   const record::Request request{
     record::RequestType::kConsume, consume.Encode()
   };
@@ -102,7 +102,7 @@ TEST_F(PartitionTest, HandleConsumeRequestOffsetNotFound) {
   EXPECT_EQ(response->payload(), expected.Encode());
 }
 
-TEST_F(PartitionTest, HandleConsumeRequestInvalid) {
+TEST_F(PartitionTest, HandleRecordRequestInvalid) {
   std::shared_ptr<log::Log<log::InMemorySegment>> log
       = std::make_shared<log::Log<log::InMemorySegment>>(
           log::GeneratePath(), 10'000

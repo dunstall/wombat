@@ -6,7 +6,7 @@ SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
 INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I../util/$(INC_DIR) -I../record/$(INC_DIR) -I../server/$(INC_DIR)
-LDFLAGS := -L../log -lwombatlog -L../record -lwombatrecord -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
+LDFLAGS := -L../log -lwombatlog -L../server -lwombatserver -L../record -lwombatrecord -L../util -lwombatutil -lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
@@ -23,8 +23,8 @@ install:
 
 TEST_DIR := tests
 
-TEST_INC_FLAGS := -I../lib/googletest/googletest/include
-TEST_LDFLAGS := -L../lib/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
+TEST_INC_FLAGS := -I../lib/googletest/googletest/include -I../lib/googletest/googlemock/include
+TEST_LDFLAGS := -L../lib/googletest/$(OBJ_DIR)/lib -lgtest -lgmock -lgtest_main -lpthread
 
 # =============================================================================
 # Unit tests.
