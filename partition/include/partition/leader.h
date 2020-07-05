@@ -9,8 +9,8 @@
 #include <utility>
 
 #include "glog/logging.h"
+#include "log/log.h"
 #include "record/request.h"
-#include "tmp/log.h"
 #include "tmp/server.h"
 #include "util/pollable.h"
 

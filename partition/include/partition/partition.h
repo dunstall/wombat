@@ -8,7 +8,7 @@
 
 #include "record/request.h"
 #include "record/response.h"
-#include "tmp/log.h"
+#include "log/log.h"
 
 namespace wombat::broker::partition {
 

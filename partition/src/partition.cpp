@@ -7,11 +7,11 @@
 #include <vector>
 
 #include "glog/logging.h"
+#include "log/log.h"
 #include "record/record.h"
 #include "record/recordrequest.h"
 #include "record/request.h"
 #include "record/response.h"
-#include "tmp/log.h"
 
 namespace wombat::broker::partition {
 

@@ -6,8 +6,8 @@
 #include <optional>
 #include <list>
 
+#include "log/log.h"
 #include "record/recordrequest.h"
-#include "tmp/log.h"
 #include "tmp/server.h"
 
 namespace wombat::broker::partition {
