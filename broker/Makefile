@@ -11,11 +11,11 @@ INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I../partition/$(INC_DIR) \
 LDFLAGS := -L../log -lwombatlog -L../partition -lwombatpartition \
 	-L../server -lwombatserver \
 	-L../record -lwombatrecord \
+	-L../util -lwombatutil \
 	-lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
 EXE := broker
 
-# TODO(AD) build lib
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -o $(EXE) src/main.cpp $(LDFLAGS)

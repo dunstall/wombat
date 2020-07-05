@@ -18,6 +18,7 @@
 #include "partition/syncer.h"
 #include "server/responder.h"
 #include "server/server.h"
+#include "util/threadable.h"
 
 namespace wombat::broker {
 
@@ -31,7 +32,10 @@ void Run(Type type) {
   std::shared_ptr<log::Log<log::SystemSegment>> log
       = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
 
-  server::Server server{3111};
+  std::shared_ptr<server::Server> server
+      = std::make_shared<server::Server>(3111);
+  util::Threadable threadable_server(server);
+
   server::Responder responder{};
 
   std::unique_ptr<partition::Syncer<log::SystemSegment>> syncer;
@@ -59,7 +63,7 @@ void Run(Type type) {
 
   // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {
-    listener.queue()->Push(server.events()->WaitAndPop());
+    listener.queue()->Push(server->events()->WaitAndPop());
   }
 }
 
