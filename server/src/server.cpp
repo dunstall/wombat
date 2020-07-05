@@ -10,11 +10,8 @@
 #include <sys/types.h>
 
 #include <algorithm>
-#include <atomic>
-#include <chrono>
 #include <cstdint>
 #include <memory>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -32,44 +29,25 @@ Server::Server(uint16_t port, int max_clients)
   signal(SIGPIPE, SIG_IGN);
   LOG(INFO) << "server listening on port " << port;
   Listen();
-  Start();
-}
-
-Server::~Server() {
-  Stop();
-}
-
-void Server::Start() {
-  running_ = true;
-  thread_ = std::thread{&Server::Poll, this};
-}
-
-void Server::Stop() {
-  running_ = false;
-  if (thread_.joinable()) {
-    thread_.join();
-  }
 }
 
 void Server::Poll() {
-  while (running_) {
-    int ready = poll(fds_.data(), max_fd_index_ + 1, kPollTimeoutMS);
-    if (ready == -1) {
-      LOG(WARNING) << "leader poll error " << strerror(errno);
-      continue;
-    }
+  int ready = poll(fds_.data(), max_fd_index_ + 1, kPollTimeoutMS);
+  if (ready == -1) {
+    LOG(WARNING) << "leader poll error " << strerror(errno);
+    return;
+  }
 
-    if (PendingConnection()) {
-      Accept();
-      if (--ready <= 0) {
-        continue;
-      }
+  if (PendingConnection()) {
+    Accept();
+    if (--ready <= 0) {
+      return;
     }
+  }
 
-    for (int i = 1; i <= max_fd_index_; ++i) {
-      if (PendingRead(i)) {
-        Read(i);
-      }
+  for (int i = 1; i <= max_fd_index_; ++i) {
+    if (PendingRead(i)) {
+      Read(i);
     }
   }
 }

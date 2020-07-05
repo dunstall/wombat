@@ -11,6 +11,7 @@ LDFLAGS := -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
+	ar rvs libwombatutil.a $(OBJ_FILES)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<

@@ -12,7 +12,7 @@ namespace wombat::broker::util {
 
 class Threadable {
  public:
-  explicit Threadable(std::unique_ptr<Pollable> poller);
+  explicit Threadable(std::shared_ptr<Pollable> poller);
 
   ~Threadable();
 
@@ -32,7 +32,7 @@ class Threadable {
   std::thread thread_;
   std::atomic_bool running_;
 
-  std::unique_ptr<Pollable> poller_;
+  std::shared_ptr<Pollable> poller_;
 };
 
 }  // namespace wombat::broker::util

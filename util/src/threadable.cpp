@@ -10,7 +10,7 @@
 
 namespace wombat::broker::util {
 
-Threadable::Threadable(std::unique_ptr<Pollable> poller)
+Threadable::Threadable(std::shared_ptr<Pollable> poller)
     : poller_{std::move(poller)} {
   Start();
 }

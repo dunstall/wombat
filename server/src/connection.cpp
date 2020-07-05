@@ -22,6 +22,7 @@ namespace wombat::broker::server {
 Connection::Connection(int connfd, const struct sockaddr_in& addr)
     : connfd_{connfd},
       incoming_buf_(kReadBufSize),
+      state_(State::kHeaderPending),
       request_bytes_remaining_{record::RequestHeader::kSize} {
   address_ = AddrToString(addr);
   LOG(INFO) << "accepted connection to " << address();
@@ -66,7 +67,6 @@ std::optional<record::Request> Connection::Receive() {
     }
     throw ConnectionException{};
   }
-
   return HandleRead(n);
 }
 

@@ -6,15 +6,20 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <chrono>
+#include <memory>
 #include <random>
 #include <thread>
 
 #include "gtest/gtest.h"
 #include "record/record.h"
 #include "server/server.h"
+#include "util/threadable.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker::server {
+
+using namespace std::chrono_literals;  // NOLINT
 
 class ServerTest : public ::testing::Test {
  protected:
@@ -29,7 +34,9 @@ class ServerTest : public ::testing::Test {
 
 TEST_F(ServerTest, TestConnectOk) {
   const uint16_t port = RandomPort();
-  Server server{port};
+  std::shared_ptr<Server> server = std::make_shared<Server>(port);
+  util::Threadable threadable_server(server);
+
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock = CreateSocket();
@@ -44,7 +51,8 @@ TEST_F(ServerTest, TestConnectOk) {
 
 TEST_F(ServerTest, TestConnectExceedClientLimit) {
   const uint16_t port = RandomPort();
-  Server server{port, 1};
+  std::shared_ptr<Server> server = std::make_shared<Server>(port, 1);
+  util::Threadable threadable_server(server);
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock1 = CreateSocket();
@@ -77,7 +85,8 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
 
 TEST_F(ServerTest, TestSendRequests) {
   const uint16_t port = RandomPort();
-  Server server{port};
+  std::shared_ptr<Server> server = std::make_shared<Server>(port);
+  util::Threadable threadable_server(server);
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock = CreateSocket();
@@ -96,9 +105,9 @@ TEST_F(ServerTest, TestSendRequests) {
   }
 
   for (int i = 0; i != n_requests; ++i) {
-    // TODO(AD) queue.WaitFor
-    Event e = server.events()->WaitAndPop();
-    EXPECT_EQ(request, e.request);
+    std::optional<Event> e = server->events()->WaitForAndPop(100ms);
+    ASSERT_TRUE(e);
+    EXPECT_EQ(request, e->request);
   }
 
   close(sock);
@@ -106,7 +115,8 @@ TEST_F(ServerTest, TestSendRequests) {
 
 TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
   const uint16_t port = RandomPort();
-  Server server{port};
+  std::shared_ptr<Server> server = std::make_shared<Server>(port);
+  util::Threadable threadable_server(server);
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock = CreateSocket();
@@ -127,9 +137,9 @@ TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
   }
 
   for (int i = 0; i != n_requests; ++i) {
-    // TODO(AD) queue.WaitFor
-    Event e = server.events()->WaitAndPop();
-    EXPECT_EQ(request, e.request);
+    std::optional<Event> e = server->events()->WaitForAndPop(100ms);
+    ASSERT_TRUE(e);
+    EXPECT_EQ(request, e->request);
   }
 
   close(sock);
