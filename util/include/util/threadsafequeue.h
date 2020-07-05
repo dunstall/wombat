@@ -27,8 +27,6 @@ class ThreadSafeQueue {
     cv_.notify_one();
   }
 
-  // TODO(AD) use cond wait_for
-
   T WaitAndPop() {
     std::unique_lock<std::mutex> lk(mut_);
     cv_.wait(lk, [this]{ return !data_queue_.empty(); });
@@ -37,8 +35,8 @@ class ThreadSafeQueue {
     return val;
   }
 
-  template <typename Rep, typename Period>
-  std::optional<T> WaitForAndPop(const std::chrono::duration<Rep, Period>& dur) {
+  template <typename R, typename P>
+  std::optional<T> WaitForAndPop(const std::chrono::duration<R, P>& dur) {
     std::unique_lock<std::mutex> lk(mut_);
     if (cv_.wait_for(lk, dur, [this]{ return !data_queue_.empty(); })) {
       T val = std::move(data_queue_.front());

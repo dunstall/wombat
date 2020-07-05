@@ -9,7 +9,7 @@
 
 namespace wombat::broker::util {
 
-using namespace std::chrono_literals;
+using namespace std::chrono_literals;  // NOLINT
 
 class ThreadSafeQueueTest : public ::testing::Test {};
 
