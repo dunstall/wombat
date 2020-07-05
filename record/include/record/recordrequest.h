@@ -8,19 +8,19 @@
 
 namespace wombat::broker::record {
 
-class ConsumeRequest {
+class RecordRequest {
  public:
-  explicit ConsumeRequest(uint32_t offset);
+  explicit RecordRequest(uint32_t offset);
 
-  ~ConsumeRequest() {}
+  ~RecordRequest() {}
 
-  bool operator==(const ConsumeRequest& record) const;
+  bool operator==(const RecordRequest& record) const;
 
   uint32_t offset() const { return offset_; }
 
   std::vector<uint8_t> Encode() const;
 
-  static std::optional<ConsumeRequest> Decode(const std::vector<uint8_t>& data);
+  static std::optional<RecordRequest> Decode(const std::vector<uint8_t>& data);
 
  private:
   uint32_t offset_;
