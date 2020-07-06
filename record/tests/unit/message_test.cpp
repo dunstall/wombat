@@ -4,38 +4,38 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "record/request.h"
+#include "record/message.h"
 
 namespace wombat::broker::record {
 
-class RequestHeaderTest : public ::testing::Test {};
+class MessageHeaderTest : public ::testing::Test {};
 
-TEST_F(RequestHeaderTest, Get) {
-  const RequestType type = RequestType::kProduce;
+TEST_F(MessageHeaderTest, Get) {
+  const MessageType type = MessageType::kProduceRequest;
   const uint32_t payload_size = 0xff;
-  const RequestHeader header{type, payload_size};
+  const MessageHeader header{type, payload_size};
   EXPECT_EQ(type, header.type());
   EXPECT_EQ(payload_size, header.payload_size());
 }
 
-TEST_F(RequestHeaderTest, ExceedSizeLimit) {
+TEST_F(MessageHeaderTest, ExceedSizeLimit) {
   EXPECT_THROW(
-      RequestHeader(RequestType::kProduce, 513),
+      MessageHeader(MessageType::kProduceRequest, 513),
       std::invalid_argument
   );
 }
 
-TEST_F(RequestHeaderTest, ZeroSize) {
+TEST_F(MessageHeaderTest, ZeroSize) {
   EXPECT_THROW(
-      RequestHeader(RequestType::kProduce, 0),
+      MessageHeader(MessageType::kProduceRequest, 0),
       std::invalid_argument
   );
 }
 
-TEST_F(RequestHeaderTest, Encode) {
-  const RequestType type = RequestType::kConsume;
+TEST_F(MessageHeaderTest, Encode) {
+  const MessageType type = MessageType::kConsumeRequest;
   const uint32_t payload_size = 0xff;
-  const RequestHeader header{type, payload_size};
+  const MessageHeader header{type, payload_size};
 
   const std::vector<uint8_t> expected{
     0x00, 0x00, 0x00, 0x01,  // Type
@@ -44,10 +44,10 @@ TEST_F(RequestHeaderTest, Encode) {
   EXPECT_EQ(expected, header.Encode());
 }
 
-TEST_F(RequestHeaderTest, EncodeLimit) {
-  const RequestType type = RequestType::kConsume;
+TEST_F(MessageHeaderTest, EncodeLimit) {
+  const MessageType type = MessageType::kConsumeRequest;
   const uint32_t payload_size = 0x200;
-  const RequestHeader header{type, payload_size};
+  const MessageHeader header{type, payload_size};
 
   std::vector<uint8_t> expected{
     0x00, 0x00, 0x00, 0x01,  // Type
@@ -57,67 +57,67 @@ TEST_F(RequestHeaderTest, EncodeLimit) {
   EXPECT_EQ(expected, header.Encode());
 }
 
-TEST_F(RequestHeaderTest, DecodeOk) {
+TEST_F(MessageHeaderTest, DecodeOk) {
   const std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,  // Type
     0x00, 0x00, 0x00, 0xfa,  // Payload size
   };
 
-  const RequestHeader expected{RequestType::kConsume, 0xfa};
+  const MessageHeader expected{MessageType::kConsumeRequest, 0xfa};
 
-  EXPECT_TRUE(RequestHeader::Decode(enc));
-  EXPECT_EQ(expected, *RequestHeader::Decode(enc));
+  EXPECT_TRUE(MessageHeader::Decode(enc));
+  EXPECT_EQ(expected, *MessageHeader::Decode(enc));
 }
 
-TEST_F(RequestHeaderTest, DecodeHeaderTooSmall) {
+TEST_F(MessageHeaderTest, DecodeHeaderTooSmall) {
   std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,
     0x00, 0x00,
   };
 
-  EXPECT_FALSE(RequestHeader::Decode(enc));
+  EXPECT_FALSE(MessageHeader::Decode(enc));
 }
 
-TEST_F(RequestHeaderTest, DecodeZeroPayload) {
+TEST_F(MessageHeaderTest, DecodeZeroPayload) {
   std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,
     0x00, 0x00, 0x00, 0x00
   };
 
-  EXPECT_FALSE(RequestHeader::Decode(enc));
+  EXPECT_FALSE(MessageHeader::Decode(enc));
 }
 
-TEST_F(RequestHeaderTest, DecodeExceedsLimit) {
+TEST_F(MessageHeaderTest, DecodeExceedsLimit) {
   std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,
     0x00, 0x00, 0x02, 0x01
   };
 
-  EXPECT_FALSE(RequestHeader::Decode(enc));
+  EXPECT_FALSE(MessageHeader::Decode(enc));
 }
 
-class RequestTest : public ::testing::Test {};
+class MessageTest : public ::testing::Test {};
 
-TEST_F(RequestTest, Get) {
-  const RequestType type = RequestType::kProduce;
+TEST_F(MessageTest, Get) {
+  const MessageType type = MessageType::kProduceRequest;
   const std::vector<uint8_t> payload{0, 1, 2, 3};
-  const Request request{type, payload};
+  const Message request{type, payload};
   EXPECT_EQ(type, request.type());
   EXPECT_EQ(payload, request.payload());
 }
 
-TEST_F(RequestTest, ExceedSizeLimit) {
+TEST_F(MessageTest, ExceedSizeLimit) {
   const std::vector<uint8_t> payload(513);
   EXPECT_THROW(
-      Request(RequestType::kProduce, payload),
+      Message(MessageType::kProduceRequest, payload),
       std::invalid_argument
   );
 }
 
-TEST_F(RequestTest, Encode) {
-  const RequestType type = RequestType::kConsume;
+TEST_F(MessageTest, Encode) {
+  const MessageType type = MessageType::kConsumeRequest;
   const std::vector<uint8_t> payload{0xa, 0xb, 0xc, 0xd};
-  const Request request{type, payload};
+  const Message request{type, payload};
 
   const std::vector<uint8_t> expected{
     0x00, 0x00, 0x00, 0x01,  // Type
@@ -127,10 +127,10 @@ TEST_F(RequestTest, Encode) {
   EXPECT_EQ(expected, request.Encode());
 }
 
-TEST_F(RequestTest, EncodeLimit) {
-  const RequestType type = RequestType::kConsume;
+TEST_F(MessageTest, EncodeLimit) {
+  const MessageType type = MessageType::kConsumeRequest;
   const std::vector<uint8_t> payload(0x200, 0xff);
-  const Request request{type, payload};
+  const Message request{type, payload};
 
   std::vector<uint8_t> expected{
     0x00, 0x00, 0x00, 0x01,  // Type
@@ -141,31 +141,31 @@ TEST_F(RequestTest, EncodeLimit) {
   EXPECT_EQ(expected, request.Encode());
 }
 
-TEST_F(RequestTest, DecodeOk) {
+TEST_F(MessageTest, DecodeOk) {
   const std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,  // Type
     0x00, 0x00, 0x00, 0x04,  // Size
     0x0a, 0x0b, 0x0c, 0x0d,  // Payload
   };
 
-  const RequestType type = RequestType::kConsume;
+  const MessageType type = MessageType::kConsumeRequest;
   const std::vector<uint8_t> payload{0xa, 0xb, 0xc, 0xd};
-  const Request expected{type, payload};
+  const Message expected{type, payload};
 
-  EXPECT_TRUE(Request::Decode(enc));
-  EXPECT_EQ(expected, *Request::Decode(enc));
+  EXPECT_TRUE(Message::Decode(enc));
+  EXPECT_EQ(expected, *Message::Decode(enc));
 }
 
-TEST_F(RequestTest, DecodeHeaderTooSmall) {
+TEST_F(MessageTest, DecodeHeaderTooSmall) {
   std::vector<uint8_t> enc{
     0x00, 0x00, 0x00, 0x01,
     0x00, 0x00,
   };
 
-  EXPECT_FALSE(Request::Decode(enc));
+  EXPECT_FALSE(Message::Decode(enc));
 }
 
-TEST_F(RequestTest, DecodePayloadTooSmall) {
+TEST_F(MessageTest, DecodePayloadTooSmall) {
   const std::vector<uint8_t> payload(0x10, 0xff);
 
   std::vector<uint8_t> enc{
@@ -174,10 +174,10 @@ TEST_F(RequestTest, DecodePayloadTooSmall) {
   };
   enc.insert(enc.end(), payload.begin(), payload.end());
 
-  EXPECT_FALSE(Request::Decode(enc));
+  EXPECT_FALSE(Message::Decode(enc));
 }
 
-TEST_F(RequestTest, DecodePayloadExceedsSize) {
+TEST_F(MessageTest, DecodePayloadExceedsSize) {
   const std::vector<uint8_t> payload(0x10, 0xff);
 
   std::vector<uint8_t> enc{
@@ -186,21 +186,21 @@ TEST_F(RequestTest, DecodePayloadExceedsSize) {
   };
   enc.insert(enc.end(), payload.begin(), payload.end());
 
-  const RequestType type = RequestType::kConsume;
+  const MessageType type = MessageType::kConsumeRequest;
   const std::vector<uint8_t> payload_small(0x5, 0xff);
-  const Request expected{type, payload_small};
+  const Message expected{type, payload_small};
 
-  EXPECT_TRUE(Request::Decode(enc));
-  EXPECT_EQ(expected, *Request::Decode(enc));
+  EXPECT_TRUE(Message::Decode(enc));
+  EXPECT_EQ(expected, *Message::Decode(enc));
 }
 
-TEST_F(RequestTest, DecodeEncoded) {
-  const RequestType type = RequestType::kConsume;
+TEST_F(MessageTest, DecodeEncoded) {
+  const MessageType type = MessageType::kConsumeRequest;
   const std::vector<uint8_t> payload{0xa, 0xb, 0xc, 0xd};
-  const Request request{type, payload};
+  const Message request{type, payload};
 
-  EXPECT_TRUE(Request::Decode(request.Encode()));
-  EXPECT_EQ(request, *Request::Decode(request.Encode()));
+  EXPECT_TRUE(Message::Decode(request.Encode()));
+  EXPECT_EQ(request, *Message::Decode(request.Encode()));
 }
 
 }  // namespace wombat::broker::record

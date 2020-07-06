@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "record/request.h"
+#include "record/message.h"
 
 #include <arpa/inet.h>
 
@@ -12,29 +12,29 @@
 
 namespace wombat::broker::record {
 
-RequestHeader::RequestHeader(RequestType type, uint32_t payload_size)
+MessageHeader::MessageHeader(MessageType type, uint32_t payload_size)
     : type_{type}, payload_size_{payload_size} {
   if (payload_size_ > kLimit || payload_size == 0) {
     throw std::invalid_argument{"invalid payload size"};
   }
 }
 
-bool RequestHeader::operator==(const RequestHeader& header) const {
+bool MessageHeader::operator==(const MessageHeader& header) const {
   return type_ == header.type_ && payload_size_ == header.payload_size_;
 }
 
-bool RequestHeader::operator!=(const RequestHeader& header) const {
+bool MessageHeader::operator!=(const MessageHeader& header) const {
   return !(*this == header);
 }
 
-std::vector<uint8_t> RequestHeader::Encode() const {
+std::vector<uint8_t> MessageHeader::Encode() const {
   std::vector<uint8_t> enc = EncodeU32(static_cast<uint32_t>(type_));
   std::vector<uint8_t> size = EncodeU32(payload_size_);
   enc.insert(enc.end(), size.begin(), size.end());
   return enc;
 }
 
-std::optional<RequestHeader> RequestHeader::Decode(
+std::optional<MessageHeader> MessageHeader::Decode(
     const std::vector<uint8_t>& enc) {
   std::optional<uint32_t> type = DecodeU32(enc);
   if (!type) {
@@ -48,25 +48,25 @@ std::optional<RequestHeader> RequestHeader::Decode(
     return std::nullopt;
   }
 
-  return RequestHeader{static_cast<RequestType>(*type), *payload_size};
+  return MessageHeader{static_cast<MessageType>(*type), *payload_size};
 }
 
-Request::Request(RequestType type, const std::vector<uint8_t>& payload)
+Message::Message(MessageType type, const std::vector<uint8_t>& payload)
     : type_{type}, payload_{payload} {
   if (payload_.size() > kLimit) {
     throw std::invalid_argument{"payload size exceeds limit"};
   }
 }
 
-bool Request::operator==(const Request& request) const {
+bool Message::operator==(const Message& request) const {
   return type_ == request.type_ && payload_ == request.payload_;
 }
 
-bool Request::operator!=(const Request& request) const {
+bool Message::operator!=(const Message& request) const {
   return !(*this == request);
 }
 
-std::vector<uint8_t> Request::Encode() const {
+std::vector<uint8_t> Message::Encode() const {
   std::vector<uint8_t> enc = EncodeU32(static_cast<uint32_t>(type_));
   std::vector<uint8_t> size = EncodeU32(payload_.size());
   enc.insert(enc.end(), size.begin(), size.end());
@@ -74,7 +74,7 @@ std::vector<uint8_t> Request::Encode() const {
   return enc;
 }
 
-std::optional<Request> Request::Decode(const std::vector<uint8_t>& enc) {
+std::optional<Message> Message::Decode(const std::vector<uint8_t>& enc) {
   std::optional<uint32_t> type = DecodeU32(enc);
   if (!type) {
     return std::nullopt;
@@ -91,8 +91,8 @@ std::optional<Request> Request::Decode(const std::vector<uint8_t>& enc) {
     return std::nullopt;
   }
 
-  return Request{
-    static_cast<RequestType>(*type),
+  return Message{
+    static_cast<MessageType>(*type),
     std::vector<uint8_t>(
         enc.begin() + (sizeof(uint32_t) * 2),
         enc.begin() + (sizeof(uint32_t) * 2) + *size
