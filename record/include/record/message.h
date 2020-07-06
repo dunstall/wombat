@@ -16,7 +16,7 @@ enum class MessageType : uint32_t {
   kReplicaResponse
 };
 
-// TODO(AD) Add partition
+// TODO(AD) Add partition ID to header
 class MessageHeader {
  public:
   static constexpr int kSize = 8;
