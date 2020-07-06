@@ -12,7 +12,7 @@ namespace wombat::broker::server {
 // TODO(AD) In utils create generic threaded object with start, stop and
 // virtual poll
 
-Responder::Responder() : event_queue_{std::make_shared<ResponseEventQueue>()} {
+Responder::Responder() : event_queue_{std::make_shared<EventQueue>()} {
   Start();
 }
 
@@ -34,9 +34,9 @@ void Responder::Stop() {
 
 void Responder::Poll() {
   while (running_) {
-    const std::optional<ResponseEvent> evt = event_queue_->TryPop();
+    const std::optional<Event> evt = event_queue_->TryPop();
     if (evt) {
-      evt->connection->Send(evt->response.Encode());
+      evt->connection->Send(evt->message.Encode());
     }
 
     // TODO(AD) Handle partial writes - keep set of pending connections

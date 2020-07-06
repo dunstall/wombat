@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "glog/logging.h"
-#include "record/request.h"
+#include "record/message.h"
 
 namespace wombat::broker::server {
 
@@ -42,7 +42,7 @@ class Connection {
   // Returns the request received from the connection or nullopt if no request
   // has been received. If an error occurs or the connection is closed throws
   // a ConnectionException.
-  std::optional<record::Request> Receive();
+  std::optional<record::Message> Receive();
 
   // Adds data to the outgoing buffer (if not empty) and attempts to write
   // to the connection. Returns true if the outgoing buffer was fully sent
@@ -58,7 +58,7 @@ class Connection {
 
   static const size_t kReadBufSize = 1024;
 
-  std::optional<record::Request> HandleRead(int n);
+  std::optional<record::Message> HandleRead(int n);
 
   std::string AddrToString(const struct sockaddr_in& addr) const;
 
@@ -73,7 +73,7 @@ class Connection {
   State state_;
   int request_bytes_remaining_;
   int n_read_ = 0;
-  std::optional<record::RequestHeader> header_;
+  std::optional<record::MessageHeader> header_;
 };
 
 }  // namespace wombat::broker::server

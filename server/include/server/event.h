@@ -4,30 +4,19 @@
 
 #include <memory>
 
-#include "record/response.h"
-#include "record/request.h"
+#include "record/message.h"
 #include "server/connection.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker::server {
 
 struct Event {
-  Event(record::Request _request, std::shared_ptr<Connection> _connection);
+  Event(record::Message _message, std::shared_ptr<Connection> _connection);
 
-  record::Request request;
+  record::Message message;
   std::shared_ptr<Connection> connection;
 };
 
 using EventQueue = util::ThreadSafeQueue<Event>;
-
-struct ResponseEvent {
-  ResponseEvent(record::Response _response,
-                std::shared_ptr<Connection> _connection);
-
-  record::Response response;
-  std::shared_ptr<Connection> connection;
-};
-
-using ResponseEventQueue = util::ThreadSafeQueue<ResponseEvent>;
 
 }  // namespace wombat::broker::server

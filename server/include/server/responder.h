@@ -22,7 +22,7 @@ class Responder {
   Responder(Responder&& conn) = delete;
   Responder& operator=(Responder&& conn) = delete;
 
-  std::shared_ptr<ResponseEventQueue> events() const { return event_queue_; }
+  std::shared_ptr<EventQueue> events() const { return event_queue_; }
 
  private:
   void Poll();
@@ -31,7 +31,7 @@ class Responder {
 
   void Stop();
 
-  std::shared_ptr<ResponseEventQueue> event_queue_;
+  std::shared_ptr<EventQueue> event_queue_;
 
   std::thread thread_;
   std::atomic_bool running_;

@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "glog/logging.h"
-#include "record/request.h"
+#include "record/message.h"
 
 namespace wombat::broker::server {
 
@@ -23,7 +23,7 @@ Connection::Connection(int connfd, const struct sockaddr_in& addr)
     : connfd_{connfd},
       incoming_buf_(kReadBufSize),
       state_(State::kHeaderPending),
-      request_bytes_remaining_{record::RequestHeader::kSize} {
+      request_bytes_remaining_{record::MessageHeader::kSize} {
   address_ = AddrToString(addr);
   LOG(INFO) << "accepted connection to " << address();
 }
@@ -55,7 +55,7 @@ Connection& Connection::operator=(Connection&& conn) {
   return *this;
 }
 
-std::optional<record::Request> Connection::Receive() {
+std::optional<record::Message> Connection::Receive() {
   int n = read(
       connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_
   );
@@ -76,12 +76,12 @@ bool Connection::Send(const std::vector<uint8_t> data) {
       == static_cast<int>(data.size()));
 }
 
-std::optional<record::Request> Connection::HandleRead(int n) {
+std::optional<record::Message> Connection::HandleRead(int n) {
   request_bytes_remaining_ -= n;
   n_read_ += n;
 
   if (state_ == State::kHeaderPending && request_bytes_remaining_ == 0) {
-    header_ = record::RequestHeader::Decode(incoming_buf_);
+    header_ = record::MessageHeader::Decode(incoming_buf_);
     if (!header_) {
       LOG(WARNING) << "received invalid request header (" << address() << ")";
       throw ConnectionException{};
@@ -93,9 +93,9 @@ std::optional<record::Request> Connection::HandleRead(int n) {
   } else if (state_ == State::kPayloadPending
       && request_bytes_remaining_ == 0) {
     state_ = State::kHeaderPending;
-    request_bytes_remaining_ = record::RequestHeader::kSize;
+    request_bytes_remaining_ = record::MessageHeader::kSize;
     n_read_ = 0;
-    return record::Request{
+    return record::Message{
         header_->type(),
         std::vector<uint8_t>(
             incoming_buf_.begin(),
