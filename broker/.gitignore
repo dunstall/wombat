@@ -37,9 +37,7 @@ build/
 lib/
 
 # Test binary
-log
-!log/
-log_*
+broker_unittest
 
 broker
 !broker/

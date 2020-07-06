@@ -6,32 +6,55 @@ LIB_DIR := lib
 SRC_FILES = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 CXXFLAGS += -std=c++17  -Wall -Werror -MMD
-INC_FLAGS := -I$(INC_DIR) -I../log/$(INC_DIR) -I../partition/$(INC_DIR) \
-	-I../record/$(INC_DIR) -I../server/$(INC_DIR) -I../util/$(INC_DIR)
-LDFLAGS := -L../log -lwombatlog -L../partition -lwombatpartition \
-	-L../server -lwombatserver \
+INC_FLAGS := -I$(INC_DIR) \
+	-I../log/$(INC_DIR) \
+	-I../server/$(INC_DIR) \
+	-I../record/$(INC_DIR) \
+	-I../util/$(INC_DIR)
+LDFLAGS := -L../server -lwombatserver \
 	-L../record -lwombatrecord \
 	-L../util -lwombatutil \
+	-L../log -lwombatlog \
 	-lstdc++fs -lglog -lpthread -Wl,-rpath -Wl,/usr/local/lib
 
 EXE := broker
 
 .PHONY: all
 all: $(OBJ_DIR) $(OBJ_FILES)
-	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -o $(EXE) src/main.cpp $(LDFLAGS)
+	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -o $(EXE) src/main.cpp $(OBJ_FILES) $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) -c -o $@ $<
 
 -include $(OBJ_FILES:.o=.d)
 
-.PHONY: install
-install:
-	../bin/install.sh
+TEST_DIR := tests
+
+TEST_INC_FLAGS := -I../$(LIB_DIR)/googletest/googletest/include
+TEST_LDFLAGS := -L../$(LIB_DIR)/googletest/$(OBJ_DIR)/lib -lgtest -lgtest_main -lpthread
+
+# =============================================================================
+# Unit tests.
+# =============================================================================
+
+UNITTEST_EXE := broker_unittest
+
+UNITTEST_OBJ_DIR = $(OBJ_DIR)/unit
+
+UNITTEST_DIR = $(TEST_DIR)/unit
+UNITTEST_SRC_FILES := $(wildcard $(UNITTEST_DIR)/*.cpp)
+UNITTEST_OBJ_FILES := $(patsubst $(UNITTEST_DIR)/%.cpp,$(UNITTEST_OBJ_DIR)/%.o,$(UNITTEST_SRC_FILES))
 
 .PHONY: unittest
-unittest:
-	echo "No unittests"
+unittest: $(UNITTEST_OBJ_DIR) $(OBJ_FILES) $(UNITTEST_OBJ_FILES)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ_FILES) $(UNITTEST_OBJ_FILES) $(LDFLAGS) $(TEST_LDFLAGS) -o $(UNITTEST_EXE)
+	GLOG_logtostderr=1 ./$(UNITTEST_EXE)
+
+$(OBJ_DIR)/unit/%.o: $(TEST_DIR)/unit/%.cpp
+	 $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INC_FLAGS) $(TEST_INC_FLAGS) -c -o $@ $<
+
+-include $(UNITTEST_OBJ_FILES:.o=.d)
+
 
 .PHONY: integrationtest
 integrationtest:
@@ -39,7 +62,7 @@ integrationtest:
 
 .PHONY: clean
 clean:
-	rm -rf $(EXE) $(EXE).d $(LIB_DIR) $(OBJ_DIR)
+	rm -rf $(EXE) $(EXE).d $(LIB_DIR) $(OBJ_DIR) $(UNITTEST_EXE)
 
-$(OBJ_DIR):
+$(OBJ_DIR) $(UNITTEST_OBJ_DIR):
 	mkdir -p $@

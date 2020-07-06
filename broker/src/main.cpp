@@ -1,97 +1,75 @@
 // Copyright 2020 Andrew Dunstall
 
-#include <chrono>
-#include <cstdlib>
-#include <iostream>
+#include <filesystem>
+#include <fstream>
 #include <optional>
-#include <thread>
-#include <vector>
+#include <string>
+#include <streambuf>
 
+#include "broker/conf.h"
+#include "broker/router.h"
 #include "glog/logging.h"
 #include "log/log.h"
-#include "log/systemsegment.h"
-#include "log/tempdir.h"
-#include "partition/leader.h"
-#include "partition/listener.h"
-#include "partition/partition.h"
-#include "partition/replica.h"
-#include "partition/syncer.h"
+#include "log/systemlog.h"
 #include "server/responder.h"
-#include "server/server.h"
 #include "util/threadable.h"
 
 namespace wombat::broker {
 
-enum class Type {
-  kLeader,
-  kReplica
-};
+const std::filesystem::path kDefaultPath = "/usr/local/wombat/WOMBAT.conf";
 
-void Run(Type type) {
-  log::TempDir dir{};
-  std::shared_ptr<log::Log<log::SystemSegment>> log
-      = std::make_shared<log::Log<log::SystemSegment>>(dir.path(), 128'000'000);
+constexpr uint16_t kPort = 3110;
 
-  std::shared_ptr<server::Server> server
-      = std::make_shared<server::Server>(3111);
-  util::Threadable threadable_server(server);
+std::optional<Conf> ParseConf(const std::filesystem::path& path) {
+  std::ifstream f(path);
+  if (!f.is_open()) return std::nullopt;
+  const std::string s(
+      (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>()
+  );
+  return Conf::Parse(s);
+}
 
-  server::Responder responder{};
+void Run(const std::filesystem::path& path) {
+  LOG(INFO) << "running wombat broker";
 
-  std::unique_ptr<partition::Syncer<log::SystemSegment>> syncer;
-  switch(type) {
-    case Type::kLeader:
-     syncer = std::make_unique<partition::Leader<log::SystemSegment>>(
-         log, 3110
-     );
-     break;
-    case Type::kReplica:
-     syncer = std::make_unique<partition::Replica<log::SystemSegment>>(
-         log, partition::LeaderAddress{"127.0.0.1", 3110}
-     );
-     break;
-    default:
-     std::exit(1);
-     break;
+  std::optional<Conf> cfg = ParseConf(path);
+  if (!cfg) {
+    LOG(ERROR) << "failed to parse broker config at " << path;
+    std::exit(EXIT_FAILURE);
   }
 
-  partition::Partition partition{log};
+  Router router{};
+  server::Responder responder{};
+  for (const PartitionConf& p : cfg->partitions()) {
+    std::shared_ptr<log::Log> log = std::make_shared<log::SystemLog>(p.path());
 
-  partition::Listener listener{
-    partition, std::move(syncer), responder.events()
-  };
+    switch (p.type()) {
+      case PartitionConf::Type::kLeader:
+        // TODO(AD) Pass leader address
+        router.AddPartition(
+            std::make_unique<LeaderPartition>(responder.events(), log)
+        );
+        break;
+      case PartitionConf::Type::kReplica:
+        // TODO(AD) Pass leader address
+        router.AddPartition(
+            std::make_unique<ReplicaPartition>(responder.events(), log)
+        );
+        break;
+    }
+  }
+  std::shared_ptr<server::Server> server
+      = std::make_shared<server::Server>(kPort);
+  util::Threadable threadable_server(server);
 
-  // TODO(AD) Broker will handle routing requests to the correct partition.
   while (true) {
-    listener.queue()->Push(server->events()->WaitAndPop());
+    router.Route(server->events()->WaitAndPop());
   }
 }
 
 }  // namespace wombat::broker
 
-void PrintUsage() {
-  std::cout << "USAGE:" << std::endl;
-  std::cout << "\t./broker leader" << std::endl;
-  std::cout << "\t\tor" << std::endl;
-  std::cout << "\t./broker replica <leader IP>" << std::endl;
-}
-
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
-
-  if (argc < 2) {
-    PrintUsage();
-    std::exit(EXIT_FAILURE);
-  }
-
-  if (std::string(argv[1]) == "leader") {
-    std::cout << "leader" << std::endl;
-    wombat::broker::Run(wombat::broker::Type::kLeader);
-  } else if (std::string(argv[1]) == "replica" && argc == 3) {
-    std::cout << "replica with leader address " << argv[2] << std::endl;
-    wombat::broker::Run(wombat::broker::Type::kReplica);
-  } else {
-    PrintUsage();
-    std::exit(EXIT_FAILURE);
-  }
+  wombat::broker::Run((argc < 2) ? wombat::broker::kDefaultPath : argv[1]);
 }

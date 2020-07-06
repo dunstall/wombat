@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace wombat::broker {
+namespace wombat::broker::log {
 
 class Log {
  public:
@@ -23,4 +23,4 @@ class Log {
   uint32_t size_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::log
