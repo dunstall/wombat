@@ -11,6 +11,7 @@
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
+#include "server/server.h"
 #include "server/responder.h"
 #include "util/threadable.h"
 

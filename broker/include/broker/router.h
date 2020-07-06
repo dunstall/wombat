@@ -2,15 +2,10 @@
 
 #pragma once
 
-#include <filesystem>
 #include <memory>
 
-#include "broker/conf.h"
 #include "log/log.h"
-#include "log/systemlog.h"
-#include "server/responder.h"
-#include "server/server.h"
-#include "util/pollable.h"
+#include "server/event.h"
 
 namespace wombat::broker {
 
@@ -18,13 +13,13 @@ class Partition {};
 
 class LeaderPartition : public Partition {
  public:
-  LeaderPartition(std::shared_ptr<server::ResponseEventQueue>,
+  LeaderPartition(std::shared_ptr<server::EventQueue>,
                   std::shared_ptr<log::Log> log) {}
 };
 
 class ReplicaPartition : public Partition {
  public:
-  ReplicaPartition(std::shared_ptr<server::ResponseEventQueue>,
+  ReplicaPartition(std::shared_ptr<server::EventQueue>,
                    std::shared_ptr<log::Log> log) {}
 };
 

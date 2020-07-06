@@ -2,13 +2,14 @@
 
 #include "broker/router.h"
 
+#include <memory>
 #include <filesystem>
 
 #include "log/systemlog.h"
+#include "server/event.h"
 
 namespace wombat::broker {
 
-// TODO(AD) Dont need request/response events - just have Event{conn, message}
 void Router::Route(const server::Event& request) {
   // TODO(AD)
 }
