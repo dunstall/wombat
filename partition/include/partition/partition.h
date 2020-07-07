@@ -6,8 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "record/request.h"
-#include "record/response.h"
+#include "record/message.h"
 #include "log/log.h"
 
 namespace wombat::broker::partition {
@@ -16,12 +15,12 @@ class Partition {
  public:
   explicit Partition(std::shared_ptr<Log> log);
 
-  std::optional<record::Response> Handle(const record::Request& request);
+  std::optional<record::Message> Handle(const record::Message& message);
 
  private:
-  void Produce(const record::Request& request);
+  void Produce(const record::Message& message);
 
-  std::optional<record::Response> Consume(const record::Request& request);
+  std::optional<record::Message> Consume(const record::Message& message);
 
   std::shared_ptr<Log> log_;
 };

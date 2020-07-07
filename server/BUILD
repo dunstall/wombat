@@ -4,4 +4,5 @@ cc_library(
     hdrs = glob(["include/server/*.h"]),
     strip_include_prefix = "include/",
     deps = ["//record:record", "//util:util"],
+    visibility = ["//visibility:public"],
 )

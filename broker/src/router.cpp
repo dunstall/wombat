@@ -10,6 +10,9 @@
 
 namespace wombat::broker {
 
+// TODO(AD) 1: add partition ID to message
+// TODO(AD) 2: implement router with message partition ID
+
 void Router::Route(const server::Event& request) {
   // TODO(AD)
 }
