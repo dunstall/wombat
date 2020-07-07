@@ -16,8 +16,8 @@
 #include <vector>
 
 #include "glog/logging.h"
-#include "log/logexception.h"
 #include "server/connection.h"
+#include "server/serverexception.h"
 
 namespace wombat::broker::server {
 
@@ -60,17 +60,17 @@ void Server::Listen() {
 
   if ((listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     LOG(ERROR) << "failed to create socket " << strerror(errno);
-    throw log::LogException{"socket error", errno};
+    throw ServerException{"socket error", errno};
   }
 
   if (bind(listenfd_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
     LOG(ERROR) << "failed to bind socket " << strerror(errno);
-    throw log::LogException{"bind error", errno};
+    throw ServerException{"bind error", errno};
   }
 
   if (listen(listenfd_, kListenBacklog) == -1) {
     LOG(ERROR) << "failed to listen socket " << strerror(errno);
-    throw log::LogException{"listen error", errno};
+    throw ServerException{"listen error", errno};
   }
 
   fds_[0].fd = listenfd_;
