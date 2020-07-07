@@ -12,4 +12,5 @@ cc_binary(
     deps = [
         ":broker",
     ],
+    linkopts = ["-pthread -L/usr/local/lib -lglog"],
 )

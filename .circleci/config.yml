@@ -10,6 +10,7 @@ jobs:
       - run:
           name: Commit stage
           command: |
+            # TODO(AD) bazel build ...
             sudo apt-get install -y cmake python3-pip
             sudo ./bin/install.sh
             sudo ./bin/installtest.sh
