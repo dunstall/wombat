@@ -10,16 +10,16 @@
 
 namespace wombat::broker {
 
-// TODO(AD) 1: add partition ID to message
-// TODO(AD) 2: implement router with message partition ID
-// TODO(AD) 3: message and record are different and shouldnt belong togester
-
-void Router::Route(const server::Event& request) {
-  // TODO(AD)
+bool Router::Route(const server::Event& evt) {
+  if (partitions_.find(evt.message.partition_id()) != partitions_.end()) {
+    partitions_.at(evt.message.partition_id())->Handle(evt);
+    return true;
+  }
+  return false;
 }
 
 void Router::AddPartition(std::unique_ptr<Partition> partition) {
-  // TODO(AD)
+  partitions_[partition->id()] = std::move(partition);
 }
 
 }  // namespace wombat::broker
