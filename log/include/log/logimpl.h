@@ -20,7 +20,7 @@ constexpr uint32_t OFFSET_SEGMENT_ID = 0;
 // TODO(AD) Mock segments to unit test
 class LogImpl : public Log {
  public:
-  LogImpl(std::unique_ptr<SegmentFactory> segment_factory);
+  explicit LogImpl(std::unique_ptr<SegmentFactory> segment_factory);
 
   virtual ~LogImpl() {}
 

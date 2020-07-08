@@ -51,7 +51,7 @@ TEST_F(PartitionTest, HandleProduceInvalid) {
 TEST_F(PartitionTest, HandleRecordRequestOk) {
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
   Partition partition{log};
-  
+
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
   const record::Record record{data};
   const std::vector<uint8_t> record_enc = record.Encode();
@@ -88,7 +88,7 @@ TEST_F(PartitionTest, HandleRecordRequestOffsetNotFound) {
   // Empty record should be returned.
   const record::Record record{{}};
   const std::vector<uint8_t> record_enc = record.Encode();
-  
+
   std::optional<record::Response> response = partition.Handle(request);
   EXPECT_TRUE(response);
   EXPECT_EQ(response->payload(), record_enc);
@@ -97,7 +97,7 @@ TEST_F(PartitionTest, HandleRecordRequestOffsetNotFound) {
 TEST_F(PartitionTest, HandleRecordRequestInvalid) {
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
   Partition partition{log};
-  
+
   const record::Request request{record::RequestType::kConsume, {0, 0xff}};
 
   std::optional<record::Response> response = partition.Handle(request);

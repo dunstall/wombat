@@ -12,7 +12,8 @@ namespace wombat::broker::log {
 
 class SystemLog : public Log {
  public:
-  SystemLog(const std::filesystem::path& path, uint32_t segment_limit = 128'000'000) {}
+  explicit SystemLog(const std::filesystem::path& path,
+                     uint32_t segment_limit = 128'000'000) {}
 
   ~SystemLog() override {}
 

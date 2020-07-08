@@ -1,3 +1,5 @@
+// Copyright 2020 Andrew Dunstall
+
 #include "partition/listener.h"
 
 #include <memory>

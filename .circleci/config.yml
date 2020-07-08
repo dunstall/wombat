@@ -17,6 +17,7 @@ jobs:
 
             bazel build ...
             bazel test ...
+            ./bin/analize.sh
 
 workflows:
   broker:
