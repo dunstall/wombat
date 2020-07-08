@@ -17,6 +17,9 @@ jobs:
 
             bazel build ...
             bazel test ...
+
+            sudo apt-get install -y python3-pip
+            pip3 install cpplint
             ./bin/analize.sh
 
 workflows:
