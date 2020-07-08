@@ -11,8 +11,9 @@ cc_binary(
     srcs = ["src/main.cpp"],
     deps = [
         ":broker",
+        "@glog//:glog",
     ],
-    linkopts = ["-pthread -L/usr/local/lib -lglog"],
+    linkopts = ["-pthread"],
 )
 
 cc_test(

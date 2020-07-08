@@ -12,6 +12,7 @@ namespace wombat::broker {
 
 // TODO(AD) 1: add partition ID to message
 // TODO(AD) 2: implement router with message partition ID
+// TODO(AD) 3: message and record are different and shouldnt belong togester
 
 void Router::Route(const server::Event& request) {
   // TODO(AD)
