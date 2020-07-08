@@ -6,3 +6,14 @@ cc_library(
     linkopts = ["-lstdc++fs"],
     visibility = ["//visibility:public"],
 )
+
+cc_test(
+    name = "log-test",
+    srcs = glob(["tests/unit/*.cpp"]),
+    copts = ["-Iexternal/gtest/include"],
+    linkopts = ["-L/usr/local/lib -lglog"],
+    deps = [
+        "@gtest//:gtest_main",
+        ":log"
+    ],
+)

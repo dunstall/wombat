@@ -59,7 +59,7 @@ TEST_F(PartitionConfTest, ParseLeaderConfigOk) {
 TEST_F(PartitionConfTest, ParseReplicaConfigOk) {
   PartitionConf expected(
       PartitionConf::Type::kReplica,
-      "/usr/local/wombat/log",
+      "/wombat/log",
       "10.26.104.122",
       9224
   );

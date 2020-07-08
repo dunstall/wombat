@@ -7,7 +7,7 @@ cc_library(
 )
 
 cc_test(
-    name = "hello-test",
+    name = "record-test",
     srcs = glob(["tests/unit/*.cpp"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
