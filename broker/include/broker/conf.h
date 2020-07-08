@@ -33,11 +33,14 @@ class PartitionConf {
 
   PartitionConf() = default;
   PartitionConf(Type type,
+                uint32_t id,
                 const std::filesystem::path& path,
                 const std::string& addr,
                 uint16_t port);
 
   Type type() const { return type_; }
+
+  uint32_t id() const { return id_; }
 
   std::filesystem::path path() const { return path_; }
 
@@ -53,9 +56,12 @@ class PartitionConf {
  private:
   static std::optional<Type> ParseType(const std::string& s);
 
+  static std::optional<uint16_t> ParseId(const std::string& s);
+
   static std::optional<uint16_t> ParsePort(const std::string& s);
 
   Type type_;
+  uint32_t id_;
   std::filesystem::path path_;
   std::string addr_;
   uint16_t port_;

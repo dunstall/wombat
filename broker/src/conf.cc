@@ -30,13 +30,15 @@ std::optional<Conf> Conf::Parse(const std::string& s) {
 }
 
 PartitionConf::PartitionConf(Type type,
+                             uint32_t id,
                              const std::filesystem::path& path,
                              const std::string& addr,
                              uint16_t port)
-    : type_{type}, path_{path}, addr_{addr}, port_{port} {}
+    : type_{type}, id_{id}, path_{path}, addr_{addr}, port_{port} {}
 
 bool PartitionConf::operator==(const PartitionConf& cfg) const {
   return type_ == cfg.type_
+      && id_ == cfg.id_
       && path_ == cfg.path_
       && addr_ == cfg.addr_
       && port_ == cfg.port_;
@@ -48,7 +50,7 @@ bool PartitionConf::operator!=(const PartitionConf& cfg) const {
 
 std::optional<PartitionConf> PartitionConf::Parse(const std::string& s) {
   const std::vector<std::string> fields = Split(s, ':');
-  if (fields.size() != 4) {
+  if (fields.size() != 5) {
     LOG(ERROR) << "partition config invalid number of fields";
     return std::nullopt;
   }
@@ -56,10 +58,16 @@ std::optional<PartitionConf> PartitionConf::Parse(const std::string& s) {
   PartitionConf cfg;
   if (!ParseType(fields[0])) return std::nullopt;
   cfg.type_ = *ParseType(fields[0]);
-  cfg.path_ = fields[1];
-  cfg.addr_ = fields[2];
-  if (!ParsePort(fields[3])) return std::nullopt;
-  cfg.port_ = *ParsePort(fields[3]);
+
+  if (!ParsePort(fields[1])) return std::nullopt;
+  cfg.id_ = *ParseId(fields[1]);
+
+  cfg.path_ = fields[2];
+
+  cfg.addr_ = fields[3];
+
+  if (!ParsePort(fields[4])) return std::nullopt;
+  cfg.port_ = *ParsePort(fields[4]);
 
   return cfg;
 }
@@ -74,6 +82,21 @@ std::optional<PartitionConf::Type> PartitionConf::ParseType(
   }
   LOG(ERROR) << "partition type not recognized: " << s;
   return std::nullopt;
+}
+
+std::optional<uint16_t> PartitionConf::ParseId(const std::string& s) {
+  try {
+    uint32_t id = std::stoi(s);
+    if (std::to_string(id) == s) {
+      return id;
+    } else {
+      LOG(ERROR) << "partition config id would over/under-flow: " << s;
+      return std::nullopt;
+    }
+  } catch (const std::invalid_argument& e) {
+    LOG(ERROR) << "partition config id not a number: " << s;
+    return std::nullopt;
+  }
 }
 
 std::optional<uint16_t> PartitionConf::ParsePort(const std::string& s) {

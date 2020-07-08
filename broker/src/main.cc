@@ -42,6 +42,8 @@ void Run(const std::filesystem::path& path) {
   Router router{};
   server::Responder responder{};
   for (const PartitionConf& p : cfg->partitions()) {
+    LOG(INFO) << "adding partition";
+
     std::shared_ptr<log::Log> log = std::make_shared<log::SystemLog>(p.path());
 
     switch (p.type()) {
