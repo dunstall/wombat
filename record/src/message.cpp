@@ -55,7 +55,9 @@ std::optional<MessageHeader> MessageHeader::Decode(
   }
 
   std::optional<uint32_t> payload_size = DecodeU32(
-      std::vector<uint8_t>(enc.begin() + sizeof(uint32_t) + sizeof(uint32_t), enc.end())
+      std::vector<uint8_t>(
+          enc.begin() + sizeof(uint32_t) + sizeof(uint32_t), enc.end()
+      )
   );
   if (!payload_size || payload_size > kLimit || payload_size == 0) {
     return std::nullopt;
@@ -64,66 +66,45 @@ std::optional<MessageHeader> MessageHeader::Decode(
   return MessageHeader{static_cast<MessageType>(*type), *id, *payload_size};
 }
 
-// TODO(AD) Use MessageHeader
 Message::Message(MessageType type,
                  uint32_t partition_id,
                  const std::vector<uint8_t>& payload)
-    : type_{type}, partition_id_{partition_id}, payload_{payload} {
-  if (payload_.size() > kLimit) {
-    throw std::invalid_argument{"payload size exceeds limit"};
-  }
+    : Message{MessageHeader(type, partition_id, payload.size()), payload} {}
+
+Message::Message(MessageHeader header,
+                 const std::vector<uint8_t>& payload)
+    : header_{header}, payload_{payload} {}
+
+bool Message::operator==(const Message& message) const {
+  return header_ == message.header_
+      && payload_ == message.payload_;
 }
 
-bool Message::operator==(const Message& request) const {
-  return type_ == request.type_
-      && partition_id_ == request.partition_id_
-      && payload_ == request.payload_;
-}
-
-bool Message::operator!=(const Message& request) const {
-  return !(*this == request);
+bool Message::operator!=(const Message& message) const {
+  return !(*this == message);
 }
 
 std::vector<uint8_t> Message::Encode() const {
-  std::vector<uint8_t> enc = EncodeU32(static_cast<uint32_t>(type_));
-  std::vector<uint8_t> id = EncodeU32(partition_id_);
-  enc.insert(enc.end(), id.begin(), id.end());
-  std::vector<uint8_t> size = EncodeU32(payload_.size());
-  enc.insert(enc.end(), size.begin(), size.end());
+  std::vector<uint8_t> enc = header_.Encode();
   enc.insert(enc.end(), payload_.begin(), payload_.end());
   return enc;
 }
 
 std::optional<Message> Message::Decode(const std::vector<uint8_t>& enc) {
-  std::optional<uint32_t> type = DecodeU32(enc);
-  if (!type) {
+  std::optional<MessageHeader> header = MessageHeader::Decode(enc);
+  if (!header) {
     return std::nullopt;
   }
 
-  std::optional<uint32_t> id = DecodeU32(
-      std::vector<uint8_t>(enc.begin() + sizeof(uint32_t), enc.end())
-  );
-  if (!id) {
-    return std::nullopt;
-  }
-
-  std::optional<uint32_t> size = DecodeU32(
-      std::vector<uint8_t>(enc.begin() + sizeof(uint32_t) + sizeof(uint32_t), enc.end())
-  );
-  if (!size) {
-    return std::nullopt;
-  }
-
-  if (enc.size() < (sizeof(uint32_t) * 3) + *size) {
+  if (enc.size() < MessageHeader::kSize + header->payload_size()) {
     return std::nullopt;
   }
 
   return Message{
-    static_cast<MessageType>(*type),
-    *id,
+    *header,
     std::vector<uint8_t>(
-        enc.begin() + (sizeof(uint32_t) * 3),
-        enc.begin() + (sizeof(uint32_t) * 3) + *size
+        enc.begin() + MessageHeader::kSize,
+        enc.begin() + MessageHeader::kSize + header->payload_size()
     )
   };
 }

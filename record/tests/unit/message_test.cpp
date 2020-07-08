@@ -112,10 +112,10 @@ TEST_F(MessageTest, Get) {
   const MessageType type = MessageType::kProduceRequest;
   const uint32_t partition_id = 0xaabbccdd;
   const std::vector<uint8_t> payload{0, 1, 2, 3};
-  const Message request{type, partition_id, payload};
-  EXPECT_EQ(type, request.type());
-  EXPECT_EQ(partition_id, request.partition_id());
-  EXPECT_EQ(payload, request.payload());
+  const Message message{type, partition_id, payload};
+  EXPECT_EQ(type, message.type());
+  EXPECT_EQ(partition_id, message.partition_id());
+  EXPECT_EQ(payload, message.payload());
 }
 
 TEST_F(MessageTest, ExceedSizeLimit) {
@@ -131,7 +131,7 @@ TEST_F(MessageTest, Encode) {
   const MessageType type = MessageType::kConsumeRequest;
   const uint32_t partition_id = 0xaabbccdd;
   const std::vector<uint8_t> payload{0xa, 0xb, 0xc, 0xd};
-  const Message request{type, partition_id, payload};
+  const Message message{type, partition_id, payload};
 
   const std::vector<uint8_t> expected{
     0x00, 0x00, 0x00, 0x01,  // Type
@@ -139,14 +139,14 @@ TEST_F(MessageTest, Encode) {
     0x00, 0x00, 0x00, 0x04,  // Size
     0x0a, 0x0b, 0x0c, 0x0d,  // Payload
   };
-  EXPECT_EQ(expected, request.Encode());
+  EXPECT_EQ(expected, message.Encode());
 }
 
 TEST_F(MessageTest, EncodeLimit) {
   const MessageType type = MessageType::kConsumeRequest;
   const uint32_t partition_id = 0xaabbccdd;
   const std::vector<uint8_t> payload(0x200, 0xff);
-  const Message request{type, partition_id, payload};
+  const Message message{type, partition_id, payload};
 
   std::vector<uint8_t> expected{
     0x00, 0x00, 0x00, 0x01,  // Type
@@ -155,7 +155,7 @@ TEST_F(MessageTest, EncodeLimit) {
   };
   expected.insert(expected.end(), payload.begin(), payload.end());
 
-  EXPECT_EQ(expected, request.Encode());
+  EXPECT_EQ(expected, message.Encode());
 }
 
 TEST_F(MessageTest, DecodeOk) {

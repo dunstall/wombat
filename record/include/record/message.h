@@ -18,7 +18,7 @@ enum class MessageType : uint32_t {
 
 class MessageHeader {
  public:
-  static constexpr int kSize = 8;
+  static constexpr int kSize = 12;
 
   MessageHeader(MessageType type,
                 uint32_t partition_id,
@@ -55,13 +55,16 @@ class Message {
           uint32_t partition_id,
           const std::vector<uint8_t>& payload);
 
-  bool operator==(const Message& request) const;
+  Message(MessageHeader header,
+          const std::vector<uint8_t>& payload);
 
-  bool operator!=(const Message& request) const;
+  bool operator==(const Message& message) const;
 
-  MessageType type() const { return type_; }
+  bool operator!=(const Message& message) const;
 
-  uint32_t partition_id() const { return partition_id_; }
+  MessageType type() const { return header_.type(); }
+
+  uint32_t partition_id() const { return header_.partition_id(); }
 
   std::vector<uint8_t> payload() const { return payload_; }
 
@@ -70,12 +73,7 @@ class Message {
   static std::optional<Message> Decode(const std::vector<uint8_t>& enc);
 
  private:
-  // Maximum record data size.
-  static constexpr uint32_t kLimit = 512;
-
-  MessageType type_;
-
-  uint32_t partition_id_;
+  MessageHeader header_;
 
   std::vector<uint8_t> payload_;
 };
