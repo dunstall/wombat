@@ -16,18 +16,21 @@ enum class MessageType : uint32_t {
   kReplicaResponse
 };
 
-// TODO(AD) Add partition ID to header
 class MessageHeader {
  public:
   static constexpr int kSize = 8;
 
-  MessageHeader(MessageType type, uint32_t payload_size);
+  MessageHeader(MessageType type,
+                uint32_t partition_id,
+                uint32_t payload_size);
 
   bool operator==(const MessageHeader& header) const;
 
   bool operator!=(const MessageHeader& header) const;
 
   MessageType type() const { return type_; }
+
+  uint32_t partition_id() const { return partition_id_; }
 
   uint32_t payload_size() const { return payload_size_; }
 
@@ -41,18 +44,24 @@ class MessageHeader {
 
   MessageType type_;
 
+  uint32_t partition_id_;
+
   uint32_t payload_size_;
 };
 
 class Message {
  public:
-  Message(MessageType type, const std::vector<uint8_t>& payload);
+  Message(MessageType type,
+          uint32_t partition_id,
+          const std::vector<uint8_t>& payload);
 
   bool operator==(const Message& request) const;
 
   bool operator!=(const Message& request) const;
 
   MessageType type() const { return type_; }
+
+  uint32_t partition_id() const { return partition_id_; }
 
   std::vector<uint8_t> payload() const { return payload_; }
 
@@ -65,6 +74,8 @@ class Message {
   static constexpr uint32_t kLimit = 512;
 
   MessageType type_;
+
+  uint32_t partition_id_;
 
   std::vector<uint8_t> payload_;
 };
