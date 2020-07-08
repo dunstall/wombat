@@ -96,7 +96,7 @@ std::optional<record::Message> Connection::HandleRead(int n) {
     request_bytes_remaining_ = record::MessageHeader::kSize;
     n_read_ = 0;
     return record::Message{
-        header_->type(),
+        *header_,
         std::vector<uint8_t>(
             incoming_buf_.begin(),
             incoming_buf_.begin() + header_->payload_size()
