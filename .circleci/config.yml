@@ -10,38 +10,15 @@ jobs:
       - run:
           name: Commit stage
           command: |
-            # TODO(AD) bazel build ...
-            sudo apt-get install -y cmake python3-pip
-            sudo ./bin/install.sh
-            sudo ./bin/installtest.sh
+            sudo apt install curl gnupg
+            curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+            echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+            sudo apt update && sudo apt install bazel -y
 
-            ./bin/exec.py build
-            ./bin/exec.py unittest
-
-            pip3 install cpplint
-            ./bin/staticanalysis.sh
-
-  integration-test-stage:
-    docker:
-      - image: circleci/buildpack-deps:latest
-
-    steps:
-      - checkout
-      - run:
-          name: Integration Test stage
-          command: |
-            sudo apt-get install -y cmake
-            sudo ./bin/install.sh
-            sudo ./bin/installtest.sh
-
-            ./bin/exec.py build
-            ./bin/exec.py integrationtest
-
+            bazel build ...
+            bazel test ...
 
 workflows:
   broker:
     jobs:
       - commit-stage
-      - integration-test-stage:
-          requires:
-            - commit-stage
