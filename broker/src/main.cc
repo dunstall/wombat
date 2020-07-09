@@ -12,6 +12,8 @@
 #include "log/log.h"
 #include "log/systemlog.h"
 #include "partition/partition.h"
+#include "partition/leaderpartition.h"
+#include "partition/replicapartition.h"
 #include "server/server.h"
 #include "server/responder.h"
 #include "util/threadable.h"

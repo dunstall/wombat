@@ -3,7 +3,6 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 
 #include "log/log.h"
 #include "server/event.h"
@@ -32,22 +31,6 @@ class Handler {
 class Responder : public Handler {
  public:
   void Handle(const server::Event& evt) {}
-};
-
-class LeaderPartition : public Partition {
- public:
-  LeaderPartition(std::shared_ptr<Handler> handler,
-                  std::shared_ptr<log::Log> log) : Partition{0} {}
-
-  void Handle(const server::Event& evt) override {}
-};
-
-class ReplicaPartition : public Partition {
- public:
-  ReplicaPartition(std::shared_ptr<Handler> handler,
-                   std::shared_ptr<log::Log> log) : Partition{0} {}
-
-  void Handle(const server::Event& evt) override {}
 };
 
 }  // namespace wombat::broker
