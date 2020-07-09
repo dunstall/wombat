@@ -10,10 +10,10 @@
 
 namespace wombat::broker {
 
-class LeaderPartition : public Partition {
+class Leader : public Partition {
  public:
-  LeaderPartition(std::shared_ptr<Handler> handler,
-                  std::shared_ptr<log::Log> log) : Partition{0} {}
+  Leader(std::shared_ptr<Handler> handler,
+         std::shared_ptr<log::Log> log) : Partition{0} {}
 
   void Handle(const server::Event& evt) override {}
 };

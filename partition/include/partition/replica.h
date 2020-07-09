@@ -10,10 +10,10 @@
 
 namespace wombat::broker {
 
-class ReplicaPartition : public Partition {
+class Replica : public Partition {
  public:
-  ReplicaPartition(std::shared_ptr<Handler> handler,
-                  std::shared_ptr<log::Log> log) : Partition{0} {}
+  Replica(std::shared_ptr<Handler> handler,
+          std::shared_ptr<log::Log> log) : Partition{0} {}
 
   void Handle(const server::Event& evt) override {}
 };

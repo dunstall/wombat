@@ -12,8 +12,8 @@
 #include "log/log.h"
 #include "log/systemlog.h"
 #include "partition/partition.h"
-#include "partition/leaderpartition.h"
-#include "partition/replicapartition.h"
+#include "partition/leader.h"
+#include "partition/replica.h"
 #include "server/server.h"
 #include "server/responder.h"
 #include "util/threadable.h"
@@ -53,13 +53,13 @@ void Run(const std::filesystem::path& path) {
       case PartitionConf::Type::kLeader:
         // TODO(AD) Pass leader address and partition ID
         router.AddPartition(
-            std::make_unique<LeaderPartition>(responder, log)
+            std::make_unique<Leader>(responder, log)
         );
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Pass leader address and aprtition ID
         router.AddPartition(
-            std::make_unique<ReplicaPartition>(responder, log)
+            std::make_unique<Replica>(responder, log)
         );
         break;
     }
