@@ -48,13 +48,13 @@ void Run(const std::filesystem::path& path) {
 
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
-        // TODO(AD) Pass leader address
+        // TODO(AD) Pass leader address and partition ID
         router.AddPartition(
             std::make_unique<LeaderPartition>(responder.events(), log)
         );
         break;
       case PartitionConf::Type::kReplica:
-        // TODO(AD) Pass leader address
+        // TODO(AD) Pass leader address and aprtition ID
         router.AddPartition(
             std::make_unique<ReplicaPartition>(responder.events(), log)
         );
