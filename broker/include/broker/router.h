@@ -24,9 +24,19 @@ class Partition {
   uint32_t id_;
 };
 
+class Handler {
+ public:
+  virtual void Handle(const server::Event& evt) = 0;
+};
+
+class Responder : public Handler {
+ public:
+  void Handle(const server::Event& evt) {}
+};
+
 class LeaderPartition : public Partition {
  public:
-  LeaderPartition(std::shared_ptr<server::EventQueue>,
+  LeaderPartition(std::shared_ptr<Handler> handler,
                   std::shared_ptr<log::Log> log) : Partition{0} {}
 
   void Handle(const server::Event& evt) override {}
@@ -34,7 +44,7 @@ class LeaderPartition : public Partition {
 
 class ReplicaPartition : public Partition {
  public:
-  ReplicaPartition(std::shared_ptr<server::EventQueue>,
+  ReplicaPartition(std::shared_ptr<Handler> handler,
                    std::shared_ptr<log::Log> log) : Partition{0} {}
 
   void Handle(const server::Event& evt) override {}

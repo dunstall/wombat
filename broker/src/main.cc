@@ -40,7 +40,7 @@ void Run(const std::filesystem::path& path) {
   }
 
   Router router{};
-  server::Responder responder{};
+  std::shared_ptr<Responder> responder = std::make_shared<Responder>();
   for (const PartitionConf& p : cfg->partitions()) {
     LOG(INFO) << "adding partition";
 
@@ -50,13 +50,13 @@ void Run(const std::filesystem::path& path) {
       case PartitionConf::Type::kLeader:
         // TODO(AD) Pass leader address and partition ID
         router.AddPartition(
-            std::make_unique<LeaderPartition>(responder.events(), log)
+            std::make_unique<LeaderPartition>(responder, log)
         );
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Pass leader address and aprtition ID
         router.AddPartition(
-            std::make_unique<ReplicaPartition>(responder.events(), log)
+            std::make_unique<ReplicaPartition>(responder, log)
         );
         break;
     }
