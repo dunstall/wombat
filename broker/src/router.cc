@@ -6,12 +6,12 @@
 #include <filesystem>
 
 #include "log/systemlog.h"
+#include "partition/event.h"
 #include "partition/partition.h"
-#include "server/event.h"
 
 namespace wombat::broker {
 
-bool Router::Route(const server::Event& evt) {
+bool Router::Route(const Event& evt) {
   if (partitions_.find(evt.message.partition_id()) != partitions_.end()) {
     partitions_.at(evt.message.partition_id())->Handle(evt);
     return true;

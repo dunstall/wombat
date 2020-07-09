@@ -11,11 +11,11 @@
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
+#include "partition/event.h"
 #include "partition/partition.h"
 #include "partition/leader.h"
 #include "partition/replica.h"
 #include "server/server.h"
-#include "server/responder.h"
 #include "util/threadable.h"
 
 namespace wombat::broker {
@@ -43,7 +43,6 @@ void Run(const std::filesystem::path& path) {
   }
 
   Router router{};
-  std::shared_ptr<Responder> responder = std::make_shared<Responder>();
   for (const PartitionConf& p : cfg->partitions()) {
     LOG(INFO) << "adding partition";
 
@@ -53,13 +52,13 @@ void Run(const std::filesystem::path& path) {
       case PartitionConf::Type::kLeader:
         // TODO(AD) Pass leader address and partition ID
         router.AddPartition(
-            std::make_unique<Leader>(responder, log)
+            std::make_unique<Leader>(0, nullptr, log)
         );
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Pass leader address and aprtition ID
         router.AddPartition(
-            std::make_unique<Replica>(responder, log)
+            std::make_unique<Replica>(nullptr, log)
         );
         break;
     }
@@ -69,7 +68,7 @@ void Run(const std::filesystem::path& path) {
   util::Threadable threadable_server(server);
 
   while (true) {
-    router.Route(server->events()->WaitAndPop());
+    // router.Route(server->events()->WaitAndPop());
   }
 }
 

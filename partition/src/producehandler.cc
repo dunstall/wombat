@@ -19,8 +19,9 @@ void ProduceHandler::Handle(const record::Message& msg) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid type";
     return;
   }
-  
-  const std::optional<record::Record> record = record::Record::Decode(msg.payload());
+
+  const std::optional<record::Record> record
+      = record::Record::Decode(msg.payload());
   if (!record) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid record";
     return;

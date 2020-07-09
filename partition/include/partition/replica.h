@@ -5,17 +5,17 @@
 #include <memory>
 
 #include "log/log.h"
+#include "partition/event.h"
 #include "partition/partition.h"
-#include "server/event.h"
 
 namespace wombat::broker {
 
 class Replica : public Partition {
  public:
-  Replica(std::shared_ptr<Handler> handler,
+  Replica(std::shared_ptr<Responder> responder,
           std::shared_ptr<log::Log> log) : Partition{0} {}
 
-  void Handle(const server::Event& evt) override {}
+  void Handle(const Event& evt) override {}
 };
 
 }  // namespace wombat::broker

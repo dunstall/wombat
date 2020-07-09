@@ -11,7 +11,7 @@ namespace wombat::broker {
 
 class ProduceHandler {
  public:
-  ProduceHandler(std::shared_ptr<log::Log> log);
+  explicit ProduceHandler(std::shared_ptr<log::Log> log);
 
   void Handle(const record::Message& msg);
 

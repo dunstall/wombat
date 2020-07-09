@@ -2,20 +2,54 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
+#include <thread>
 
 #include "log/log.h"
 #include "partition/partition.h"
-#include "server/event.h"
+#include "partition/consumehandler.h"
+#include "partition/producehandler.h"
+#include "record/record.h"
+#include "record/recordrequest.h"
 
 namespace wombat::broker {
 
 class Leader : public Partition {
  public:
-  Leader(std::shared_ptr<Handler> handler,
-         std::shared_ptr<log::Log> log) : Partition{0} {}
+  Leader(uint32_t id,
+         std::shared_ptr<Responder> responder,
+         std::shared_ptr<log::Log> log);
 
-  void Handle(const server::Event& evt) override {}
+  ~Leader() override;
+
+  Leader(const Leader& conn) = delete;
+  Leader& operator=(const Leader& conn) = delete;
+
+  Leader(Leader&& conn) = delete;
+  Leader& operator=(Leader&& conn) = delete;
+
+ private:
+  void Poll();
+
+  void Route(const Event& evt);
+
+  void Start();
+
+  void Stop();
+
+  ProduceHandler produce_;
+  ConsumeHandler consume_;
+
+  std::thread thread_;
+  std::atomic_bool running_;
+};
+
+class LeaderReplicationHandler {
+ public:
+  void Handle(const record::RecordRequest& request);
+
+  void Poll();
 };
 
 }  // namespace wombat::broker

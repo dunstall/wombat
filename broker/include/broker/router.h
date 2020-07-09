@@ -6,14 +6,14 @@
 #include <unordered_map>
 
 #include "log/log.h"
+#include "partition/event.h"
 #include "partition/partition.h"
-#include "server/event.h"
 
 namespace wombat::broker {
 
 class Router {
  public:
-  bool Route(const server::Event& evt);
+  bool Route(const Event& evt);
 
   void AddPartition(std::unique_ptr<Partition> partition);
 

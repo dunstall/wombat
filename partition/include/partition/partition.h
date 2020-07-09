@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "log/log.h"
-#include "server/event.h"
+#include "partition/event.h"
 
 namespace wombat::broker {
 
@@ -17,20 +17,12 @@ class Partition {
 
   uint32_t id() const { return id_; }
 
-  virtual void Handle(const server::Event& evt) = 0;
+  virtual void Handle(const Event& evt);
 
  protected:
+  EventQueue events_;
+
   uint32_t id_;
-};
-
-class Handler {
- public:
-  virtual void Handle(const server::Event& evt) = 0;
-};
-
-class Responder : public Handler {
- public:
-  void Handle(const server::Event& evt) {}
 };
 
 }  // namespace wombat::broker
