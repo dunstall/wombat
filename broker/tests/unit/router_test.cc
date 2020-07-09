@@ -6,6 +6,7 @@
 #include "broker/router.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "partition/partition.h"
 #include "record/message.h"
 #include "server/event.h"
 

@@ -6,6 +6,7 @@
 #include <filesystem>
 
 #include "log/systemlog.h"
+#include "partition/partition.h"
 #include "server/event.h"
 
 namespace wombat::broker {

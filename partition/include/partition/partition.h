@@ -2,27 +2,52 @@
 
 #pragma once
 
-#include <optional>
 #include <memory>
-#include <vector>
+#include <unordered_map>
 
-#include "record/message.h"
 #include "log/log.h"
+#include "server/event.h"
 
-namespace wombat::broker::partition {
+namespace wombat::broker {
 
 class Partition {
  public:
-  explicit Partition(std::shared_ptr<Log> log);
+  explicit Partition(uint32_t id) : id_{id} {}
 
-  std::optional<record::Message> Handle(const record::Message& message);
+  virtual ~Partition() {}
 
- private:
-  void Produce(const record::Message& message);
+  uint32_t id() const { return id_; }
 
-  std::optional<record::Message> Consume(const record::Message& message);
+  virtual void Handle(const server::Event& evt) = 0;
 
-  std::shared_ptr<Log> log_;
+ protected:
+  uint32_t id_;
 };
 
-}  // namespace wombat::broker::partition
+class Handler {
+ public:
+  virtual void Handle(const server::Event& evt) = 0;
+};
+
+class Responder : public Handler {
+ public:
+  void Handle(const server::Event& evt) {}
+};
+
+class LeaderPartition : public Partition {
+ public:
+  LeaderPartition(std::shared_ptr<Handler> handler,
+                  std::shared_ptr<log::Log> log) : Partition{0} {}
+
+  void Handle(const server::Event& evt) override {}
+};
+
+class ReplicaPartition : public Partition {
+ public:
+  ReplicaPartition(std::shared_ptr<Handler> handler,
+                   std::shared_ptr<log::Log> log) : Partition{0} {}
+
+  void Handle(const server::Event& evt) override {}
+};
+
+}  // namespace wombat::broker

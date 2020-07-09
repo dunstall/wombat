@@ -3,7 +3,13 @@ cc_library(
     srcs = glob(["src/*.cc"], exclude = ["src/main.cc"],),
     hdrs = glob(["include/broker/*.h"]),
     strip_include_prefix = "include/",
-    deps = ["//record:record", "//util:util", "//log:log", "//server:server"],
+    deps = [
+        "//record:record",
+        "//util:util",
+        "//log:log",
+        "//server:server",
+        "//partition:partition",
+    ],
 )
 
 cc_binary(
