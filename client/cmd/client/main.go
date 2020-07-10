@@ -28,6 +28,18 @@ func (h *MessageHeader) Encode() []byte {
 	return b
 }
 
+func DecodeHeader(b []byte) (MessageHeader, bool) {
+	if len(b) < 12 {
+		return MessageHeader{}, false
+	}
+
+	return MessageHeader{
+		Kind:        binary.BigEndian.Uint32(b[0:4]),
+		PartitionID: binary.BigEndian.Uint32(b[4:8]),
+		PayloadSize: binary.BigEndian.Uint32(b[8:12]),
+	}, true
+}
+
 type Message struct {
 	Header  MessageHeader
 	Payload []byte
@@ -53,6 +65,8 @@ func (r *Record) Encode() []byte {
 	b = append(b, r.data...)
 	return b
 }
+
+// TODO(AD) decode
 
 type RecordRequest struct {
 	offset uint32
@@ -104,6 +118,17 @@ func Consume(offset uint32, conn net.Conn) {
 		return
 	}
 	fmt.Println("consume", n)
+
+	b := make([]byte, 12)
+	fmt.Println(conn.Read(b))
+
+	header, _ := DecodeHeader(b)
+	b = make([]byte, header.PayloadSize)
+	fmt.Println(conn.Read(b))
+
+	fmt.Println("CONSUME RECEIVED")
+
+	fmt.Println(string(b))
 }
 
 func main() {
