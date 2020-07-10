@@ -54,6 +54,58 @@ func (r *Record) Encode() []byte {
 	return b
 }
 
+type RecordRequest struct {
+	offset uint32
+}
+
+func (r *RecordRequest) Encode() []byte {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, r.offset)
+	return b
+}
+
+func Produce(conn net.Conn) {
+	r := NewRecord([]byte("testdata"))
+
+	h := MessageHeader{
+		Kind:        ProduceRequest,
+		PartitionID: 0,
+		PayloadSize: uint32(len(r.Encode())),
+	}
+	m := Message{
+		Header:  h,
+		Payload: r.Encode(),
+	}
+
+	n, err := conn.Write(m.Encode())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("write", n)
+}
+
+func Consume(offset uint32, conn net.Conn) {
+	rr := RecordRequest{0}
+
+	h := MessageHeader{
+		Kind:        ConsumeRequest,
+		PartitionID: 0,
+		PayloadSize: uint32(len(rr.Encode())),
+	}
+	m := Message{
+		Header:  h,
+		Payload: rr.Encode(),
+	}
+
+	n, err := conn.Write(m.Encode())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("consume", n)
+}
+
 func main() {
 	conn, err := net.Dial("tcp", "localhost:3110")
 	if err != nil {
@@ -63,23 +115,7 @@ func main() {
 	defer conn.Close()
 
 	for {
-		r := NewRecord([]byte("testdata"))
-
-		h := MessageHeader{
-			Kind:        ProduceRequest,
-			PartitionID: 0,
-			PayloadSize: uint32(len(r.Encode())),
-		}
-		m := Message{
-			Header:  h,
-			Payload: r.Encode(),
-		}
-
-		n, err := conn.Write(m.Encode())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println("write", n)
+		// Produce(conn)
+		Consume(0, conn)
 	}
 }
