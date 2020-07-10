@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "server/connection.h"
+#include "server/tcpconnection.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -19,8 +19,8 @@
 
 namespace wombat::broker::server {
 
-Connection::Connection(int connfd, const struct sockaddr_in& addr)
-    : connfd_{connfd},
+TcpConnection::TcpConnection(int connfd, const struct sockaddr_in& addr)
+    : Connection(connfd, addr),
       incoming_buf_(kReadBufSize),
       state_(State::kHeaderPending),
       request_bytes_remaining_{record::MessageHeader::kSize} {
@@ -28,14 +28,14 @@ Connection::Connection(int connfd, const struct sockaddr_in& addr)
   LOG(INFO) << "accepted connection to " << address();
 }
 
-Connection::~Connection() {
+TcpConnection::~TcpConnection() {
   if (connfd_ >= 0) {
     LOG(INFO) << "closing connection to " << address();
     close(connfd_);
   }
 }
 
-Connection::Connection(Connection&& conn) {
+TcpConnection::TcpConnection(TcpConnection&& conn) {
   connfd_ = conn.connfd_;
   // Set to -1 so the socket is not closed.
   conn.connfd_ = -1;
@@ -45,7 +45,7 @@ Connection::Connection(Connection&& conn) {
   address_ = std::move(conn.address_);
 }
 
-Connection& Connection::operator=(Connection&& conn) {
+TcpConnection& TcpConnection::operator=(TcpConnection&& conn) {
   connfd_ = conn.connfd_;
   // Set to -1 so the socket is not closed.
   conn.connfd_ = -1;
@@ -55,7 +55,7 @@ Connection& Connection::operator=(Connection&& conn) {
   return *this;
 }
 
-std::optional<record::Message> Connection::Receive() {
+std::optional<record::Message> TcpConnection::Receive() {
   int n = read(
       connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_
   );
@@ -70,13 +70,13 @@ std::optional<record::Message> Connection::Receive() {
   return HandleRead(n);
 }
 
-bool Connection::Send(const std::vector<uint8_t> data) {
+bool TcpConnection::Send(const std::vector<uint8_t> data) {
   // TODO(AD) Use outgoing_buf_. For now just assume all data can be written.
   return (write(connfd_, data.data(), data.size())
       == static_cast<int>(data.size()));
 }
 
-std::optional<record::Message> Connection::HandleRead(int n) {
+std::optional<record::Message> TcpConnection::HandleRead(int n) {
   request_bytes_remaining_ -= n;
   n_read_ += n;
 
@@ -107,7 +107,7 @@ std::optional<record::Message> Connection::HandleRead(int n) {
   return std::nullopt;
 }
 
-std::string Connection::AddrToString(const struct sockaddr_in& addr) const {
+std::string TcpConnection::AddrToString(const struct sockaddr_in& addr) const {
   std::string s(INET_ADDRSTRLEN, '\0');
   inet_ntop(
       AF_INET,

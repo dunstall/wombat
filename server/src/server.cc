@@ -16,8 +16,8 @@
 #include <vector>
 
 #include "glog/logging.h"
-#include "server/connection.h"
 #include "server/serverexception.h"
+#include "server/tcpconnection.h"
 
 namespace wombat::broker::server {
 
@@ -96,7 +96,7 @@ void Server::Accept() {
       fds_[i].events = POLLRDNORM | POLLWRNORM | POLLERR;
       max_fd_index_ = std::max(max_fd_index_, i);
       connections_.emplace(
-          connfd, std::make_shared<Connection>(connfd, cliaddr)
+          connfd, std::make_shared<TcpConnection>(connfd, cliaddr)
       );
       return;
     }

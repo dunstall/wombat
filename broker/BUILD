@@ -4,6 +4,7 @@ cc_library(
     hdrs = glob(["include/broker/*.h"]),
     strip_include_prefix = "include/",
     deps = [
+        "//event:event",
         "//record:record",
         "//util:util",
         "//log:log",

@@ -11,9 +11,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "event/event.h"
+#include "event/connection.h"
 #include "util/pollable.h"
-#include "server/connection.h"
-#include "server/event.h"
 
 namespace wombat::broker::server {
 

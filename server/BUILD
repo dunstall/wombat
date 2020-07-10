@@ -3,6 +3,11 @@ cc_library(
     srcs = glob(["src/*.cc"]),
     hdrs = glob(["include/server/*.h"]),
     strip_include_prefix = "include/",
-    deps = ["//record:record", "//util:util", "@glog//:glog"],
+    deps = [
+        "@glog//:glog",
+        "//event:event",
+        "//record:record",
+        "//util:util",
+    ],
     visibility = ["//visibility:public"],
 )

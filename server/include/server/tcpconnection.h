@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "event/connection.h"
 #include "glog/logging.h"
 #include "record/message.h"
 
@@ -22,32 +23,21 @@ namespace wombat::broker::server {
 
 class ConnectionException : public std::exception {};
 
-class Connection {
+class TcpConnection : public Connection {
  public:
-  Connection(int connfd, const struct sockaddr_in& addr);
+  TcpConnection(int connfd, const struct sockaddr_in& addr);
 
-  ~Connection();
+  virtual ~TcpConnection();
 
-  Connection(const Connection& conn) = delete;
-  Connection& operator=(const Connection& conn) = delete;
+  TcpConnection(const TcpConnection& conn) = delete;
+  TcpConnection& operator=(const TcpConnection& conn) = delete;
 
-  Connection(Connection&& conn);
-  Connection& operator=(Connection&& conn);
+  TcpConnection(TcpConnection&& conn);
+  TcpConnection& operator=(TcpConnection&& conn);
 
-  int connfd() const { return connfd_; }
+  std::optional<record::Message> Receive() override;
 
-  std::string address() const { return address_; }
-
-  // Returns the request received from the connection or nullopt if no request
-  // has been received. If an error occurs or the connection is closed throws
-  // a ConnectionException.
-  std::optional<record::Message> Receive();
-
-  // Adds data to the outgoing buffer (if not empty) and attempts to write
-  // to the connection. Returns true if the outgoing buffer was fully sent
-  // otherwise false. If an error occurs or the connection is closed throws
-  // a ConnectionException.
-  bool Send(const std::vector<uint8_t> data);
+  bool Send(const std::vector<uint8_t> data) override;
 
  private:
   enum class State {

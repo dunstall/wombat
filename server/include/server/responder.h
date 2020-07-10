@@ -6,7 +6,7 @@
 #include <memory>
 #include <thread>
 
-#include "server/event.h"
+#include "event/event.h"
 
 namespace wombat::broker::server {
 

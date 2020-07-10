@@ -25,7 +25,12 @@ class MockResponder : public Responder {
   MOCK_METHOD(void, Respond, (const Event& evt), (override));
 };
 
-class FakeConnection : public Connection {};
+class FakeConnection : public Connection {
+ public:
+  std::optional<record::Message> Receive() override { return std::nullopt; }
+
+  bool Send(const std::vector<uint8_t> data) override { return false; }
+};
 
 class ConsumeHandlerTest : public ::testing::Test {};
 
