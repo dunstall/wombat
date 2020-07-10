@@ -68,7 +68,7 @@ void Run(const std::filesystem::path& path) {
   util::Threadable threadable_server(server);
 
   while (true) {
-    // router.Route(server->events()->WaitAndPop());
+    router.Route(server->events()->WaitAndPop());
   }
 }
 
