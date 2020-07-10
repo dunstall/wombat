@@ -4,8 +4,8 @@
 
 #include <memory>
 
+#include "event/event.h"
 #include "log/log.h"
-#include "partition/event.h"
 #include "record/message.h"
 #include "record/record.h"
 

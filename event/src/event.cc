@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "partition/event.h"
+#include "event/event.h"
 
 #include <memory>
 

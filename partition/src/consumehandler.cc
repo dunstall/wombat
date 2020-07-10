@@ -4,9 +4,9 @@
 
 #include <memory>
 
+#include "event/event.h"
 #include "glog/logging.h"
 #include "log/log.h"
-#include "partition/event.h"
 #include "record/record.h"
 #include "record/recordrequest.h"
 

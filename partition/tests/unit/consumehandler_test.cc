@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <vector>
 
+#include "event/event.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
 #include "partition/consumehandler.h"
-#include "partition/event.h"
 #include "record/message.h"
 #include "record/record.h"
 #include "record/recordrequest.h"

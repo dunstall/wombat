@@ -5,8 +5,8 @@
 #include <memory>
 #include <filesystem>
 
+#include "event/event.h"
 #include "log/systemlog.h"
-#include "partition/event.h"
 #include "partition/partition.h"
 
 namespace wombat::broker {

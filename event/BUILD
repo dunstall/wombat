@@ -1,13 +1,10 @@
 cc_library(
-    name = "partition",
+    name = "event",
     srcs = glob(["src/*.cc"]),
-    hdrs = glob(["include/partition/*.h"]),
+    hdrs = glob(["include/event/*.h"]),
     strip_include_prefix = "include/",
     linkopts = ["-lstdc++fs"],
     deps = [
-        "@glog//:glog",
-        "//event:event",
-        "//log:log",
         "//record:record",
         "//util:util",
     ],
@@ -15,11 +12,11 @@ cc_library(
 )
 
 cc_test(
-    name = "partition-test",
+    name = "event-test",
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
         "@gtest//:gtest_main",
-        ":partition"
+        ":event"
     ],
 )

@@ -2,7 +2,7 @@
 
 #include "partition/partition.h"
 
-#include "partition/event.h"
+#include "event/event.h"
 
 namespace wombat::broker {
 

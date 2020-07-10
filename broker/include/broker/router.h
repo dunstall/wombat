@@ -5,8 +5,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "event/event.h"
 #include "log/log.h"
-#include "partition/event.h"
 #include "partition/partition.h"
 
 namespace wombat::broker {

@@ -32,7 +32,6 @@ class Connection {
   Connection& operator=(const Connection& conn) = delete;
 
   Connection(Connection&& conn);
-
   Connection& operator=(Connection&& conn);
 
   int connfd() const { return connfd_; }

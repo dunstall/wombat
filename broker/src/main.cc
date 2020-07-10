@@ -8,13 +8,12 @@
 
 #include "broker/conf.h"
 #include "broker/router.h"
+#include "event/event.h"
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
-#include "partition/event.h"
 #include "partition/partition.h"
 #include "partition/leader.h"
-#include "partition/replica.h"
 #include "server/server.h"
 #include "util/threadable.h"
 
@@ -44,7 +43,7 @@ void Run(const std::filesystem::path& path) {
 
   Router router{};
   for (const PartitionConf& p : cfg->partitions()) {
-    LOG(INFO) << "adding partition";
+    LOG(INFO) << "adding partition " << p.id();
 
     std::shared_ptr<log::Log> log = std::make_shared<log::SystemLog>(p.path());
 
@@ -57,9 +56,10 @@ void Run(const std::filesystem::path& path) {
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Pass leader address and aprtition ID
-        router.AddPartition(
-            std::make_unique<Replica>(nullptr, log)
-        );
+        // TODO(AD) Only supporting leader for now
+        // router.AddPartition(
+            // std::make_unique<Replica>(nullptr, log)
+        // );
         break;
     }
   }

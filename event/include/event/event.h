@@ -4,15 +4,11 @@
 
 #include <memory>
 
+#include "event/connection.h"
 #include "record/message.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker {
-
-class Connection {
- public:
-  virtual ~Connection() {}
-};
 
 struct Event {
   Event(record::Message _message, std::shared_ptr<Connection> _connection);
