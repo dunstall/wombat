@@ -34,7 +34,7 @@ class Connection {
 
   virtual bool Send(const std::vector<uint8_t> data) = 0;
 
- private:
+ protected:
   int connfd_;
 
   std::string address_;

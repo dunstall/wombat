@@ -83,7 +83,7 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   close(sock3);
 }
 
-TEST_F(ServerTest, TestSendRequests) {
+TEST_F(ServerTest, TestSendMessages) {
   const uint16_t port = RandomPort();
   std::shared_ptr<Server> server = std::make_shared<Server>(port);
   util::Threadable threadable_server(server);
@@ -93,7 +93,7 @@ TEST_F(ServerTest, TestSendRequests) {
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Request request{record::RequestType::kProduce, payload};
+  const record::Message request{record::MessageType::kProduceRequest, 0, payload};
   const std::vector<uint8_t> encoded = request.Encode();
 
   const int n_requests = 3;
@@ -107,13 +107,13 @@ TEST_F(ServerTest, TestSendRequests) {
   for (int i = 0; i != n_requests; ++i) {
     std::optional<Event> e = server->events()->WaitForAndPop(100ms);
     ASSERT_TRUE(e);
-    EXPECT_EQ(request, e->request);
+    EXPECT_EQ(request, e->message);
   }
 
   close(sock);
 }
 
-TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
+TEST_F(ServerTest, TestSendMessagesOneByteAtATime) {
   const uint16_t port = RandomPort();
   std::shared_ptr<Server> server = std::make_shared<Server>(port);
   util::Threadable threadable_server(server);
@@ -123,7 +123,7 @@ TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Request request{record::RequestType::kProduce, payload};
+  const record::Message request{record::MessageType::kProduceRequest, 0, payload};
   const std::vector<uint8_t> encoded = request.Encode();
 
   const int n_requests = 3;
@@ -139,7 +139,7 @@ TEST_F(ServerTest, TestSendRequestsOneByteAtATime) {
   for (int i = 0; i != n_requests; ++i) {
     std::optional<Event> e = server->events()->WaitForAndPop(100ms);
     ASSERT_TRUE(e);
-    EXPECT_EQ(request, e->request);
+    EXPECT_EQ(request, e->message);
   }
 
   close(sock);

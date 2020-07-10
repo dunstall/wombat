@@ -11,3 +11,13 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
+
+cc_test(
+    name = "server-integration-test",
+    srcs = glob(["tests/integration/*.cc"]),
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        "@gtest//:gtest_main",
+        ":server"
+    ],
+)

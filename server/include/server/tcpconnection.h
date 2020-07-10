@@ -51,13 +51,9 @@ class TcpConnection : public Connection {
 
   std::string AddrToString(const struct sockaddr_in& addr) const;
 
-  int connfd_;
-
   std::vector<uint8_t> outgoing_buf_;
 
   std::vector<uint8_t> incoming_buf_;
-
-  std::string address_;
 
   State state_;
   int request_bytes_remaining_;
