@@ -9,6 +9,7 @@
 #include "broker/conf.h"
 #include "broker/router.h"
 #include "event/event.h"
+#include "event/responder.h"
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
@@ -52,7 +53,7 @@ void Run(const std::filesystem::path& path) {
       case PartitionConf::Type::kLeader:
         // TODO(AD) Pass leader address and partition ID
         router.AddPartition(
-            std::make_unique<Leader>(0, nullptr, log)
+            std::make_unique<Leader>(0, std::make_shared<Responder>(), log)
         );
         break;
       case PartitionConf::Type::kReplica:

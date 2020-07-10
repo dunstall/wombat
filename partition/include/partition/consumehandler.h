@@ -5,16 +5,12 @@
 #include <memory>
 
 #include "event/event.h"
+#include "event/responder.h"
 #include "log/log.h"
 #include "record/message.h"
 #include "record/record.h"
 
 namespace wombat::broker {
-
-class Responder {
- public:
-  virtual void Respond(const Event& evt) = 0;
-};
 
 class ConsumeHandler {
  public:

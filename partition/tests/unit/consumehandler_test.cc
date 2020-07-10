@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "event/event.h"
+#include "event/responder.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
