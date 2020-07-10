@@ -7,7 +7,7 @@
 namespace wombat::broker {
 
 void Partition::Handle(const Event& evt) {
-  // events_.Push(evt);
+  events_.Push(evt);
 }
 
 }  // namespace wombat::broker

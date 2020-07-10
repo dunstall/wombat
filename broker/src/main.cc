@@ -42,6 +42,7 @@ void Run(const std::filesystem::path& path) {
   }
 
   Router router{};
+  // TODO(AD) Currently only supports a single partition.
   for (const PartitionConf& p : cfg->partitions()) {
     LOG(INFO) << "adding partition " << p.id();
 
