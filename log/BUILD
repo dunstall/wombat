@@ -19,3 +19,13 @@ cc_test(
         ":log"
     ],
 )
+
+cc_test(
+    name = "log-integration-test",
+    srcs = glob(["tests/integration/*.cc"]),
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        "@gtest//:gtest_main",
+        ":log"
+    ],
+)
