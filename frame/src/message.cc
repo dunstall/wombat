@@ -8,7 +8,7 @@
 
 #include "frame/utils.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 Message::Message(Type type,
                  uint32_t partition_id,
@@ -53,4 +53,4 @@ std::optional<Message> Message::Decode(const std::vector<uint8_t>& enc) {
   };
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

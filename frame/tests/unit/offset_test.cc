@@ -6,7 +6,7 @@
 #include "frame/offset.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class OffsetTest : public ::testing::Test {};
 
@@ -39,4 +39,4 @@ TEST_F(OffsetTest, DecodeTooSmall) {
   EXPECT_FALSE(Offset::Decode(enc));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

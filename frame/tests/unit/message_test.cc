@@ -6,7 +6,7 @@
 #include "frame/message.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class MessageTest : public ::testing::Test {};
 
@@ -116,4 +116,4 @@ TEST_F(MessageTest, DecodePayloadExceedsSize) {
   EXPECT_EQ(expected, *Message::Decode(enc));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

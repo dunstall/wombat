@@ -11,13 +11,13 @@
 namespace wombat::broker {
 
 struct Event {
-  Event(Message _message, std::shared_ptr<Connection> _connection);
+  Event(frame::Message _message, std::shared_ptr<Connection> _connection);
 
   bool operator==(const Event& evt) const;
 
   bool operator!=(const Event& evt) const;
 
-  Message message;
+  frame::Message message;
   std::shared_ptr<Connection> connection;
 };
 

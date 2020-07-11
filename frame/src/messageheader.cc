@@ -8,7 +8,7 @@
 
 #include "frame/utils.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 MessageHeader::MessageHeader(Type type,
                              uint32_t partition_id,
@@ -64,4 +64,4 @@ std::optional<MessageHeader> MessageHeader::Decode(
   return MessageHeader{static_cast<Type>(*type), *id, *payload_size};
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

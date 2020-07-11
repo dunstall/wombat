@@ -8,7 +8,7 @@
 
 namespace wombat::broker {
 
-Event::Event(Message _message, std::shared_ptr<Connection> _connection)
+Event::Event(frame::Message _message, std::shared_ptr<Connection> _connection)
     : message{_message}, connection{_connection} {
 }
 

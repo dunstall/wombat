@@ -3,7 +3,7 @@
 #include "frame/record.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class RecordTest : public ::testing::Test {};
 
@@ -68,4 +68,4 @@ TEST_F(RecordTest, DecodeSizesDontMatch) {
   EXPECT_FALSE(Record::Decode(enc));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

@@ -8,7 +8,7 @@
 
 #include "frame/utils.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 Offset::Offset(uint32_t offset) : offset_{offset} {}
 
@@ -33,4 +33,4 @@ std::optional<Offset> Offset::Decode(
   return std::optional<Offset>{*offset};
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

@@ -8,7 +8,7 @@
 
 #include "frame/frame.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class Offset : public Frame {
  public:
@@ -30,4 +30,4 @@ class Offset : public Frame {
   uint32_t offset_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

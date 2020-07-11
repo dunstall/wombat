@@ -6,7 +6,7 @@
 #include "frame/messageheader.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class MessageHeaderTest : public ::testing::Test {};
 
@@ -89,4 +89,4 @@ TEST_F(MessageHeaderTest, DecodeExceedsLimit) {
   EXPECT_FALSE(MessageHeader::Decode(enc));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

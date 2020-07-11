@@ -35,9 +35,9 @@ class TcpConnection : public Connection {
   TcpConnection(TcpConnection&& conn);
   TcpConnection& operator=(TcpConnection&& conn);
 
-  std::optional<Message> Receive() override;
+  std::optional<frame::Message> Receive() override;
 
-  bool Send(const Message& msg) override;
+  bool Send(const frame::Message& msg) override;
 
  private:
   enum class State {
@@ -47,7 +47,7 @@ class TcpConnection : public Connection {
 
   static const size_t kReadBufSize = 1024;
 
-  std::optional<Message> HandleRead(int n);
+  std::optional<frame::Message> HandleRead(int n);
 
   std::string AddrToString(const struct sockaddr_in& addr) const;
 
@@ -58,7 +58,7 @@ class TcpConnection : public Connection {
   State state_;
   int request_bytes_remaining_;
   int n_read_ = 0;
-  std::optional<MessageHeader> header_;
+  std::optional<frame::MessageHeader> header_;
 };
 
 }  // namespace wombat::broker::server

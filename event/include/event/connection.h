@@ -30,9 +30,9 @@ class Connection {
 
   std::string address() const { return address_; }
 
-  virtual std::optional<Message> Receive() = 0;
+  virtual std::optional<frame::Message> Receive() = 0;
 
-  virtual bool Send(const Message& msg) = 0;
+  virtual bool Send(const frame::Message& msg) = 0;
 
  protected:
   int connfd_;

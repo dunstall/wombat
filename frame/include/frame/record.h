@@ -8,7 +8,7 @@
 
 #include "frame/frame.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class Record : public Frame {
  public:
@@ -33,4 +33,4 @@ class Record : public Frame {
   std::vector<uint8_t> data_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

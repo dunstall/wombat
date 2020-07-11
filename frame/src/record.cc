@@ -9,7 +9,7 @@
 
 #include "frame/utils.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 constexpr uint32_t Record::kLimit;
 
@@ -47,4 +47,4 @@ std::optional<Record> Record::Decode(
   return std::optional<Record>{data};
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

@@ -21,9 +21,9 @@ class ConsumeHandler {
   void Handle(const Event& evt);
 
  private:
-  bool IsValidType(const Message& msg) const;
+  bool IsValidType(const frame::Message& msg) const;
 
-  std::optional<Record> Lookup(uint32_t offset) const;
+  std::optional<frame::Record> Lookup(uint32_t offset) const;
 
   std::shared_ptr<Responder> responder_;
 

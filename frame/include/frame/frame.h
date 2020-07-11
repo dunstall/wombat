@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 // Represents arbitrary data that can be encoded and decoding by prefixing the
 // size.
@@ -16,4 +16,4 @@ class Frame {
   virtual std::vector<uint8_t> Encode() const = 0;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

@@ -111,7 +111,7 @@ void Server::Read(int i) {
   int connfd = fds_[i].fd;
   std::shared_ptr<Connection> conn = connections_.at(connfd);
   try {
-    std::optional<Message> request = conn->Receive();
+    std::optional<frame::Message> request = conn->Receive();
     if (request) {
       Event e{*request, conn};
       event_queue_->Push(e);

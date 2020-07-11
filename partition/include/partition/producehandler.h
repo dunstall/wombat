@@ -13,7 +13,7 @@ class ProduceHandler {
  public:
   explicit ProduceHandler(std::shared_ptr<log::Log> log);
 
-  void Handle(const Message& msg);
+  void Handle(const frame::Message& msg);
 
  private:
   std::shared_ptr<log::Log> log_;

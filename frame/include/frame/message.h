@@ -9,7 +9,7 @@
 #include "frame/frame.h"
 #include "frame/messageheader.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 class Message : public Frame {
  public:
@@ -42,4 +42,4 @@ class Message : public Frame {
   std::vector<uint8_t> payload_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

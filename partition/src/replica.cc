@@ -43,10 +43,10 @@ void Replica::Poll() {
 // Can move to Partition where only Poll is overridden
 void Replica::Route(const Event& evt) {
   switch (evt.message.type()) {
-    case Type::kConsumeRequest:
+    case frame::Type::kConsumeRequest:
       consume_.Handle(evt);
       break;
-    case Type::kStatRequest:
+    case frame::Type::kStatRequest:
       stat_.Handle(evt);
       break;
     default:

@@ -14,14 +14,14 @@ namespace wombat::broker {
 
 ProduceHandler::ProduceHandler(std::shared_ptr<log::Log> log) : log_{log} {}
 
-void ProduceHandler::Handle(const Message& msg) {
-  if (msg.type() != Type::kProduceRequest) {
+void ProduceHandler::Handle(const frame::Message& msg) {
+  if (msg.type() != frame::Type::kProduceRequest) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid type";
     return;
   }
 
-  const std::optional<Record> record
-      = Record::Decode(msg.payload());
+  const std::optional<frame::Record> record
+      = frame::Record::Decode(msg.payload());
   if (!record) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid record";
     return;

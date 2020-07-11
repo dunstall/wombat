@@ -8,7 +8,7 @@
 
 #include "frame/frame.h"
 
-namespace wombat::broker {
+namespace wombat::broker::frame {
 
 enum class Type : uint32_t {
   kProduceRequest,
@@ -55,4 +55,4 @@ class MessageHeader : public Frame {
   uint32_t payload_size_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::frame

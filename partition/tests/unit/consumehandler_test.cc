@@ -28,9 +28,9 @@ class MockResponder : public Responder {
 
 class FakeConnection : public Connection {
  public:
-  std::optional<Message> Receive() override { return std::nullopt; }
+  std::optional<frame::Message> Receive() override { return std::nullopt; }
 
-  bool Send(const Message& msg) override { return false; }
+  bool Send(const frame::Message& msg) override { return false; }
 };
 
 class ConsumeHandlerTest : public ::testing::Test {};
@@ -41,7 +41,7 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
   ConsumeHandler handler{responder, log};
 
   const std::vector<uint8_t> payload{1, 2, 3, 4, 5};
-  const Record record{payload};
+  const frame::Record record{payload};
   const std::vector<uint8_t> encoded = record.Encode();
   const std::vector<uint8_t> encoded_size(
       encoded.begin(), encoded.begin() + 4
@@ -53,15 +53,15 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
   EXPECT_CALL(*log, Lookup(offset, encoded.size()))
       .WillOnce(::testing::Return(encoded));
 
-  const Offset rr{offset};
-  const Message msg{
-      Type::kConsumeRequest, 0, rr.Encode()
+  const frame::Offset rr{offset};
+  const frame::Message msg{
+      frame::Type::kConsumeRequest, 0, rr.Encode()
   };
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
-  const Message expected_response{
-      Type::kConsumeResponse, 0, record.Encode()
+  const frame::Message expected_response{
+      frame::Type::kConsumeResponse, 0, record.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -77,15 +77,15 @@ TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
   EXPECT_CALL(*log, Lookup(offset, sizeof(uint32_t)))
       .WillOnce(::testing::Return(std::vector<uint8_t>()));
 
-  const Offset rr{offset};
-  const Message msg{
-      Type::kConsumeRequest, 0, rr.Encode()
+  const frame::Offset rr{offset};
+  const frame::Message msg{
+      frame::Type::kConsumeRequest, 0, rr.Encode()
   };
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
-  const Message expected_response{
-      Type::kConsumeResponse, 0, Record{}.Encode()
+  const frame::Message expected_response{
+      frame::Type::kConsumeResponse, 0, frame::Record{}.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -98,8 +98,8 @@ TEST_F(ConsumeHandlerTest, HandleUnrecognizedType) {
   ConsumeHandler handler{responder, log};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-  const Message msg{
-      Type::kProduceRequest, 0, {0, 1, 2, 3, 4}
+  const frame::Message msg{
+      frame::Type::kProduceRequest, 0, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(Event{msg, conn});
@@ -111,8 +111,8 @@ TEST_F(ConsumeHandlerTest, HandleInvalidOffset) {
   ConsumeHandler handler{responder, log};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-  const Message msg{
-      Type::kConsumeRequest, 0, {0xff}
+  const frame::Message msg{
+      frame::Type::kConsumeRequest, 0, {0xff}
   };
 
   handler.Handle(Event{msg, conn});

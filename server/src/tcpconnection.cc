@@ -23,7 +23,7 @@ TcpConnection::TcpConnection(int connfd, const struct sockaddr_in& addr)
     : Connection(connfd, addr),
       incoming_buf_(kReadBufSize),
       state_(State::kHeaderPending),
-      request_bytes_remaining_{MessageHeader::kSize} {
+      request_bytes_remaining_{frame::MessageHeader::kSize} {
   address_ = AddrToString(addr);
   LOG(INFO) << "accepted connection to " << address();
 }
@@ -55,7 +55,7 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& conn) {
   return *this;
 }
 
-std::optional<Message> TcpConnection::Receive() {
+std::optional<frame::Message> TcpConnection::Receive() {
   int n = read(
       connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_
   );
@@ -70,19 +70,19 @@ std::optional<Message> TcpConnection::Receive() {
   return HandleRead(n);
 }
 
-bool TcpConnection::Send(const Message& msg) {
+bool TcpConnection::Send(const frame::Message& msg) {
   // TODO(AD) Use outgoing_buf_. For now just assume all data can be written.
   const std::vector<uint8_t> data = msg.Encode();
   return (write(connfd_, data.data(), data.size())
       == static_cast<int>(data.size()));
 }
 
-std::optional<Message> TcpConnection::HandleRead(int n) {
+std::optional<frame::Message> TcpConnection::HandleRead(int n) {
   request_bytes_remaining_ -= n;
   n_read_ += n;
 
   if (state_ == State::kHeaderPending && request_bytes_remaining_ == 0) {
-    header_ = MessageHeader::Decode(incoming_buf_);
+    header_ = frame::MessageHeader::Decode(incoming_buf_);
     if (!header_) {
       LOG(WARNING) << "received invalid request header (" << address() << ")";
       throw ConnectionException{};
@@ -94,15 +94,15 @@ std::optional<Message> TcpConnection::HandleRead(int n) {
     if (request_bytes_remaining_ != 0) {
       state_ = State::kPayloadPending;
     } else {
-      request_bytes_remaining_ = MessageHeader::kSize;
-      return Message{*header_, {}};
+      request_bytes_remaining_ = frame::MessageHeader::kSize;
+      return frame::Message{*header_, {}};
     }
   } else if (state_ == State::kPayloadPending
       && request_bytes_remaining_ == 0) {
     state_ = State::kHeaderPending;
-    request_bytes_remaining_ = MessageHeader::kSize;
+    request_bytes_remaining_ = frame::MessageHeader::kSize;
     n_read_ = 0;
-    return Message{
+    return frame::Message{
         *header_,
         std::vector<uint8_t>(
             incoming_buf_.begin(),
