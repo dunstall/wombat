@@ -16,7 +16,7 @@ MessageHeader::MessageHeader(MessageType type,
                              uint32_t partition_id,
                              uint32_t payload_size)
     : type_{type}, partition_id_{partition_id}, payload_size_{payload_size} {
-  if (payload_size_ > kLimit || payload_size == 0) {
+  if (payload_size_ > kLimit) {
     throw std::invalid_argument{"invalid payload size"};
   }
 }

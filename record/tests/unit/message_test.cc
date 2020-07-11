@@ -27,13 +27,6 @@ TEST_F(MessageHeaderTest, ExceedSizeLimit) {
   );
 }
 
-TEST_F(MessageHeaderTest, ZeroSize) {
-  EXPECT_THROW(
-      MessageHeader(MessageType::kProduceRequest, 0, 0),
-      std::invalid_argument
-  );
-}
-
 TEST_F(MessageHeaderTest, Encode) {
   const MessageType type = MessageType::kConsumeRequest;
   const uint32_t partition_id = 0xaabbccdd;
@@ -81,16 +74,6 @@ TEST_F(MessageHeaderTest, DecodeHeaderTooSmall) {
     0x00, 0x00, 0x00, 0x01,
     0x00, 0x00, 0x00, 0x00,
     0x00, 0x00,
-  };
-
-  EXPECT_FALSE(MessageHeader::Decode(enc));
-}
-
-TEST_F(MessageHeaderTest, DecodeZeroPayload) {
-  std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,
-    0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00
   };
 
   EXPECT_FALSE(MessageHeader::Decode(enc));
