@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/dunstall/wombat/pkg/record"
 )
 
 type Consumer struct {

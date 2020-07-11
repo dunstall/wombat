@@ -3,7 +3,7 @@ package producer
 import (
 	"net"
 
-	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/dunstall/wombat/pkg/record"
 )
 
 type Producer struct {
