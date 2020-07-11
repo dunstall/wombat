@@ -64,3 +64,48 @@ func DecodeMessageHeader(b []byte) (MessageHeader, bool) {
 		binary.BigEndian.Uint32(b[8:12]),
 	)
 }
+
+type Message struct {
+	header  MessageHeader
+	payload []byte
+}
+
+func NewMessage(kind uint32, partitionID uint32, payload []byte) (Message, bool) {
+	header, ok := NewMessageHeader(kind, partitionID, uint32(len(payload)))
+	if !ok {
+		return Message{}, false
+	}
+	return Message{header, payload}, true
+}
+
+func (m *Message) Kind() uint32 {
+	return m.header.kind
+}
+
+func (m *Message) PartitionID() uint32 {
+	return m.header.partitionID
+}
+
+func (m *Message) Payload() []byte {
+	return m.payload
+}
+
+func (m *Message) Encode() []byte {
+	b := m.header.Encode()
+	return append(b, m.payload...)
+}
+
+func DecodeMessage(b []byte) (Message, bool) {
+	header, ok := DecodeMessageHeader(b)
+	if !ok {
+		return Message{}, false
+	}
+
+	if uint32(len(b)) < MessageHeaderSize+header.PayloadSize() {
+		return Message{}, false
+	}
+	return Message{
+		header,
+		b[MessageHeaderSize : MessageHeaderSize+header.PayloadSize()],
+	}, true
+}
