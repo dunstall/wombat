@@ -5,8 +5,9 @@
 #include <memory>
 
 #include "event/event.h"
+#include "frame/offset.h"
 #include "frame/record.h"
-#include "frame/recordrequest.h"
+#include "frame/utils.h"
 #include "glog/logging.h"
 #include "log/log.h"
 
@@ -22,8 +23,8 @@ void ConsumeHandler::Handle(const Event& evt) {
     return;
   }
 
-  const std::optional<RecordRequest> rr
-      = RecordRequest::Decode(evt.message.payload());
+  const std::optional<Offset> rr
+      = Offset::Decode(evt.message.payload());
   if (!rr) {
     LOG(ERROR) << "ConsumeHandler::Handle called with invalid request";
     return;
@@ -33,7 +34,7 @@ void ConsumeHandler::Handle(const Event& evt) {
   if (!record) {
     // If the offset is not found return empty record.
     const Message msg{
-      MessageType::kConsumeResponse, 0, Record{}.Encode()
+      Type::kConsumeResponse, 0, Record{}.Encode()
     };
     responder_->Respond({msg, evt.connection});
     return;
@@ -41,14 +42,14 @@ void ConsumeHandler::Handle(const Event& evt) {
 
   // TODO(AD) Need partition ID
   const Message msg{
-    MessageType::kConsumeResponse, 0, record->Encode()
+    Type::kConsumeResponse, 0, record->Encode()
   };
 
   responder_->Respond({msg, evt.connection});
 }
 
 bool ConsumeHandler::IsValidType(const Message& msg) const {
-  return msg.type() == MessageType::kConsumeRequest;
+  return msg.type() == Type::kConsumeRequest;
 }
 
 std::optional<Record> ConsumeHandler::Lookup(uint32_t offset) const {

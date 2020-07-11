@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "event/event.h"
-#include "frame/statresponse.h"
+#include "frame/offset.h"
 #include "glog/logging.h"
 #include "log/log.h"
 
@@ -21,18 +21,18 @@ void StatHandler::Handle(const Event& evt) {
     return;
   }
 
-  const StatResponse stat{log_->size()};
+  const Offset stat{log_->size()};
 
   // TODO(AD) Need partition ID
   const Message msg{
-    MessageType::kStatResponse, 0, stat.Encode()
+    Type::kStatResponse, 0, stat.Encode()
   };
 
   responder_->Respond({msg, evt.connection});
 }
 
 bool StatHandler::IsValidType(const Message& msg) const {
-  return msg.type() == MessageType::kStatRequest;
+  return msg.type() == Type::kStatRequest;
 }
 
 }  // namespace wombat::broker

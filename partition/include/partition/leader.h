@@ -6,8 +6,6 @@
 #include <memory>
 #include <thread>
 
-#include "frame/record.h"
-#include "frame/recordrequest.h"
 #include "log/log.h"
 #include "partition/consumehandler.h"
 #include "partition/partition.h"

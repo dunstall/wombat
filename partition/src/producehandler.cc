@@ -15,7 +15,7 @@ namespace wombat::broker {
 ProduceHandler::ProduceHandler(std::shared_ptr<log::Log> log) : log_{log} {}
 
 void ProduceHandler::Handle(const Message& msg) {
-  if (msg.type() != MessageType::kProduceRequest) {
+  if (msg.type() != Type::kProduceRequest) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid type";
     return;
   }

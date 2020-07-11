@@ -5,8 +5,8 @@
 
 #include "event/event.h"
 #include "event/responder.h"
+#include "frame/offset.h"
 #include "frame/message.h"
-#include "frame/statresponse.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
@@ -43,13 +43,13 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>(log_size);
   StatHandler handler{responder, log};
 
-  const Message msg{MessageType::kStatRequest, 0, {}};
+  const Message msg{Type::kStatRequest, 0, {}};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
-  const StatResponse stat{log_size};
+  const Offset stat{log_size};
   const Message expected_response{
-      MessageType::kStatResponse, 0, stat.Encode()
+      Type::kStatResponse, 0, stat.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -63,7 +63,7 @@ TEST_F(StatHandlerTest, HandleUnrecognizedType) {
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const Message msg{
-      MessageType::kProduceRequest, 0, {0, 1, 2, 3, 4}
+      Type::kProduceRequest, 0, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(Event{msg, conn});

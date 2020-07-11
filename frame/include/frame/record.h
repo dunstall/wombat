@@ -6,21 +6,23 @@
 #include <optional>
 #include <vector>
 
+#include "frame/frame.h"
+
 namespace wombat::broker {
 
-class Record {
+class Record : public Frame {
  public:
   Record() = default;
 
   explicit Record(const std::vector<uint8_t>& data);
 
-  ~Record() {}
+  ~Record() override {}
 
   bool operator==(const Record& record) const;
 
   std::vector<uint8_t> data() const { return data_; }
 
-  std::vector<uint8_t> Encode() const;
+  std::vector<uint8_t> Encode() const override;
 
   static std::optional<Record> Decode(const std::vector<uint8_t>& data);
 
@@ -30,9 +32,5 @@ class Record {
 
   std::vector<uint8_t> data_;
 };
-
-std::vector<uint8_t> EncodeU32(uint32_t n);
-
-std::optional<uint32_t> DecodeU32(const std::vector<uint8_t>& enc);
 
 }  // namespace wombat::broker

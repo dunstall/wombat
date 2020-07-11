@@ -27,7 +27,7 @@ TEST_F(ProduceHandlerTest, HandleValidProduceRequest) {
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
   const Record record{data};
   const Message msg{
-      MessageType::kProduceRequest, 0, record.Encode()
+      Type::kProduceRequest, 0, record.Encode()
   };
 
   EXPECT_CALL(*log, Append(record.Encode())).Times(1);
@@ -40,7 +40,7 @@ TEST_F(ProduceHandlerTest, HandleInvalidType) {
   ProduceHandler handler{log};
 
   const Message msg{
-      MessageType::kConsumeRequest, 0, {0, 1, 2, 3, 4}
+      Type::kConsumeRequest, 0, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(msg);
@@ -51,7 +51,7 @@ TEST_F(ProduceHandlerTest, HandleInvalidRecord) {
   ProduceHandler handler{log};
 
   const Message msg{
-      MessageType::kProduceRequest, 0, {0xff, 1, 2, 3, 4}
+      Type::kProduceRequest, 0, {0xff, 1, 2, 3, 4}
   };
 
   handler.Handle(msg);

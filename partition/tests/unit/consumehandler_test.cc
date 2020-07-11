@@ -6,8 +6,8 @@
 #include "event/event.h"
 #include "event/responder.h"
 #include "frame/message.h"
+#include "frame/offset.h"
 #include "frame/record.h"
-#include "frame/recordrequest.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
@@ -53,15 +53,15 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
   EXPECT_CALL(*log, Lookup(offset, encoded.size()))
       .WillOnce(::testing::Return(encoded));
 
-  const RecordRequest rr{offset};
+  const Offset rr{offset};
   const Message msg{
-      MessageType::kConsumeRequest, 0, rr.Encode()
+      Type::kConsumeRequest, 0, rr.Encode()
   };
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
   const Message expected_response{
-      MessageType::kConsumeResponse, 0, record.Encode()
+      Type::kConsumeResponse, 0, record.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -77,15 +77,15 @@ TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
   EXPECT_CALL(*log, Lookup(offset, sizeof(uint32_t)))
       .WillOnce(::testing::Return(std::vector<uint8_t>()));
 
-  const RecordRequest rr{offset};
+  const Offset rr{offset};
   const Message msg{
-      MessageType::kConsumeRequest, 0, rr.Encode()
+      Type::kConsumeRequest, 0, rr.Encode()
   };
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
   const Message expected_response{
-      MessageType::kConsumeResponse, 0, Record{}.Encode()
+      Type::kConsumeResponse, 0, Record{}.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -99,20 +99,20 @@ TEST_F(ConsumeHandlerTest, HandleUnrecognizedType) {
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const Message msg{
-      MessageType::kProduceRequest, 0, {0, 1, 2, 3, 4}
+      Type::kProduceRequest, 0, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(Event{msg, conn});
 }
 
-TEST_F(ConsumeHandlerTest, HandleInvalidRecordRequest) {
+TEST_F(ConsumeHandlerTest, HandleInvalidOffset) {
   std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
   ConsumeHandler handler{responder, log};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const Message msg{
-      MessageType::kConsumeRequest, 0, {0xff}
+      Type::kConsumeRequest, 0, {0xff}
   };
 
   handler.Handle(Event{msg, conn});
