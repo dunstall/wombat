@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "event/connection.h"
-#include "record/message.h"
+#include "frame/message.h"
 #include "util/threadsafequeue.h"
 
 namespace wombat::broker {

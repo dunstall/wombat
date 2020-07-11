@@ -4,8 +4,8 @@
 
 #include <memory>
 
+#include "frame/message.h"
 #include "log/log.h"
-#include "record/message.h"
 
 namespace wombat::broker {
 

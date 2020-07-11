@@ -6,13 +6,13 @@
 #include <memory>
 #include <thread>
 
+#include "frame/record.h"
+#include "frame/recordrequest.h"
 #include "log/log.h"
 #include "partition/consumehandler.h"
 #include "partition/partition.h"
 #include "partition/producehandler.h"
 #include "partition/stathandler.h"
-#include "record/record.h"
-#include "record/recordrequest.h"
 
 namespace wombat::broker {
 

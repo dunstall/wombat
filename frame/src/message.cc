@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "record/message.h"
+#include "frame/message.h"
 
 #include <arpa/inet.h>
 
@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-#include "record/record.h"
+#include "frame/record.h"
 
 namespace wombat::broker::record {
 

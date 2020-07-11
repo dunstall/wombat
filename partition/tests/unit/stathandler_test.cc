@@ -5,12 +5,12 @@
 
 #include "event/event.h"
 #include "event/responder.h"
+#include "frame/message.h"
+#include "frame/statresponse.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
 #include "partition/stathandler.h"
-#include "record/message.h"
-#include "record/statresponse.h"
 
 namespace wombat::broker {
 

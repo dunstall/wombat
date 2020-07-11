@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "frame/recordrequest.h"
 #include "gtest/gtest.h"
-#include "record/recordrequest.h"
 
 namespace wombat::broker::record {
 

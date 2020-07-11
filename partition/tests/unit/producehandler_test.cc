@@ -3,12 +3,12 @@
 #include <cstdint>
 #include <vector>
 
+#include "frame/message.h"
+#include "frame/record.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
 #include "partition/producehandler.h"
-#include "record/message.h"
-#include "record/record.h"
 
 namespace wombat::broker {
 

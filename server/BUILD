@@ -6,7 +6,7 @@ cc_library(
     deps = [
         "@glog//:glog",
         "//event:event",
-        "//record:record",
+        "//frame:frame",
         "//util:util",
     ],
     visibility = ["//visibility:public"],

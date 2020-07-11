@@ -1,7 +1,7 @@
 // Copyright 2020 Andrew Dunstall
 
+#include "frame/record.h"
 #include "gtest/gtest.h"
-#include "record/record.h"
 
 namespace wombat::broker::record {
 

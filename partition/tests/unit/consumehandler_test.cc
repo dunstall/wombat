@@ -5,13 +5,13 @@
 
 #include "event/event.h"
 #include "event/responder.h"
+#include "frame/message.h"
+#include "frame/record.h"
+#include "frame/recordrequest.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
 #include "partition/consumehandler.h"
-#include "record/message.h"
-#include "record/record.h"
-#include "record/recordrequest.h"
 
 namespace wombat::broker {
 

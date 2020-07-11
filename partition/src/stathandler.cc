@@ -5,9 +5,9 @@
 #include <memory>
 
 #include "event/event.h"
+#include "frame/statresponse.h"
 #include "glog/logging.h"
 #include "log/log.h"
-#include "record/statresponse.h"
 
 namespace wombat::broker {
 

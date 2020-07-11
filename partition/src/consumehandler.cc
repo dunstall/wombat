@@ -5,10 +5,10 @@
 #include <memory>
 
 #include "event/event.h"
+#include "frame/record.h"
+#include "frame/recordrequest.h"
 #include "glog/logging.h"
 #include "log/log.h"
-#include "record/record.h"
-#include "record/recordrequest.h"
 
 namespace wombat::broker {
 

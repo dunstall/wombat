@@ -6,9 +6,9 @@ cc_library(
     linkopts = ["-lstdc++fs"],
     deps = [
         "@glog//:glog",
+        "//frame:frame",
         "//event:event",
         "//log:log",
-        "//record:record",
         "//util:util",
     ],
     visibility = ["//visibility:public"],

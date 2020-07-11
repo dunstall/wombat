@@ -14,8 +14,8 @@
 #include <utility>
 #include <vector>
 
+#include "frame/message.h"
 #include "glog/logging.h"
-#include "record/message.h"
 
 namespace wombat::broker::server {
 

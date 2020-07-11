@@ -5,11 +5,11 @@ cc_library(
     strip_include_prefix = "include/",
     deps = [
         "//event:event",
-        "//record:record",
-        "//util:util",
+        "//frame:frame",
         "//log:log",
-        "//server:server",
         "//partition:partition",
+        "//server:server",
+        "//util:util",
     ],
 )
 

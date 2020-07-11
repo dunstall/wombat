@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "record/message.h"
+#include "frame/message.h"
 
 namespace wombat::broker {
 

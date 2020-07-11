@@ -6,8 +6,8 @@
 
 #include "event/event.h"
 #include "event/responder.h"
+#include "frame/message.h"
 #include "log/log.h"
-#include "record/message.h"
 
 namespace wombat::broker {
 

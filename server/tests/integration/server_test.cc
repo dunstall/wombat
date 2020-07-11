@@ -11,8 +11,8 @@
 #include <random>
 #include <thread>
 
+#include "frame/record.h"
 #include "gtest/gtest.h"
-#include "record/record.h"
 #include "server/server.h"
 #include "util/threadable.h"
 #include "util/threadsafequeue.h"

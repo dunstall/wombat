@@ -5,7 +5,7 @@ cc_library(
     strip_include_prefix = "include/",
     linkopts = ["-lstdc++fs"],
     deps = [
-        "//record:record",
+        "//frame:frame",
         "//util:util",
     ],
     visibility = ["//visibility:public"],
