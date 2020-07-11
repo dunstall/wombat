@@ -11,6 +11,8 @@
 
 namespace wombat::broker::frame {
 
+// Message represents a frame with a type that can wrap other frames as
+// payload.
 class Message : public Frame {
  public:
   Message(Type type,

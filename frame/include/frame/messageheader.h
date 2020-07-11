@@ -10,6 +10,7 @@
 
 namespace wombat::broker::frame {
 
+// Type indicates type of frame in the message payload.
 enum class Type : uint32_t {
   kProduceRequest,
   kConsumeRequest,
