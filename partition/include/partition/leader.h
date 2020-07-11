@@ -47,11 +47,4 @@ class Leader : public Partition {
   std::atomic_bool running_;
 };
 
-class LeaderReplicationHandler {
- public:
-  void Handle(const record::RecordRequest& request);
-
-  void Poll();
-};
-
 }  // namespace wombat::broker

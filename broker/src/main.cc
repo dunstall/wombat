@@ -50,17 +50,15 @@ void Run(const std::filesystem::path& path) {
 
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
-        // TODO(AD) Pass leader address
         router.AddPartition(
             std::make_unique<Leader>(p.id(), std::make_shared<Responder>(), log)
         );
         break;
       case PartitionConf::Type::kReplica:
-        // TODO(AD) Pass leader address and aprtition ID
-        // TODO(AD) Only supporting leader for now
-        // router.AddPartition(
-            // std::make_unique<Replica>(nullptr, log)
-        // );
+        // TODO(AD) Pass leader address
+        router.AddPartition(
+            std::make_unique<Leader>(p.id(), std::make_shared<Responder>(), log)
+        );
         break;
     }
   }
