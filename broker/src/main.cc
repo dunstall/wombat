@@ -43,7 +43,6 @@ void Run(const std::filesystem::path& path) {
   }
 
   Router router{};
-  // TODO(AD) Currently only supports a single partition.
   for (const PartitionConf& p : cfg->partitions()) {
     LOG(INFO) << "adding partition " << p.id();
 
@@ -51,9 +50,9 @@ void Run(const std::filesystem::path& path) {
 
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
-        // TODO(AD) Pass leader address and partition ID
+        // TODO(AD) Pass leader address
         router.AddPartition(
-            std::make_unique<Leader>(0, std::make_shared<Responder>(), log)
+            std::make_unique<Leader>(p.id(), std::make_shared<Responder>(), log)
         );
         break;
       case PartitionConf::Type::kReplica:

@@ -3,13 +3,12 @@ package test
 import (
 	"testing"
 
-	"github.com/dunstall/wombatclient/pkg/consumer"
-	"github.com/dunstall/wombatclient/pkg/producer"
+	"github.com/dunstall/wombat/pkg/consumer"
+	"github.com/dunstall/wombat/pkg/producer"
 )
 
 const (
   Addr = "localhost:3110"
-  Partition = 0
 )
 
 func ProducerConnect(t *testing.T) producer.Producer {
@@ -28,23 +27,23 @@ func ConsumerConnect(t *testing.T) consumer.Consumer {
   return c
 }
 
-func Stat(t *testing.T, c consumer.Consumer) uint32 {
-  size, ok := c.Stat(Partition)
+func Stat(t *testing.T, c consumer.Consumer, partitionID uint32) uint32 {
+  size, ok := c.Stat(partitionID)
   if !ok {
     t.Fatal("failed to get partition stat")
   }
   return size
 }
 
-func Produce(t *testing.T, p producer.Producer, b []byte) {
-  ok := p.Produce(Partition, b)
+func Produce(t *testing.T, p producer.Producer, b []byte, partitionID uint32) {
+  ok := p.Produce(partitionID, b)
   if !ok {
     t.Fatalf("failed to produce data")
   }
 }
 
-func Consume(t *testing.T, c consumer.Consumer, offset uint32) []byte {
-  b, ok := c.Consume(Partition, offset)
+func Consume(t *testing.T, c consumer.Consumer, offset uint32, partitionID uint32) []byte {
+  b, ok := c.Consume(partitionID, offset)
   if !ok {
     t.Fatalf("failed to consume data")
   }
