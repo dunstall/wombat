@@ -10,6 +10,8 @@ const (
 	ReplicaRequest
 	ConsumeResponse
 	ReplicaResponse
+	TypeStatRequest
+	TypeStatResponse
 )
 
 const (

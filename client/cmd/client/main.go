@@ -26,11 +26,14 @@ func main() {
 		if !p.Produce(0, []byte("test")) {
 			fmt.Println("produce failed")
 		}
-		// TODO(AD) Incr offset
+
+		// TODO(AD) Incr offset - start at stat.offset
 		b, ok := c.Consume(0, 0)
 		if !ok {
 			fmt.Println("consume failed")
 		}
 		fmt.Println("consumed data", string(b))
+
+		fmt.Println(c.Stat(0))
 	}
 }
