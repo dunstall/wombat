@@ -9,7 +9,8 @@ namespace wombat::broker::log {
 
 class Log {
  public:
-  Log() = default;
+  Log(uint32_t size = 0) : size_{size} {}
+
   virtual ~Log() {}
 
   Log(const Log&) = delete;
