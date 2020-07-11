@@ -24,7 +24,7 @@ type MessageHeader struct {
 }
 
 func NewMessageHeader(kind uint32, partitionID uint32, payloadSize uint32) (MessageHeader, bool) {
-	if payloadSize == 0 || payloadSize > PayloadLimit {
+	if payloadSize > PayloadLimit {
 		return MessageHeader{}, false
 	}
 	return MessageHeader{

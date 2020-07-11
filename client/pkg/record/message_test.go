@@ -24,13 +24,6 @@ func TestNewMessageHeaderOk(t *testing.T) {
 	}
 }
 
-func TestNewMessageHeaderSizeZero(t *testing.T) {
-	_, ok := NewMessageHeader(0, 0, 0)
-	if ok {
-		t.Errorf("expected error creating message")
-	}
-}
-
 func TestNewMessageHeaderExceedSizeLimit(t *testing.T) {
 	_, ok := NewMessageHeader(0, 0, 513)
 	if ok {
@@ -111,13 +104,6 @@ func TestNewMessageOk(t *testing.T) {
 	}
 	if !reflect.DeepEqual(payload, m.Payload()) {
 		t.Errorf("m.Payload() != %#v, actual %#v", payload, m.Payload())
-	}
-}
-
-func TestNewMessageSizeZero(t *testing.T) {
-	_, ok := NewMessage(0, 0, []byte{})
-	if ok {
-		t.Errorf("expected error creating message")
 	}
 }
 
