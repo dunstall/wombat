@@ -59,7 +59,7 @@ std::optional<MessageHeader> MessageHeader::Decode(
           enc.begin() + sizeof(uint32_t) + sizeof(uint32_t), enc.end()
       )
   );
-  if (!payload_size || payload_size > kLimit || payload_size == 0) {
+  if (!payload_size || payload_size > kLimit) {
     return std::nullopt;
   }
 
