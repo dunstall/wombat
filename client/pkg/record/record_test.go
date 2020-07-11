@@ -11,7 +11,7 @@ func TestNewRecordOk(t *testing.T) {
 	if !ok {
 		t.Errorf("failed to create record")
 	}
-	if !reflect.DeepEqual(r.data, b) {
+	if !reflect.DeepEqual(r.Data(), b) {
 		t.Errorf("r.Data() != %#v, actual %#v", b, r.Data())
 	}
 }
@@ -24,7 +24,7 @@ func TestNewRecordExceedSizeLimit(t *testing.T) {
 	}
 }
 
-func TestEncode(t *testing.T) {
+func TestEncodeRecord(t *testing.T) {
 	b := []byte{1, 2, 3}
 	r, ok := NewRecord(b)
 	if !ok {
@@ -37,7 +37,7 @@ func TestEncode(t *testing.T) {
 	}
 }
 
-func TestDecodeOk(t *testing.T) {
+func TestDecodeRecordOk(t *testing.T) {
 	// Encoded record with appended padding that should be discarded.
 	encoded := []byte{0, 0, 0, 3, 1, 2, 3, 0, 0, 0}
 	r, ok := DecodeRecord(encoded)
@@ -51,7 +51,7 @@ func TestDecodeOk(t *testing.T) {
 	}
 }
 
-func TestDecodeMissingSize(t *testing.T) {
+func TestDecodeRecordMissingSize(t *testing.T) {
 	// Requires 4 bytes for size.
 	encoded := []byte{0xff, 0xff}
 	_, ok := DecodeRecord(encoded)
@@ -60,7 +60,7 @@ func TestDecodeMissingSize(t *testing.T) {
 	}
 }
 
-func TestDecodePayloadTooSmall(t *testing.T) {
+func TestDecodeRecordPayloadTooSmall(t *testing.T) {
 	// Payload must be at least 0xff bytes (but is only 3).
 	encoded := []byte{0, 0, 0, 0xff, 1, 2, 3}
 	_, ok := DecodeRecord(encoded)
@@ -69,7 +69,7 @@ func TestDecodePayloadTooSmall(t *testing.T) {
 	}
 }
 
-func TestDecodeSizeExceedsLimit(t *testing.T) {
+func TestDecodeRecordSizeExceedsLimit(t *testing.T) {
 	encoded := make([]byte, 0xffff)
 	encoded[0] = 0
 	encoded[1] = 0
