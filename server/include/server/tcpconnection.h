@@ -37,7 +37,7 @@ class TcpConnection : public Connection {
 
   std::optional<record::Message> Receive() override;
 
-  bool Send(const std::vector<uint8_t> data) override;
+  bool Send(const record::Message& msg) override;
 
  private:
   enum class State {

@@ -7,8 +7,8 @@
 #include <thread>
 
 #include "log/log.h"
-#include "partition/partition.h"
 #include "partition/consumehandler.h"
+#include "partition/partition.h"
 #include "partition/producehandler.h"
 #include "partition/stathandler.h"
 #include "record/record.h"

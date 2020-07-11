@@ -30,7 +30,7 @@ class FakeConnection : public Connection {
  public:
   std::optional<record::Message> Receive() override { return std::nullopt; }
 
-  bool Send(const std::vector<uint8_t> data) override { return false; }
+  bool Send(const record::Message& msg) override { return false; }
 };
 
 class ConsumeHandlerTest : public ::testing::Test {};

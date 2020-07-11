@@ -10,7 +10,7 @@ void Responder::Respond(const Event& evt) {
   // that keeps attempting to write until fully sent and avoid MULTIPLE
   // THREADS writing to same connection at once.
   // For now just write.
-  evt.connection->Send(evt.message.Encode());
+  evt.connection->Send(evt.message);
 }
 
 }  // namespace wombat::broker

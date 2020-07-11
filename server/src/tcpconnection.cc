@@ -70,8 +70,9 @@ std::optional<record::Message> TcpConnection::Receive() {
   return HandleRead(n);
 }
 
-bool TcpConnection::Send(const std::vector<uint8_t> data) {
+bool TcpConnection::Send(const record::Message& msg) {
   // TODO(AD) Use outgoing_buf_. For now just assume all data can be written.
+  const std::vector<uint8_t> data = msg.Encode();
   return (write(connfd_, data.data(), data.size())
       == static_cast<int>(data.size()));
 }

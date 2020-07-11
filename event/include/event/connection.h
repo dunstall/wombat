@@ -32,7 +32,7 @@ class Connection {
 
   virtual std::optional<record::Message> Receive() = 0;
 
-  virtual bool Send(const std::vector<uint8_t> data) = 0;
+  virtual bool Send(const record::Message& msg) = 0;
 
  protected:
   int connfd_;
