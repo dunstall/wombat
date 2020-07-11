@@ -90,6 +90,10 @@ std::optional<record::Message> TcpConnection::HandleRead(int n) {
     state_ = State::kPayloadPending;
     request_bytes_remaining_ = header_->payload_size();
     n_read_ = 0;
+
+    if (header_->payload_size() == 0) {
+      return record::Message{*header_, {}};
+    }
   } else if (state_ == State::kPayloadPending
       && request_bytes_remaining_ == 0) {
     state_ = State::kHeaderPending;
