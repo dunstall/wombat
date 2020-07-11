@@ -10,6 +10,7 @@
 #include "partition/partition.h"
 #include "partition/consumehandler.h"
 #include "partition/producehandler.h"
+#include "partition/stathandler.h"
 #include "record/record.h"
 #include "record/recordrequest.h"
 
@@ -40,6 +41,7 @@ class Leader : public Partition {
 
   ProduceHandler produce_;
   ConsumeHandler consume_;
+  StatHandler stat_;
 
   std::thread thread_;
   std::atomic_bool running_;

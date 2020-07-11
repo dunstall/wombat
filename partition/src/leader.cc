@@ -17,7 +17,10 @@ using namespace std::chrono_literals;  // NOLINT
 Leader::Leader(uint32_t id,
                std::shared_ptr<Responder> responder,
                std::shared_ptr<log::Log> log)
-    : Partition{id}, produce_{log}, consume_{responder, log} {
+    : Partition{id},
+      produce_{log},
+      consume_{responder, log},
+      stat_{responder, log} {
   Start();
 }
 
@@ -46,6 +49,9 @@ void Leader::Route(const Event& evt) {
       break;
     case record::MessageType::kReplicaRequest:
       // TODO(AD) LeaderReplicationHandler
+      break;
+    case record::MessageType::kStatRequest:
+      stat_.Handle(evt);
       break;
     default:
       LOG(WARNING) << "leader received unrecognized message type "
