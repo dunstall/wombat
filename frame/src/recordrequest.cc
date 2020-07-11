@@ -8,7 +8,7 @@
 
 #include "frame/record.h"
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 RecordRequest::RecordRequest(uint32_t offset) : offset_{offset} {}
 
@@ -29,4 +29,4 @@ std::optional<RecordRequest> RecordRequest::Decode(
   return std::optional<RecordRequest>{*offset};
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

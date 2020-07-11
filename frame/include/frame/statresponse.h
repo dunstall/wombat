@@ -6,7 +6,7 @@
 #include <optional>
 #include <vector>
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 class StatResponse {
  public:
@@ -26,4 +26,4 @@ class StatResponse {
   uint32_t size_;
 };
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

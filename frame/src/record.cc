@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 constexpr uint32_t Record::kLimit;
 
@@ -64,4 +64,4 @@ std::optional<uint32_t> DecodeU32(const std::vector<uint8_t>& enc) {
   return ntohl(n);
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

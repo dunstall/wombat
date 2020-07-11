@@ -78,9 +78,9 @@ TEST_F(RouterTest, AddPartitionOverrides) {
 }
 
 Event RouterTest::CreateEvent(uint32_t id) const {
-  const record::MessageType type = record::MessageType::kConsumeRequest;
+  const MessageType type = MessageType::kConsumeRequest;
   const std::vector<uint8_t> payload(0x200, 0xff);
-  const record::Message msg{type, id, payload};
+  const Message msg{type, id, payload};
   return Event{msg, nullptr};
 }
 

@@ -6,7 +6,7 @@
 #include "frame/statresponse.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 class StatResponseTest : public ::testing::Test {};
 
@@ -39,4 +39,4 @@ TEST_F(StatResponseTest, DecodeTooSmall) {
   EXPECT_FALSE(StatResponse::Decode(enc));
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

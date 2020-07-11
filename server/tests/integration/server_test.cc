@@ -93,8 +93,8 @@ TEST_F(ServerTest, TestSendMessages) {
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Message request{
-    record::MessageType::kProduceRequest, 0, payload
+  const Message request{
+    MessageType::kProduceRequest, 0, payload
   };
   const std::vector<uint8_t> encoded = request.Encode();
 
@@ -125,8 +125,8 @@ TEST_F(ServerTest, TestSendMessagesOneByteAtATime) {
   connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const record::Message request{
-      record::MessageType::kProduceRequest, 0, payload
+  const Message request{
+      MessageType::kProduceRequest, 0, payload
   };
   const std::vector<uint8_t> encoded = request.Encode();
 

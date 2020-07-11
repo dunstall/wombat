@@ -21,18 +21,18 @@ void StatHandler::Handle(const Event& evt) {
     return;
   }
 
-  const record::StatResponse stat{log_->size()};
+  const StatResponse stat{log_->size()};
 
   // TODO(AD) Need partition ID
-  const record::Message msg{
-    record::MessageType::kStatResponse, 0, stat.Encode()
+  const Message msg{
+    MessageType::kStatResponse, 0, stat.Encode()
   };
 
   responder_->Respond({msg, evt.connection});
 }
 
-bool StatHandler::IsValidType(const record::Message& msg) const {
-  return msg.type() == record::MessageType::kStatRequest;
+bool StatHandler::IsValidType(const Message& msg) const {
+  return msg.type() == MessageType::kStatRequest;
 }
 
 }  // namespace wombat::broker

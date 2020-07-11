@@ -8,7 +8,7 @@
 
 #include "frame/record.h"
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 StatResponse::StatResponse(uint32_t size) : size_{size} {}
 
@@ -29,4 +29,4 @@ std::optional<StatResponse> StatResponse::Decode(
   return std::optional<StatResponse>{*size};
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

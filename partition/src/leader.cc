@@ -39,13 +39,13 @@ void Leader::Poll() {
 
 void Leader::Route(const Event& evt) {
   switch (evt.message.type()) {
-    case record::MessageType::kProduceRequest:
+    case MessageType::kProduceRequest:
       produce_.Handle(evt.message);
       break;
-    case record::MessageType::kConsumeRequest:
+    case MessageType::kConsumeRequest:
       consume_.Handle(evt);
       break;
-    case record::MessageType::kStatRequest:
+    case MessageType::kStatRequest:
       stat_.Handle(evt);
       break;
     default:

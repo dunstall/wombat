@@ -10,7 +10,7 @@
 
 #include "frame/record.h"
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 MessageHeader::MessageHeader(MessageType type,
                              uint32_t partition_id,
@@ -109,4 +109,4 @@ std::optional<Message> Message::Decode(const std::vector<uint8_t>& enc) {
   };
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

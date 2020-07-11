@@ -25,9 +25,9 @@ TEST_F(ProduceHandlerTest, HandleValidProduceRequest) {
   ProduceHandler handler{log};
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
-  const record::Record record{data};
-  const record::Message msg{
-      record::MessageType::kProduceRequest, 0, record.Encode()
+  const Record record{data};
+  const Message msg{
+      MessageType::kProduceRequest, 0, record.Encode()
   };
 
   EXPECT_CALL(*log, Append(record.Encode())).Times(1);
@@ -39,8 +39,8 @@ TEST_F(ProduceHandlerTest, HandleInvalidType) {
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
   ProduceHandler handler{log};
 
-  const record::Message msg{
-      record::MessageType::kConsumeRequest, 0, {0, 1, 2, 3, 4}
+  const Message msg{
+      MessageType::kConsumeRequest, 0, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(msg);
@@ -50,8 +50,8 @@ TEST_F(ProduceHandlerTest, HandleInvalidRecord) {
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
   ProduceHandler handler{log};
 
-  const record::Message msg{
-      record::MessageType::kProduceRequest, 0, {0xff, 1, 2, 3, 4}
+  const Message msg{
+      MessageType::kProduceRequest, 0, {0xff, 1, 2, 3, 4}
   };
 
   handler.Handle(msg);

@@ -20,7 +20,7 @@ class StatHandler {
   void Handle(const Event& evt);
 
  private:
-  bool IsValidType(const record::Message& msg) const;
+  bool IsValidType(const Message& msg) const;
 
   std::shared_ptr<Responder> responder_;
 

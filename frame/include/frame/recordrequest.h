@@ -6,7 +6,7 @@
 #include <optional>
 #include <vector>
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 class RecordRequest {
  public:
@@ -26,4 +26,4 @@ class RecordRequest {
   uint32_t offset_;
 };
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

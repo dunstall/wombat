@@ -29,9 +29,9 @@ class MockResponder : public Responder {
 
 class FakeConnection : public Connection {
  public:
-  std::optional<record::Message> Receive() override { return std::nullopt; }
+  std::optional<Message> Receive() override { return std::nullopt; }
 
-  bool Send(const record::Message& msg) override { return false; }
+  bool Send(const Message& msg) override { return false; }
 };
 
 class StatHandlerTest : public ::testing::Test {};
@@ -43,13 +43,13 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>(log_size);
   StatHandler handler{responder, log};
 
-  const record::Message msg{record::MessageType::kStatRequest, 0, {}};
+  const Message msg{MessageType::kStatRequest, 0, {}};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
-  const record::StatResponse stat{log_size};
-  const record::Message expected_response{
-      record::MessageType::kStatResponse, 0, stat.Encode()
+  const StatResponse stat{log_size};
+  const Message expected_response{
+      MessageType::kStatResponse, 0, stat.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -62,8 +62,8 @@ TEST_F(StatHandlerTest, HandleUnrecognizedType) {
   StatHandler handler{responder, log};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-  const record::Message msg{
-      record::MessageType::kProduceRequest, 0, {0, 1, 2, 3, 4}
+  const Message msg{
+      MessageType::kProduceRequest, 0, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(Event{msg, conn});

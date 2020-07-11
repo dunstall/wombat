@@ -6,7 +6,7 @@
 #include <optional>
 #include <vector>
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 enum class MessageType : uint32_t {
   kProduceRequest,
@@ -80,4 +80,4 @@ class Message {
   std::vector<uint8_t> payload_;
 };
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

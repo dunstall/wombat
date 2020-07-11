@@ -6,7 +6,7 @@
 #include "frame/recordrequest.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 class RecordRequestTest : public ::testing::Test {};
 
@@ -39,4 +39,4 @@ TEST_F(RecordRequestTest, DecodeTooSmall) {
   EXPECT_FALSE(RecordRequest::Decode(enc));
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker

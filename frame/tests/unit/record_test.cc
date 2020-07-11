@@ -3,7 +3,7 @@
 #include "frame/record.h"
 #include "gtest/gtest.h"
 
-namespace wombat::broker::record {
+namespace wombat::broker {
 
 class RecordTest : public ::testing::Test {};
 
@@ -85,4 +85,4 @@ TEST(TestDecodeU32, InvalidTooSmall) {
   EXPECT_EQ(std::nullopt, DecodeU32(enc));
 }
 
-}  // namespace wombat::broker::record
+}  // namespace wombat::broker
