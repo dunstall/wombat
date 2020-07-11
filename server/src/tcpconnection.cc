@@ -87,11 +87,13 @@ std::optional<record::Message> TcpConnection::HandleRead(int n) {
       throw ConnectionException{};
     }
 
-    state_ = State::kPayloadPending;
     request_bytes_remaining_ = header_->payload_size();
     n_read_ = 0;
 
-    if (header_->payload_size() == 0) {
+    if (request_bytes_remaining_ != 0) {
+      state_ = State::kPayloadPending;
+    } else {
+      request_bytes_remaining_ = record::MessageHeader::kSize;
       return record::Message{*header_, {}};
     }
   } else if (state_ == State::kPayloadPending
