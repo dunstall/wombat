@@ -34,8 +34,6 @@ void Leader::Poll() {
     if (evt) {
       Route(*evt);
     }
-
-    // TODO(AD) LeaderReplicationHandler.Poll()
   }
 }
 
@@ -46,9 +44,6 @@ void Leader::Route(const Event& evt) {
       break;
     case record::MessageType::kConsumeRequest:
       consume_.Handle(evt);
-      break;
-    case record::MessageType::kReplicaRequest:
-      // TODO(AD) LeaderReplicationHandler
       break;
     case record::MessageType::kStatRequest:
       stat_.Handle(evt);
