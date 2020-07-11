@@ -13,7 +13,9 @@ enum class MessageType : uint32_t {
   kConsumeRequest,
   kReplicaRequest,
   kConsumeResponse,
-  kReplicaResponse
+  kReplicaResponse,
+  kStatRequest,
+  kStatResponse
 };
 
 class MessageHeader {
