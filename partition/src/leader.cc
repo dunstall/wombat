@@ -19,7 +19,7 @@ using namespace std::chrono_literals;  // NOLINT
 Leader::Leader(uint32_t id,
                std::shared_ptr<Responder> responder,
                std::shared_ptr<log::Log> log)
-    : Partition{id} {
+    : Partition{id, responder} {
   router_.AddRoute(
       frame::Type::kProduceRequest, std::make_unique<ProduceHandler>(id, log)
   );

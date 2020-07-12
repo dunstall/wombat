@@ -18,7 +18,7 @@ using namespace std::chrono_literals;  // NOLINT
 Replica::Replica(uint32_t id,
                  std::shared_ptr<Responder> responder,
                  std::shared_ptr<log::Log> log)
-    : Partition{id} {
+    : Partition{id, responder} {
   router_.AddRoute(
       frame::Type::kConsumeRequest, std::make_unique<ConsumeHandler>(id, log)
   );
