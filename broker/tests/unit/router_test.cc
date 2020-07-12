@@ -12,11 +12,13 @@
 
 namespace wombat::broker {
 
-class MockPartition : public Partition {
+class MockPartition : public partition::Partition {
  public:
-  explicit MockPartition(uint32_t id) : Partition{id} {}
+  explicit MockPartition(uint32_t id) : partition::Partition{id, nullptr} {}
 
   MOCK_METHOD(void, Handle, (const Event& evt), (override));
+
+  void Process() override {}
 };
 
 class RouterTest : public ::testing::Test {

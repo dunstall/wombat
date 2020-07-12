@@ -9,7 +9,7 @@
 #include "glog/logging.h"
 #include "log/log.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 StatHandler::StatHandler(uint32_t id, std::shared_ptr<log::Log> log)
     : Handler(id), log_{log} {}
@@ -29,4 +29,4 @@ bool StatHandler::IsValidType(const frame::Message& msg) const {
   return msg.type() == frame::Type::kStatRequest;
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

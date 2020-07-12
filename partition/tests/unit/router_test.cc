@@ -12,7 +12,7 @@
 #include "partition/handler.h"
 #include "partition/router.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class MockHandler : public Handler {
  public:
@@ -90,4 +90,4 @@ TEST_F(RouterTest, RouteToNotFoundHandler) {
   router.Route(evt);
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

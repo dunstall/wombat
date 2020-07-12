@@ -11,7 +11,7 @@
 #include "partition/consumehandler.h"
 #include "partition/stathandler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 using namespace std::chrono_literals;  // NOLINT
 
@@ -42,4 +42,4 @@ void Replica::Process() {
   // TODO(AD) Poll leader
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

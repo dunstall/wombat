@@ -10,7 +10,7 @@
 #include "frame/messageheader.h"
 #include "partition/handler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class Router {
  public:
@@ -32,4 +32,4 @@ class Router {
   std::unordered_map<frame::Type, std::unique_ptr<Handler>> handlers_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

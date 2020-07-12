@@ -12,7 +12,7 @@
 #include "log/log.h"
 #include "partition/stathandler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class MockLog : public log::Log {
  public:
@@ -64,4 +64,4 @@ TEST_F(StatHandlerTest, HandleUnrecognizedType) {
   EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

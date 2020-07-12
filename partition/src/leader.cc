@@ -12,7 +12,7 @@
 #include "partition/producehandler.h"
 #include "partition/stathandler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 using namespace std::chrono_literals;  // NOLINT
 
@@ -44,4 +44,4 @@ void Leader::Process() {
   }
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

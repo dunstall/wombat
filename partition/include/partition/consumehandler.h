@@ -12,7 +12,7 @@
 #include "partition/handler.h"
 #include "log/log.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class ConsumeHandler : public Handler {
  public:
@@ -30,4 +30,4 @@ class ConsumeHandler : public Handler {
   std::shared_ptr<log::Log> log_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

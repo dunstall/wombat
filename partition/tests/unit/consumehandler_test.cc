@@ -13,7 +13,7 @@
 #include "log/log.h"
 #include "partition/consumehandler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class MockLog : public log::Log {
  public:
@@ -98,4 +98,4 @@ TEST_F(ConsumeHandlerTest, HandleInvalidRequest) {
   EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

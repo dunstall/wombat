@@ -11,7 +11,7 @@
 #include "log/log.h"
 #include "partition/handler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class StatHandler : public Handler {
  public:
@@ -27,4 +27,4 @@ class StatHandler : public Handler {
   std::shared_ptr<log::Log> log_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

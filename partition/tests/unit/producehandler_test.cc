@@ -11,7 +11,7 @@
 #include "log/log.h"
 #include "partition/producehandler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class MockLog : public log::Log {
  public:
@@ -50,4 +50,4 @@ TEST_F(ProduceHandlerTest, HandleInvalidRecord) {
   EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

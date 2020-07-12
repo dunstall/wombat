@@ -9,7 +9,7 @@
 #include "glog/logging.h"
 #include "log/log.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 Partition::Partition(uint32_t id, std::shared_ptr<Responder> responder)
     : id_{id}, router_{responder} {}
@@ -40,4 +40,4 @@ void Partition::Stop() {
   }
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

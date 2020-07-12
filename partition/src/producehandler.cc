@@ -10,7 +10,7 @@
 #include "glog/logging.h"
 #include "log/log.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 ProduceHandler::ProduceHandler(uint32_t id, std::shared_ptr<log::Log> log)
     : Handler(id), log_{log} {}
@@ -33,4 +33,4 @@ std::optional<Event> ProduceHandler::Handle(const Event& evt) {
   return std::nullopt;
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

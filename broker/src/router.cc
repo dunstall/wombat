@@ -19,7 +19,7 @@ bool Router::Route(const Event& evt) {
   return false;
 }
 
-void Router::AddPartition(std::unique_ptr<Partition> partition) {
+void Router::AddPartition(std::unique_ptr<partition::Partition> partition) {
   partitions_[partition->id()] = std::move(partition);
 }
 

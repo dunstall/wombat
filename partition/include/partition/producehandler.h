@@ -9,7 +9,7 @@
 #include "log/log.h"
 #include "partition/handler.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class ProduceHandler : public Handler {
  public:
@@ -23,4 +23,4 @@ class ProduceHandler : public Handler {
   std::shared_ptr<log::Log> log_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

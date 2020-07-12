@@ -7,7 +7,7 @@
 
 #include "event/event.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class Handler {
  public:
@@ -21,4 +21,4 @@ class Handler {
   uint32_t id_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

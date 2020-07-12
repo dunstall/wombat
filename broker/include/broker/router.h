@@ -15,10 +15,11 @@ class Router {
  public:
   bool Route(const Event& evt);
 
-  void AddPartition(std::unique_ptr<Partition> partition);
+  void AddPartition(std::unique_ptr<partition::Partition> partition);
 
  private:
-  std::unordered_map<uint32_t, std::unique_ptr<Partition>> partitions_;
+  std::unordered_map<uint32_t, std::unique_ptr<partition::Partition>>
+      partitions_;
 };
 
 }  // namespace wombat::broker

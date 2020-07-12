@@ -11,7 +11,7 @@
 #include "event/responder.h"
 #include "partition/router.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class Partition {
  public:
@@ -48,4 +48,4 @@ class Partition {
   Router router_;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

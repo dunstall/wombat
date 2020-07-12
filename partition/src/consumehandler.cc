@@ -15,7 +15,7 @@
 #include "partition/handler.h"
 #include "log/log.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 ConsumeHandler::ConsumeHandler(uint32_t id, std::shared_ptr<log::Log> log)
     : Handler(id), log_{log} {}
@@ -65,4 +65,4 @@ frame::Record ConsumeHandler::Lookup(uint32_t offset) const {
   }
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

@@ -9,7 +9,7 @@
 #include "log/log.h"
 #include "partition/partition.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 class Leader : public Partition {
  public:
@@ -31,4 +31,4 @@ class Leader : public Partition {
   void Process() override;
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

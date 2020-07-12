@@ -4,7 +4,7 @@
 
 #include "event/event.h"
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 Router::Router(std::shared_ptr<Responder> responder)
     : responder_{responder} {}
@@ -23,4 +23,4 @@ void Router::AddRoute(frame::Type type, std::unique_ptr<Handler> handler) {
   handlers_[type] = std::move(handler);
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

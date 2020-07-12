@@ -4,8 +4,8 @@
 
 #include <cstdint>
 
-namespace wombat::broker {
+namespace wombat::broker::partition {
 
 Handler::Handler(uint32_t id) : id_{id} {}
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::partition

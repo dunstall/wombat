@@ -51,7 +51,9 @@ void Run(const std::filesystem::path& path) {
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
         router.AddPartition(
-            std::make_unique<Leader>(p.id(), std::make_shared<Responder>(), log)
+            std::make_unique<partition::Leader>(
+                p.id(), std::make_shared<Responder>(), log
+            )
         );
         break;
       case PartitionConf::Type::kReplica:
