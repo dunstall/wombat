@@ -18,9 +18,9 @@ Leader::Leader(uint32_t id,
                std::shared_ptr<Responder> responder,
                std::shared_ptr<log::Log> log)
     : Partition{id},
-      produce_{log},
-      consume_{id, responder, log},
-      stat_{id, responder, log} {
+      produce_{id, log},
+      consume_{id, log},
+      stat_{id, log} {
   Start();
 }
 
@@ -38,20 +38,22 @@ void Leader::Poll() {
 }
 
 void Leader::Route(const Event& evt) {
-  switch (evt.message.type()) {
-    case frame::Type::kProduceRequest:
-      produce_.Handle(evt.message);
-      break;
-    case frame::Type::kConsumeRequest:
-      consume_.Handle(evt);
-      break;
-    case frame::Type::kStatRequest:
-      stat_.Handle(evt);
-      break;
-    default:
-      LOG(WARNING) << "leader received unrecognized message type "
-          << static_cast<int>(evt.message.type());
-  }
+  // // TODO(AD) map request type -> Handler and add response to responder
+
+  // switch (evt.message.type()) {
+    // case frame::Type::kProduceRequest:
+      // produce_.Handle(evt);
+      // break;
+    // case frame::Type::kConsumeRequest:
+      // consume_.Handle(evt);
+      // break;
+    // case frame::Type::kStatRequest:
+      // stat_.Handle(evt);
+      // break;
+    // default:
+      // LOG(WARNING) << "leader received unrecognized message type "
+          // << static_cast<int>(evt.message.type());
+  // }
 }
 
 void Leader::Start() {

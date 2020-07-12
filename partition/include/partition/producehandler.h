@@ -3,17 +3,21 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
-#include "frame/message.h"
+#include "event/event.h"
 #include "log/log.h"
+#include "partition/handler.h"
 
 namespace wombat::broker {
 
-class ProduceHandler {
+class ProduceHandler : public Handler {
  public:
-  explicit ProduceHandler(std::shared_ptr<log::Log> log);
+  ProduceHandler(uint32_t id, std::shared_ptr<log::Log> log);
 
-  void Handle(const frame::Message& msg);
+  ~ProduceHandler() override {}
+
+  std::optional<Event> Handle(const Event& evt) override;
 
  private:
   std::shared_ptr<log::Log> log_;

@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "event/event.h"
+#include "event/responder.h"
 #include "log/log.h"
 #include "partition/consumehandler.h"
 #include "partition/partition.h"

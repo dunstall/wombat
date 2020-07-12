@@ -18,8 +18,8 @@ Replica::Replica(uint32_t id,
                  std::shared_ptr<Responder> responder,
                  std::shared_ptr<log::Log> log)
     : Partition{id},
-      consume_{id, responder, log},
-      stat_{id, responder, log} {
+      consume_{id, log},
+      stat_{id, log} {
   Start();
 }
 

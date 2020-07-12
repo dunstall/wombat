@@ -1,10 +1,10 @@
 // Copyright 2020 Andrew Dunstall
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "event/event.h"
-#include "event/responder.h"
 #include "frame/message.h"
 #include "frame/offset.h"
 #include "frame/record.h"
@@ -21,11 +21,6 @@ class MockLog : public log::Log {
   MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size), (override));  // NOLINT
 };
 
-class MockResponder : public Responder {
- public:
-  MOCK_METHOD(void, Respond, (const Event& evt), (override));
-};
-
 class FakeConnection : public Connection {
  public:
   std::optional<frame::Message> Receive() override { return std::nullopt; }
@@ -33,13 +28,15 @@ class FakeConnection : public Connection {
   bool Send(const frame::Message& msg) override { return false; }
 };
 
-class ConsumeHandlerTest : public ::testing::Test {};
+class ConsumeHandlerTest : public ::testing::Test {
+ public:
+  const uint32_t kPartitionId = 0xffaa;
+  const uint32_t kOffset = 0xffaa;
+};
 
 TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
-  const uint32_t partition_id = 0xffaa;
-  std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
-  ConsumeHandler handler{partition_id, responder, log};
+  ConsumeHandler handler{kPartitionId, log};
 
   const std::vector<uint8_t> payload{1, 2, 3, 4, 5};
   const frame::Record record{payload};
@@ -48,78 +45,57 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
       encoded.begin(), encoded.begin() + 4
   );
 
-  const uint32_t offset = 0xff;
-  EXPECT_CALL(*log, Lookup(offset, sizeof(uint32_t)))
+  // Expect to first lookup the record size then the full record.
+  EXPECT_CALL(*log, Lookup(kOffset, sizeof(uint32_t)))
       .WillOnce(::testing::Return(encoded_size));
-  EXPECT_CALL(*log, Lookup(offset, encoded.size()))
+  EXPECT_CALL(*log, Lookup(kOffset, encoded.size()))
       .WillOnce(::testing::Return(encoded));
 
-  const frame::Offset rr{offset};
+  const frame::Offset offset{kOffset};
   const frame::Message msg{
-      frame::Type::kConsumeRequest, partition_id, rr.Encode()
+      frame::Type::kConsumeRequest, kPartitionId, offset.Encode()
   };
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-
   const frame::Message expected_response{
-      frame::Type::kConsumeResponse, partition_id, record.Encode()
+      frame::Type::kConsumeResponse, kPartitionId, record.Encode()
   };
-  EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
-
-  handler.Handle(Event{msg, conn});
+  const Event expected_event{expected_response, conn};
+  EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
 }
 
 TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
-  const uint32_t partition_id = 0xffaa;
-  std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
-  ConsumeHandler handler{partition_id, responder, log};
+  ConsumeHandler handler{kPartitionId, log};
 
-  const uint32_t offset = 0xff;
-  EXPECT_CALL(*log, Lookup(offset, sizeof(uint32_t)))
+  EXPECT_CALL(*log, Lookup(kOffset, sizeof(uint32_t)))
       .WillOnce(::testing::Return(std::vector<uint8_t>()));
 
-  const frame::Offset rr{offset};
+  const frame::Offset offset{kOffset};
   const frame::Message msg{
-      frame::Type::kConsumeRequest, partition_id, rr.Encode()
+      frame::Type::kConsumeRequest, kPartitionId, offset.Encode()
   };
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-
   const frame::Message expected_response{
-      frame::Type::kConsumeResponse, partition_id, frame::Record{}.Encode()
+      frame::Type::kConsumeResponse, kPartitionId, frame::Record{}.Encode()
   };
-  EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
-
-  handler.Handle(Event{msg, conn});
+  const Event expected_event{expected_response, conn};
+  EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
 }
 
-TEST_F(ConsumeHandlerTest, HandleUnrecognizedType) {
-  const uint32_t partition_id = 0xffaa;
-  std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
-  ConsumeHandler handler{partition_id, responder, log};
+TEST_F(ConsumeHandlerTest, HandleUnrecognizedRequestType) {
+  ConsumeHandler handler{kPartitionId, nullptr};
 
-  std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-  const frame::Message msg{
-      frame::Type::kProduceRequest, partition_id, {0, 1, 2, 3, 4}
-  };
-
-  handler.Handle(Event{msg, conn});
+  const frame::Message msg{frame::Type::kProduceRequest, kPartitionId, {}};
+  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }
 
-TEST_F(ConsumeHandlerTest, HandleInvalidOffset) {
-  const uint32_t partition_id = 0xffaa;
-  std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
-  ConsumeHandler handler{partition_id, responder, log};
+TEST_F(ConsumeHandlerTest, HandleInvalidRequest) {
+  ConsumeHandler handler{kPartitionId, nullptr};
 
-  std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-  const frame::Message msg{
-      frame::Type::kConsumeRequest, partition_id, {0xff}
-  };
-
-  handler.Handle(Event{msg, conn});
+  const frame::Message msg{frame::Type::kConsumeRequest, kPartitionId, {}};
+  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }
 
 }  // namespace wombat::broker

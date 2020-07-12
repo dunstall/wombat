@@ -2,33 +2,30 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <optional>
 
 #include "event/event.h"
-#include "event/responder.h"
 #include "frame/message.h"
 #include "frame/record.h"
+#include "partition/handler.h"
 #include "log/log.h"
 
 namespace wombat::broker {
 
-class ConsumeHandler {
+class ConsumeHandler : public Handler {
  public:
-  ConsumeHandler(uint32_t id,
-                 std::shared_ptr<Responder> responder,
-                 std::shared_ptr<log::Log> log);
+  ConsumeHandler(uint32_t id, std::shared_ptr<log::Log> log);
 
-  // TODO(AD) Return the response so passes to responder at a higher level.
-  void Handle(const Event& evt);
+  ~ConsumeHandler() override {}
+
+  std::optional<Event> Handle(const Event& evt);
 
  private:
   bool IsValidType(const frame::Message& msg) const;
 
-  std::optional<frame::Record> Lookup(uint32_t offset) const;
-
-  uint32_t id_;
-
-  std::shared_ptr<Responder> responder_;
+  frame::Record Lookup(uint32_t offset) const;
 
   std::shared_ptr<log::Log> log_;
 };

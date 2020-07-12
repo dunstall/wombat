@@ -11,24 +11,18 @@
 
 namespace wombat::broker {
 
-StatHandler::StatHandler(uint32_t id,
-                         std::shared_ptr<Responder> responder,
-                         std::shared_ptr<log::Log> log)
-    : id_{id}, responder_{responder}, log_{log} {}
+StatHandler::StatHandler(uint32_t id, std::shared_ptr<log::Log> log)
+    : Handler(id), log_{log} {}
 
-void StatHandler::Handle(const Event& evt) {
+std::optional<Event> StatHandler::Handle(const Event& evt) {
   if (!IsValidType(evt.message)) {
     LOG(ERROR) << "StatHandler::Handle called with invalid type";
-    return;
+    return std::nullopt;
   }
 
   const frame::Offset stat{log_->size()};
-
-  const frame::Message msg{
-    frame::Type::kStatResponse, id_, stat.Encode()
-  };
-
-  responder_->Respond({msg, evt.connection});
+  const frame::Message msg{frame::Type::kStatResponse, id_, stat.Encode()};
+  return Event{msg, evt.connection};
 }
 
 bool StatHandler::IsValidType(const frame::Message& msg) const {

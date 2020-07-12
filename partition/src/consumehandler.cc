@@ -2,68 +2,67 @@
 
 #include "partition/consumehandler.h"
 
+#include <cstdint>
+#include <optional>
 #include <memory>
+#include <vector>
 
 #include "event/event.h"
 #include "frame/offset.h"
 #include "frame/record.h"
 #include "frame/utils.h"
 #include "glog/logging.h"
+#include "partition/handler.h"
 #include "log/log.h"
 
 namespace wombat::broker {
 
-ConsumeHandler::ConsumeHandler(uint32_t id,
-                               std::shared_ptr<Responder> responder,
-                               std::shared_ptr<log::Log> log)
-    : id_{id}, responder_{responder}, log_{log} {}
+ConsumeHandler::ConsumeHandler(uint32_t id, std::shared_ptr<log::Log> log)
+    : Handler(id), log_{log} {}
 
-void ConsumeHandler::Handle(const Event& evt) {
+std::optional<Event> ConsumeHandler::Handle(const Event& evt) {
   if (!IsValidType(evt.message)) {
     LOG(ERROR) << "ConsumeHandler::Handle called with invalid type";
-    return;
+    return std::nullopt;
   }
 
-  const std::optional<frame::Offset> rr
+  const std::optional<frame::Offset> off
       = frame::Offset::Decode(evt.message.payload());
-  if (!rr) {
+  if (!off) {
     LOG(ERROR) << "ConsumeHandler::Handle called with invalid request";
-    return;
+    return std::nullopt;
   }
 
-  const std::optional<frame::Record> record = Lookup(rr->offset());
-  if (!record) {
-    // If the offset is not found return empty record.
-    const frame::Message msg{
-      frame::Type::kConsumeResponse, id_, frame::Record{}.Encode()
-    };
-    responder_->Respond({msg, evt.connection});
-    return;
-  }
-
+  const frame::Record record = Lookup(off->offset());
   const frame::Message msg{
-    frame::Type::kConsumeResponse, id_, record->Encode()
+      frame::Type::kConsumeResponse, id_, record.Encode()
   };
-
-  responder_->Respond({msg, evt.connection});
+  return Event{msg, evt.connection};
 }
 
 bool ConsumeHandler::IsValidType(const frame::Message& msg) const {
   return msg.type() == frame::Type::kConsumeRequest;
 }
 
-std::optional<frame::Record> ConsumeHandler::Lookup(uint32_t offset) const {
+frame::Record ConsumeHandler::Lookup(uint32_t offset) const {
   const std::optional<uint32_t> size = frame::DecodeU32(
       log_->Lookup(offset, sizeof(uint32_t))
   );
   if (!size) {
-    return std::nullopt;
+    // If the offset is not found return empty record.
+    return frame::Record{};
   }
 
   const std::vector<uint8_t> record = log_->Lookup(
       offset, sizeof(uint32_t) + *size
   );
-  return frame::Record::Decode(record);
+  const std::optional<frame::Record> r = frame::Record::Decode(record);
+  if (r) {
+    return *r;
+  } else {
+    // If the offset is not found return empty record.
+    return frame::Record{};
+  }
 }
 
 }  // namespace wombat::broker

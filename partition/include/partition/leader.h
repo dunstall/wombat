@@ -6,6 +6,7 @@
 #include <memory>
 #include <thread>
 
+#include "event/responder.h"
 #include "log/log.h"
 #include "partition/consumehandler.h"
 #include "partition/partition.h"

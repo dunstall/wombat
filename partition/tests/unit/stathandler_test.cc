@@ -22,11 +22,6 @@ class MockLog : public log::Log {
   MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size), (override));  // NOLINT
 };
 
-class MockResponder : public Responder {
- public:
-  MOCK_METHOD(void, Respond, (const Event& evt), (override));
-};
-
 class FakeConnection : public Connection {
  public:
   std::optional<frame::Message> Receive() override { return std::nullopt; }
@@ -35,16 +30,15 @@ class FakeConnection : public Connection {
 };
 
 class StatHandlerTest : public ::testing::Test {
- protected:
+ public:
   const uint32_t kPartitionId = 0xffaa;
 };
 
 TEST_F(StatHandlerTest, HandleValidStatRequest) {
   const uint32_t log_size = 0xffffaaaa;
 
-  std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>(log_size);
-  StatHandler handler{kPartitionId, responder, log};
+  StatHandler handler{kPartitionId, log};
 
   const frame::Message msg{frame::Type::kStatRequest, kPartitionId, {}};
 
@@ -54,22 +48,20 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
   const frame::Message expected_response{
       frame::Type::kStatResponse, kPartitionId, stat.Encode()
   };
-  EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
+  const Event expected_event{expected_response, conn};
 
-  handler.Handle(Event{msg, conn});
+  EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
 }
 
 TEST_F(StatHandlerTest, HandleUnrecognizedType) {
-  std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
-  StatHandler handler{kPartitionId, responder, log};
+  StatHandler handler{kPartitionId, log};
 
-  std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const frame::Message msg{
       frame::Type::kProduceRequest, kPartitionId, {0, 1, 2, 3, 4}
   };
 
-  handler.Handle(Event{msg, conn});
+  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }
 
 }  // namespace wombat::broker

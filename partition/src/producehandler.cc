@@ -5,29 +5,32 @@
 #include <memory>
 #include <optional>
 
-#include "frame/message.h"
+#include "event/event.h"
 #include "frame/record.h"
 #include "glog/logging.h"
 #include "log/log.h"
 
 namespace wombat::broker {
 
-ProduceHandler::ProduceHandler(std::shared_ptr<log::Log> log) : log_{log} {}
+ProduceHandler::ProduceHandler(uint32_t id, std::shared_ptr<log::Log> log)
+    : Handler(id), log_{log} {}
 
-void ProduceHandler::Handle(const frame::Message& msg) {
-  if (msg.type() != frame::Type::kProduceRequest) {
+std::optional<Event> ProduceHandler::Handle(const Event& evt) {
+  if (evt.message.type() != frame::Type::kProduceRequest) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid type";
-    return;
+    return std::nullopt;
   }
 
-  const std::optional<frame::Record> record
-      = frame::Record::Decode(msg.payload());
+  const std::optional<frame::Record> record = frame::Record::Decode(
+      evt.message.payload()
+  );
   if (!record) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid record";
-    return;
+    return std::nullopt;
   }
 
   log_->Append(record->Encode());
+  return std::nullopt;
 }
 
 }  // namespace wombat::broker
