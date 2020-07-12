@@ -13,9 +13,10 @@
 
 namespace wombat::broker {
 
-ConsumeHandler::ConsumeHandler(std::shared_ptr<Responder> responder,
+ConsumeHandler::ConsumeHandler(uint32_t id,
+                               std::shared_ptr<Responder> responder,
                                std::shared_ptr<log::Log> log)
-    : responder_{responder}, log_{log} {}
+    : id_{id}, responder_{responder}, log_{log} {}
 
 void ConsumeHandler::Handle(const Event& evt) {
   if (!IsValidType(evt.message)) {
@@ -34,15 +35,14 @@ void ConsumeHandler::Handle(const Event& evt) {
   if (!record) {
     // If the offset is not found return empty record.
     const frame::Message msg{
-      frame::Type::kConsumeResponse, 0, frame::Record{}.Encode()
+      frame::Type::kConsumeResponse, id_, frame::Record{}.Encode()
     };
     responder_->Respond({msg, evt.connection});
     return;
   }
 
-  // TODO(AD) Need partition ID
   const frame::Message msg{
-    frame::Type::kConsumeResponse, 0, record->Encode()
+    frame::Type::kConsumeResponse, id_, record->Encode()
   };
 
   responder_->Respond({msg, evt.connection});

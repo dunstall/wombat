@@ -19,7 +19,7 @@ Leader::Leader(uint32_t id,
                std::shared_ptr<log::Log> log)
     : Partition{id},
       produce_{log},
-      consume_{responder, log},
+      consume_{id, responder, log},
       stat_{responder, log} {
   Start();
 }

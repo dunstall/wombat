@@ -14,7 +14,8 @@ namespace wombat::broker {
 
 class ConsumeHandler {
  public:
-  ConsumeHandler(std::shared_ptr<Responder> responder,
+  ConsumeHandler(uint32_t id,
+                 std::shared_ptr<Responder> responder,
                  std::shared_ptr<log::Log> log);
 
   // TODO(AD) Return the response so passes to responder at a higher level.
@@ -24,6 +25,8 @@ class ConsumeHandler {
   bool IsValidType(const frame::Message& msg) const;
 
   std::optional<frame::Record> Lookup(uint32_t offset) const;
+
+  uint32_t id_;
 
   std::shared_ptr<Responder> responder_;
 

@@ -55,7 +55,6 @@ std::vector<uint8_t> SystemLog::Lookup(uint32_t offset, uint32_t size) {
     // This should never happen a segment at offset 0 is always added.
     throw LogException("offset not found");
   }
-  // TODO(AD) need to handle lookup over multi segments now
   return LookupSegment(id)->Lookup(offset - starting_offset, size);
 }
 

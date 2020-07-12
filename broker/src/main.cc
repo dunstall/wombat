@@ -55,10 +55,10 @@ void Run(const std::filesystem::path& path) {
         );
         break;
       case PartitionConf::Type::kReplica:
-        // TODO(AD) Pass leader address
-        router.AddPartition(
-            std::make_unique<Leader>(p.id(), std::make_shared<Responder>(), log)
-        );
+        // TODO(AD) Replica not yet supported.
+        // router.AddPartition(
+        //    std::make_unique<Replica>(...)
+        //);
         break;
     }
   }
