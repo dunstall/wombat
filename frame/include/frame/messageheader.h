@@ -18,7 +18,8 @@ enum class Type : uint32_t {
   kConsumeResponse,
   kReplicaResponse,
   kStatRequest,
-  kStatResponse
+  kStatResponse,
+  kDummy
 };
 
 class MessageHeader : public Frame {

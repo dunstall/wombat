@@ -2,8 +2,10 @@
 
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <memory>
+#include <vector>
 
 #include "connection/socket.h"
 #include "frame/message.h"
@@ -21,6 +23,23 @@ class Connection {
   // TODO(AD) On send register with a singleton thread that keeps polling
   // until the full outgoing buffer is emptied - just register socket?
   virtual void Send(const frame::Message& msg);
+
+ private:
+  enum class State {
+    kHeaderPending,
+    kPayloadPending
+  };
+
+  static constexpr uint32_t kBufSize = 1024;
+
+  std::vector<uint8_t> buf_;
+
+  std::unique_ptr<Socket> sock_;
+
+  State state_;
+
+  uint32_t n_read_;
+  uint32_t remaining_;
 };
 
 }  // namespace wombat::broker::connection

@@ -25,7 +25,7 @@ void StreamSocket::Connect(const std::string& ip, uint16_t port) {
   // TODO(AD) Connect existing socket
 }
 
-size_t StreamSocket::Read(const std::vector<uint8_t>* buf, size_t from) {
+size_t StreamSocket::Read(std::vector<uint8_t>* buf, size_t from, size_t n) {
   // TODO(AD) Read into buf->data() + from
   return 0;
 }

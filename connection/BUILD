@@ -11,13 +11,26 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "connection-mock",
+    srcs = glob(["tests/mock/*.cc"]),
+    hdrs = glob(["tests/mock/connection/*.h"]),
+    strip_include_prefix = "tests/mock/",
+    linkopts = ["-lstdc++fs"],
+    deps = [
+        "@gtest//:gtest",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 cc_test(
     name = "connection-unit-test",
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
         "@gtest//:gtest_main",
-        ":connection"
+        ":connection",
+        ":connection-mock",
     ],
 )
 

@@ -22,7 +22,7 @@ class StreamSocket : public Socket {
 
   void Connect(const std::string& ip, uint16_t port) override;
 
-  size_t Read(const std::vector<uint8_t>* buf, size_t from) override;
+  size_t Read(std::vector<uint8_t>* buf, size_t from, size_t n) override;
 
   size_t Write(const std::vector<uint8_t>& buf, size_t from) override;
 };
