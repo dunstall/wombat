@@ -2,16 +2,12 @@
 
 #pragma once
 
-#include <atomic>
+#include <cstdint>
 #include <memory>
-#include <thread>
 
-#include "event/event.h"
 #include "event/responder.h"
 #include "log/log.h"
-#include "partition/consumehandler.h"
 #include "partition/partition.h"
-#include "partition/stathandler.h"
 
 namespace wombat::broker {
 
@@ -30,19 +26,7 @@ class Replica : public Partition {
   Replica& operator=(Replica&& conn) = delete;
 
  private:
-  void Poll();
-
-  void Route(const Event& evt);
-
-  void Start();
-
-  void Stop();
-
-  ConsumeHandler consume_;
-  StatHandler stat_;
-
-  std::thread thread_;
-  std::atomic_bool running_;
+  void Process() override;
 };
 
 }  // namespace wombat::broker

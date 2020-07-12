@@ -1,0 +1,32 @@
+// Copyright 2020 Andrew Dunstall
+
+#pragma once
+
+#include <memory>
+#include <unordered_map>
+
+#include "event/event.h"
+#include "frame/messageheader.h"
+#include "partition/handler.h"
+
+namespace wombat::broker {
+
+class Router {
+ public:
+  Router() = default;
+
+  Router(const Router& conn) = delete;
+  Router& operator=(const Router& conn) = delete;
+
+  Router(Router&& conn) = default;
+  Router& operator=(Router&& conn) = default;
+
+  void Route(const Event& evt) const;
+
+  void AddRoute(frame::Type type, std::unique_ptr<Handler> handler);
+
+ private:
+  std::unordered_map<frame::Type, std::unique_ptr<Handler>> handlers_;
+};
+
+}  // namespace wombat::broker
