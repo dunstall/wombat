@@ -20,7 +20,7 @@ Leader::Leader(uint32_t id,
     : Partition{id},
       produce_{log},
       consume_{id, responder, log},
-      stat_{responder, log} {
+      stat_{id, responder, log} {
   Start();
 }
 

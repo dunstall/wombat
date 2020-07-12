@@ -13,7 +13,8 @@ namespace wombat::broker {
 
 class StatHandler {
  public:
-  StatHandler(std::shared_ptr<Responder> responder,
+  StatHandler(uint32_t id,
+              std::shared_ptr<Responder> responder,
               std::shared_ptr<log::Log> log);
 
   // TODO(AD) Return the response so passes to responder at a higher level.
@@ -21,6 +22,8 @@ class StatHandler {
 
  private:
   bool IsValidType(const frame::Message& msg) const;
+
+  uint32_t id_;
 
   std::shared_ptr<Responder> responder_;
 

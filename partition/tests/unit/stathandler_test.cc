@@ -34,22 +34,25 @@ class FakeConnection : public Connection {
   bool Send(const frame::Message& msg) override { return false; }
 };
 
-class StatHandlerTest : public ::testing::Test {};
+class StatHandlerTest : public ::testing::Test {
+ protected:
+  const uint32_t kPartitionId = 0xffaa;
+};
 
 TEST_F(StatHandlerTest, HandleValidStatRequest) {
   const uint32_t log_size = 0xffffaaaa;
 
   std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>(log_size);
-  StatHandler handler{responder, log};
+  StatHandler handler{kPartitionId, responder, log};
 
-  const frame::Message msg{frame::Type::kStatRequest, 0, {}};
+  const frame::Message msg{frame::Type::kStatRequest, kPartitionId, {}};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
   const frame::Offset stat{log_size};
   const frame::Message expected_response{
-      frame::Type::kStatResponse, 0, stat.Encode()
+      frame::Type::kStatResponse, kPartitionId, stat.Encode()
   };
   EXPECT_CALL(*responder, Respond(Event{expected_response, conn}));
 
@@ -59,11 +62,11 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
 TEST_F(StatHandlerTest, HandleUnrecognizedType) {
   std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
   std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
-  StatHandler handler{responder, log};
+  StatHandler handler{kPartitionId, responder, log};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const frame::Message msg{
-      frame::Type::kProduceRequest, 0, {0, 1, 2, 3, 4}
+      frame::Type::kProduceRequest, kPartitionId, {0, 1, 2, 3, 4}
   };
 
   handler.Handle(Event{msg, conn});

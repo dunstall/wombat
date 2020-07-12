@@ -11,9 +11,10 @@
 
 namespace wombat::broker {
 
-StatHandler::StatHandler(std::shared_ptr<Responder> responder,
+StatHandler::StatHandler(uint32_t id,
+                         std::shared_ptr<Responder> responder,
                          std::shared_ptr<log::Log> log)
-    : responder_{responder}, log_{log} {}
+    : id_{id}, responder_{responder}, log_{log} {}
 
 void StatHandler::Handle(const Event& evt) {
   if (!IsValidType(evt.message)) {
@@ -23,9 +24,8 @@ void StatHandler::Handle(const Event& evt) {
 
   const frame::Offset stat{log_->size()};
 
-  // TODO(AD) Need partition ID
   const frame::Message msg{
-    frame::Type::kStatResponse, 0, stat.Encode()
+    frame::Type::kStatResponse, id_, stat.Encode()
   };
 
   responder_->Respond({msg, evt.connection});
