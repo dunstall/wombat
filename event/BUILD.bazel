@@ -2,13 +2,13 @@ cc_library(
     name = "event",
     srcs = glob(["src/*.cc"]),
     hdrs = glob(["include/event/*.h"]),
-    strip_include_prefix = "include/",
     linkopts = ["-lstdc++fs"],
-    deps = [
-        "//frame:frame",
-        "//util:util",
-    ],
+    strip_include_prefix = "include/",
     visibility = ["//visibility:public"],
+    deps = [
+        "//frame",
+        "//util",
+    ],
 )
 
 cc_test(
@@ -16,7 +16,7 @@ cc_test(
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":event",
         "@gtest//:gtest_main",
-        ":event"
     ],
 )

@@ -2,25 +2,25 @@ cc_library(
     name = "connection",
     srcs = glob(["src/*.cc"]),
     hdrs = glob(["include/connection/*.h"]),
-    strip_include_prefix = "include/",
     linkopts = ["-lstdc++fs"],
-    deps = [
-        "@glog//:glog",
-        "//frame:frame"
-    ],
+    strip_include_prefix = "include/",
     visibility = ["//visibility:public"],
+    deps = [
+        "//frame",
+        "@glog",
+    ],
 )
 
 cc_library(
     name = "connection-mock",
     srcs = glob(["tests/mock/*.cc"]),
     hdrs = glob(["tests/mock/connection/*.h"]),
-    strip_include_prefix = "tests/mock/",
     linkopts = ["-lstdc++fs"],
-    deps = [
-        "@gtest//:gtest",
-    ],
+    strip_include_prefix = "tests/mock/",
     visibility = ["//visibility:public"],
+    deps = [
+        "@gtest",
+    ],
 )
 
 cc_test(
@@ -28,9 +28,9 @@ cc_test(
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
-        "@gtest//:gtest_main",
         ":connection",
         ":connection-mock",
+        "@gtest//:gtest_main",
     ],
 )
 
@@ -39,7 +39,7 @@ cc_test(
     srcs = glob(["tests/integration/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":connection",
         "@gtest//:gtest_main",
-        ":connection"
     ],
 )

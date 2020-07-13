@@ -1,26 +1,29 @@
 cc_library(
     name = "broker",
-    srcs = glob(["src/*.cc"], exclude = ["src/main.cc"],),
+    srcs = glob(
+        ["src/*.cc"],
+        exclude = ["src/main.cc"],
+    ),
     hdrs = glob(["include/broker/*.h"]),
     strip_include_prefix = "include/",
     deps = [
-        "//event:event",
-        "//frame:frame",
-        "//log:log",
-        "//partition:partition",
-        "//server:server",
-        "//util:util",
+        "//event",
+        "//frame",
+        "//log",
+        "//partition",
+        "//server",
+        "//util",
     ],
 )
 
 cc_binary(
     name = "wombat-broker",
     srcs = ["src/main.cc"],
+    linkopts = ["-pthread"],
     deps = [
         ":broker",
-        "@glog//:glog",
+        "@glog",
     ],
-    linkopts = ["-pthread"],
 )
 
 cc_test(
@@ -28,7 +31,7 @@ cc_test(
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":broker",
         "@gtest//:gtest_main",
-        ":broker"
     ],
 )

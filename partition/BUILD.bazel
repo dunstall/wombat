@@ -2,16 +2,16 @@ cc_library(
     name = "partition",
     srcs = glob(["src/*.cc"]),
     hdrs = glob(["include/partition/*.h"]),
-    strip_include_prefix = "include/",
     linkopts = ["-lstdc++fs"],
-    deps = [
-        "@glog//:glog",
-        "//frame:frame",
-        "//event:event",
-        "//log:log",
-        "//util:util",
-    ],
+    strip_include_prefix = "include/",
     visibility = ["//visibility:public"],
+    deps = [
+        "//event",
+        "//frame",
+        "//log",
+        "//util",
+        "@glog",
+    ],
 )
 
 cc_test(
@@ -19,7 +19,7 @@ cc_test(
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":partition",
         "@gtest//:gtest_main",
-        ":partition"
     ],
 )

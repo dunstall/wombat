@@ -3,13 +3,13 @@ cc_library(
     srcs = glob(["src/*.cc"]),
     hdrs = glob(["include/server/*.h"]),
     strip_include_prefix = "include/",
-    deps = [
-        "@glog//:glog",
-        "//event:event",
-        "//frame:frame",
-        "//util:util",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//event",
+        "//frame",
+        "//util",
+        "@glog",
+    ],
 )
 
 cc_test(
@@ -17,7 +17,7 @@ cc_test(
     srcs = glob(["tests/integration/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":server",
         "@gtest//:gtest_main",
-        ":server"
     ],
 )

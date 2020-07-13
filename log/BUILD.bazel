@@ -2,12 +2,12 @@ cc_library(
     name = "log",
     srcs = glob(["src/*.cc"]),
     hdrs = glob(["include/log/*.h"]),
-    strip_include_prefix = "include/",
     linkopts = ["-lstdc++fs"],
-    deps = [
-        "@glog//:glog",
-    ],
+    strip_include_prefix = "include/",
     visibility = ["//visibility:public"],
+    deps = [
+        "@glog",
+    ],
 )
 
 cc_test(
@@ -15,8 +15,8 @@ cc_test(
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":log",
         "@gtest//:gtest_main",
-        ":log"
     ],
 )
 
@@ -25,7 +25,7 @@ cc_test(
     srcs = glob(["tests/integration/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":log",
         "@gtest//:gtest_main",
-        ":log"
     ],
 )
