@@ -21,9 +21,8 @@ std::optional<Event> ProduceHandler::Handle(const Event& evt) {
     return std::nullopt;
   }
 
-  const std::optional<frame::Record> record = frame::Record::Decode(
-      evt.message.payload()
-  );
+  const std::optional<frame::Record> record =
+      frame::Record::Decode(evt.message.payload());
   if (!record) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid record";
     return std::nullopt;

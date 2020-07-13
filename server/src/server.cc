@@ -63,7 +63,7 @@ void Server::Listen() {
     throw ServerException{"socket error", errno};
   }
 
-  if (bind(listenfd_, (struct sockaddr*) &servaddr, sizeof(servaddr)) == -1) {
+  if (bind(listenfd_, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
     LOG(ERROR) << "failed to bind socket " << strerror(errno);
     throw ServerException{"bind error", errno};
   }
@@ -84,7 +84,7 @@ void Server::Accept() {
   struct sockaddr_in cliaddr;
   socklen_t clilen = sizeof(cliaddr);
 
-  int connfd = accept(listenfd_, (struct sockaddr*) &cliaddr, &clilen);
+  int connfd = accept(listenfd_, (struct sockaddr*)&cliaddr, &clilen);
   if (connfd == -1) {
     LOG(WARNING) << "failed to accept connection " << strerror(errno);
     return;
@@ -95,9 +95,8 @@ void Server::Accept() {
       fds_[i].fd = connfd;
       fds_[i].events = POLLRDNORM | POLLWRNORM | POLLERR;
       max_fd_index_ = std::max(max_fd_index_, i);
-      connections_.emplace(
-          connfd, std::make_shared<TcpConnection>(connfd, cliaddr)
-      );
+      connections_.emplace(connfd,
+                           std::make_shared<TcpConnection>(connfd, cliaddr));
       return;
     }
   }
@@ -130,8 +129,8 @@ bool Server::PendingRead(int i) const {
   if (fds_[i].fd == -1) {
     return false;
   }
-  return (fds_[i].revents & POLLRDNORM) != 0
-      || (fds_[i].revents & POLLERR) != 0;
+  return (fds_[i].revents & POLLRDNORM) != 0 ||
+         (fds_[i].revents & POLLERR) != 0;
 }
 
 bool Server::PendingWrite(int i) const {

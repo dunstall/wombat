@@ -3,8 +3,8 @@
 #include "partition/consumehandler.h"
 
 #include <cstdint>
-#include <optional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "event/event.h"
@@ -12,8 +12,8 @@
 #include "frame/record.h"
 #include "frame/utils.h"
 #include "glog/logging.h"
-#include "partition/handler.h"
 #include "log/log.h"
+#include "partition/handler.h"
 
 namespace wombat::broker::partition {
 
@@ -26,17 +26,15 @@ std::optional<Event> ConsumeHandler::Handle(const Event& evt) {
     return std::nullopt;
   }
 
-  const std::optional<frame::Offset> off
-      = frame::Offset::Decode(evt.message.payload());
+  const std::optional<frame::Offset> off =
+      frame::Offset::Decode(evt.message.payload());
   if (!off) {
     LOG(ERROR) << "ConsumeHandler::Handle called with invalid request";
     return std::nullopt;
   }
 
   const frame::Record record = Lookup(off->offset());
-  const frame::Message msg{
-      frame::Type::kConsumeResponse, id_, record.Encode()
-  };
+  const frame::Message msg{frame::Type::kConsumeResponse, id_, record.Encode()};
   return Event{msg, evt.connection};
 }
 
@@ -45,17 +43,15 @@ bool ConsumeHandler::IsValidType(const frame::Message& msg) const {
 }
 
 frame::Record ConsumeHandler::Lookup(uint32_t offset) const {
-  const std::optional<uint32_t> size = frame::DecodeU32(
-      log_->Lookup(offset, sizeof(uint32_t))
-  );
+  const std::optional<uint32_t> size =
+      frame::DecodeU32(log_->Lookup(offset, sizeof(uint32_t)));
   if (!size) {
     // If the offset is not found return empty record.
     return frame::Record{};
   }
 
-  const std::vector<uint8_t> record = log_->Lookup(
-      offset, sizeof(uint32_t) + *size
-  );
+  const std::vector<uint8_t> record =
+      log_->Lookup(offset, sizeof(uint32_t) + *size);
   const std::optional<frame::Record> r = frame::Record::Decode(record);
   if (r) {
     return *r;

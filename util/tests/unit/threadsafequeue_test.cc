@@ -28,9 +28,9 @@ TEST_F(ThreadSafeQueueTest, WaitAndPopOk) {
 TEST_F(ThreadSafeQueueTest, WaitAndPopFillsWhileWaiting) {
   int val;
   ThreadSafeQueue<int> queue{};
-  std::async(std::launch::async, [&]{
-      std::this_thread::sleep_for(10ms);
-      queue.Push(val);
+  std::async(std::launch::async, [&] {
+    std::this_thread::sleep_for(10ms);
+    queue.Push(val);
   });
   EXPECT_EQ(val, queue.WaitAndPop());
 }
@@ -50,9 +50,9 @@ TEST_F(ThreadSafeQueueTest, WaitForAndPopEmpty) {
 TEST_F(ThreadSafeQueueTest, WaitForAndPopFillsWhileWaiting) {
   int val;
   ThreadSafeQueue<int> queue{};
-  std::async(std::launch::async, [&]{
-      std::this_thread::sleep_for(10ms);
-      queue.Push(val);
+  std::async(std::launch::async, [&] {
+    std::this_thread::sleep_for(10ms);
+    queue.Push(val);
   });
   EXPECT_EQ(val, queue.WaitForAndPop(50ms));
 }

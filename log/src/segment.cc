@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 
 #include "glog/logging.h"
 #include "log/logexception.h"

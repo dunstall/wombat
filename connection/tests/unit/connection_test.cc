@@ -46,13 +46,13 @@ TEST_F(ConnectionTest, ReceiveMessageWithNoPayload) {
 
   std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
   // Return the full message header and write this to buf.
-  EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize)).WillOnce(
-      [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-          const auto data = h.Encode();
-          buf->insert(buf->begin(), data.begin(), data.end());
-          return frame::MessageHeader::kSize;
-      }
-  );
+  EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize))
+      .WillOnce(
+          [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+            const auto data = h.Encode();
+            buf->insert(buf->begin(), data.begin(), data.end());
+            return frame::MessageHeader::kSize;
+          });
 
   Connection conn{std::move(sock)};
   // As the message has no payload this is the full message.
@@ -65,26 +65,23 @@ TEST_F(ConnectionTest, ReceiveMessageWithPayload) {
 
   std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
   // Return the message header and write this to buf.
-  EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize)).WillOnce(
-      [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-          const auto data = h.Encode();
-          buf->insert(buf->begin(), data.begin(), data.end());
-          return frame::MessageHeader::kSize;
-      }
-  );
+  EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize))
+      .WillOnce(
+          [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+            const auto data = h.Encode();
+            buf->insert(buf->begin(), data.begin(), data.end());
+            return frame::MessageHeader::kSize;
+          });
   // Return the message payload and write this to buf.
-  EXPECT_CALL(*sock, Read(::testing::_, frame::MessageHeader::kSize, m.payload().size())).WillOnce(
-      [m](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-          // TODO(AD) override not insert (check buf valid)
-          const auto data = m.payload();
-          buf->insert(
-              buf->begin() + from,
-              data.begin(),
-              data.end()
-          );
-          return m.payload().size();
-      }
-  );
+  EXPECT_CALL(*sock, Read(::testing::_, frame::MessageHeader::kSize,
+                          m.payload().size()))
+      .WillOnce(
+          [m](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+            // TODO(AD) override not insert (check buf valid)
+            const auto data = m.payload();
+            buf->insert(buf->begin() + from, data.begin(), data.end());
+            return m.payload().size();
+          });
 
   Connection conn{std::move(sock)};
   // Reads header.
@@ -101,23 +98,24 @@ TEST_F(ConnectionTest, ReceiveMessageOneByteAtATime) {
 
   size_t from = 0;
   for (uint8_t b : h.Encode()) {
-    EXPECT_CALL(*sock, Read(::testing::_, from, frame::MessageHeader::kSize - from)).WillOnce(
-        [from, b](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-            (*buf)[from] = b;
-            return 1;
-        }
-    );
+    EXPECT_CALL(*sock,
+                Read(::testing::_, from, frame::MessageHeader::kSize - from))
+        .WillOnce([from, b](std::vector<uint8_t>* buf, size_t from,
+                            size_t n) -> size_t {
+          (*buf)[from] = b;
+          return 1;
+        });
     ++from;
   }
 
   size_t i = 0;
   for (uint8_t b : m.payload()) {
-    EXPECT_CALL(*sock, Read(::testing::_, from, m.payload().size() - i)).WillOnce(
-        [from, b](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-            (*buf)[from] = b;
-            return 1;
-        }
-    );
+    EXPECT_CALL(*sock, Read(::testing::_, from, m.payload().size() - i))
+        .WillOnce([from, b](std::vector<uint8_t>* buf, size_t from,
+                            size_t n) -> size_t {
+          (*buf)[from] = b;
+          return 1;
+        });
     ++from;
     ++i;
   }

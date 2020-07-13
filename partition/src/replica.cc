@@ -15,23 +15,18 @@ namespace wombat::broker::partition {
 
 using namespace std::chrono_literals;  // NOLINT
 
-Replica::Replica(uint32_t id,
-                 std::shared_ptr<Responder> responder,
+Replica::Replica(uint32_t id, std::shared_ptr<Responder> responder,
                  std::shared_ptr<log::Log> log)
     : Partition{id, responder} {
-  router_.AddRoute(
-      frame::Type::kConsumeRequest, std::make_unique<ConsumeHandler>(id, log)
-  );
-  router_.AddRoute(
-      frame::Type::kStatRequest, std::make_unique<StatHandler>(id, log)
-  );
+  router_.AddRoute(frame::Type::kConsumeRequest,
+                   std::make_unique<ConsumeHandler>(id, log));
+  router_.AddRoute(frame::Type::kStatRequest,
+                   std::make_unique<StatHandler>(id, log));
 
   Start();
 }
 
-Replica::~Replica() {
-  Stop();
-}
+Replica::~Replica() { Stop(); }
 
 void Replica::Process() {
   const std::optional<Event> evt = events_.WaitForAndPop(50ms);

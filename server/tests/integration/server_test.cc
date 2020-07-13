@@ -40,7 +40,7 @@ TEST_F(ServerTest, TestConnectOk) {
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock = CreateSocket();
-  EXPECT_NE(connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
+  EXPECT_NE(connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr)), -1);
 
   std::vector<uint8_t> buf(5);
   EXPECT_EQ(read(sock, buf.data(), 5), -1);
@@ -59,13 +59,13 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   int sock2 = CreateSocket();
   int sock3 = CreateSocket();
 
-  EXPECT_NE(connect(sock1, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
+  EXPECT_NE(connect(sock1, (struct sockaddr*)&servaddr, sizeof(servaddr)), -1);
 
   std::vector<uint8_t> buf(5);
   EXPECT_EQ(read(sock1, buf.data(), 5), -1);
   EXPECT_EQ(EWOULDBLOCK, errno);
 
-  EXPECT_NE(connect(sock2, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
+  EXPECT_NE(connect(sock2, (struct sockaddr*)&servaddr, sizeof(servaddr)), -1);
 
   // Connection should be immediately closed by the server.
   EXPECT_EQ(0, read(sock2, buf.data(), 5));
@@ -76,7 +76,7 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // After closing sock1 should connect successfully.
-  EXPECT_NE(connect(sock3, (struct sockaddr*) &servaddr, sizeof(servaddr)), -1);
+  EXPECT_NE(connect(sock3, (struct sockaddr*)&servaddr, sizeof(servaddr)), -1);
   EXPECT_EQ(read(sock3, buf.data(), 5), -1);
   EXPECT_EQ(EWOULDBLOCK, errno);
 
@@ -90,20 +90,15 @@ TEST_F(ServerTest, TestSendMessages) {
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock = CreateSocket();
-  connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
+  connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const frame::Message request{
-    frame::Type::kProduceRequest, 0, payload
-  };
+  const frame::Message request{frame::Type::kProduceRequest, 0, payload};
   const std::vector<uint8_t> encoded = request.Encode();
 
   const int n_requests = 3;
   for (int i = 0; i != n_requests; ++i) {
-    EXPECT_EQ(
-        (int) encoded.size(),
-        write(sock, encoded.data(), encoded.size())
-    );
+    EXPECT_EQ((int)encoded.size(), write(sock, encoded.data(), encoded.size()));
   }
 
   for (int i = 0; i != n_requests; ++i) {
@@ -122,12 +117,10 @@ TEST_F(ServerTest, TestSendMessagesOneByteAtATime) {
   struct sockaddr_in servaddr = ServerAddr(port);
 
   int sock = CreateSocket();
-  connect(sock, (struct sockaddr*) &servaddr, sizeof(servaddr));
+  connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr));
 
   const std::vector<uint8_t> payload{1, 2, 3};
-  const frame::Message request{
-      frame::Type::kProduceRequest, 0, payload
-  };
+  const frame::Message request{frame::Type::kProduceRequest, 0, payload};
   const std::vector<uint8_t> encoded = request.Encode();
 
   const int n_requests = 3;
@@ -163,14 +156,10 @@ int ServerTest::CreateSocket() const {
   struct timeval timeout;
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-  setsockopt(
-      sock, SOL_SOCKET, SO_RCVTIMEO,
-      reinterpret_cast<char*>(&timeout), sizeof(timeout)
-  );
-  setsockopt(
-      sock, SOL_SOCKET, SO_SNDTIMEO,
-      reinterpret_cast<char*>(&timeout), sizeof(timeout)
-  );
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout),
+             sizeof(timeout));
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char*>(&timeout),
+             sizeof(timeout));
 
   return sock;
 }
@@ -179,7 +168,7 @@ uint16_t ServerTest::RandomPort() const {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> distrib(1024, 0xffff);
-  uint16_t a =  distrib(gen);
+  uint16_t a = distrib(gen);
   return a;
 }
 

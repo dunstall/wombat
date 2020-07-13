@@ -2,8 +2,8 @@
 
 #include "connection/connection.h"
 
-#include <optional>
 #include <memory>
+#include <optional>
 
 #include "connection/socket.h"
 #include "frame/message.h"

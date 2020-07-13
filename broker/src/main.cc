@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
-#include <string>
 #include <streambuf>
+#include <string>
 
 #include "broker/conf.h"
 #include "broker/router.h"
@@ -13,8 +13,8 @@
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
-#include "partition/partition.h"
 #include "partition/leader.h"
+#include "partition/partition.h"
 #include "server/server.h"
 #include "util/threadable.h"
 
@@ -27,9 +27,8 @@ constexpr uint16_t kPort = 3110;
 std::optional<Conf> ParseConf(const std::filesystem::path& path) {
   std::ifstream f(path);
   if (!f.is_open()) return std::nullopt;
-  const std::string s(
-      (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>()
-  );
+  const std::string s((std::istreambuf_iterator<char>(f)),
+                      std::istreambuf_iterator<char>());
   return Conf::Parse(s);
 }
 
@@ -50,11 +49,8 @@ void Run(const std::filesystem::path& path) {
 
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
-        router.AddPartition(
-            std::make_unique<partition::Leader>(
-                p.id(), std::make_shared<Responder>(), log
-            )
-        );
+        router.AddPartition(std::make_unique<partition::Leader>(
+            p.id(), std::make_shared<Responder>(), log));
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Replica not yet supported.
@@ -64,8 +60,8 @@ void Run(const std::filesystem::path& path) {
         break;
     }
   }
-  std::shared_ptr<server::Server> server
-      = std::make_shared<server::Server>(kPort);
+  std::shared_ptr<server::Server> server =
+      std::make_shared<server::Server>(kPort);
   util::Threadable threadable_server(server);
 
   while (true) {

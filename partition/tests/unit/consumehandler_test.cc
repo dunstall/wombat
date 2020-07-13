@@ -18,7 +18,8 @@ namespace wombat::broker::partition {
 class MockLog : public log::Log {
  public:
   MOCK_METHOD(void, Append, (const std::vector<uint8_t>& data), (override));
-  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size), (override));  // NOLINT
+  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size),
+              (override));  // NOLINT
 };
 
 class FakeConnection : public Connection {
@@ -41,9 +42,7 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
   const std::vector<uint8_t> payload{1, 2, 3, 4, 5};
   const frame::Record record{payload};
   const std::vector<uint8_t> encoded = record.Encode();
-  const std::vector<uint8_t> encoded_size(
-      encoded.begin(), encoded.begin() + 4
-  );
+  const std::vector<uint8_t> encoded_size(encoded.begin(), encoded.begin() + 4);
 
   // Expect to first lookup the record size then the full record.
   EXPECT_CALL(*log, Lookup(kOffset, sizeof(uint32_t)))
@@ -52,14 +51,12 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
       .WillOnce(::testing::Return(encoded));
 
   const frame::Offset offset{kOffset};
-  const frame::Message msg{
-      frame::Type::kConsumeRequest, kPartitionId, offset.Encode()
-  };
+  const frame::Message msg{frame::Type::kConsumeRequest, kPartitionId,
+                           offset.Encode()};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
-  const frame::Message expected_response{
-      frame::Type::kConsumeResponse, kPartitionId, record.Encode()
-  };
+  const frame::Message expected_response{frame::Type::kConsumeResponse,
+                                         kPartitionId, record.Encode()};
   const Event expected_event{expected_response, conn};
   EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
 }
@@ -72,14 +69,12 @@ TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
       .WillOnce(::testing::Return(std::vector<uint8_t>()));
 
   const frame::Offset offset{kOffset};
-  const frame::Message msg{
-      frame::Type::kConsumeRequest, kPartitionId, offset.Encode()
-  };
+  const frame::Message msg{frame::Type::kConsumeRequest, kPartitionId,
+                           offset.Encode()};
 
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const frame::Message expected_response{
-      frame::Type::kConsumeResponse, kPartitionId, frame::Record{}.Encode()
-  };
+      frame::Type::kConsumeResponse, kPartitionId, frame::Record{}.Encode()};
   const Event expected_event{expected_response, conn};
   EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
 }

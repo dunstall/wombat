@@ -15,9 +15,7 @@ Threadable::Threadable(std::shared_ptr<Pollable> poller)
   Start();
 }
 
-Threadable::~Threadable() {
-  Stop();
-}
+Threadable::~Threadable() { Stop(); }
 
 void Threadable::Poll() {
   while (running_) {

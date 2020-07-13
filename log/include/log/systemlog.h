@@ -11,8 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "log/offsets.h"
 #include "log/log.h"
+#include "log/offsets.h"
 
 namespace wombat::broker::log {
 

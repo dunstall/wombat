@@ -13,8 +13,7 @@ namespace wombat::broker::frame {
 
 constexpr uint32_t Record::kLimit;
 
-Record::Record(const std::vector<uint8_t>& data)
-    : data_{data} {
+Record::Record(const std::vector<uint8_t>& data) : data_{data} {
   if (data_.size() > kLimit) {
     throw std::invalid_argument{"data size exceeds limit"};
   }
@@ -30,8 +29,7 @@ std::vector<uint8_t> Record::Encode() const {
   return enc;
 }
 
-std::optional<Record> Record::Decode(
-    const std::vector<uint8_t>& enc) {
+std::optional<Record> Record::Decode(const std::vector<uint8_t>& enc) {
   std::optional<uint32_t> size = DecodeU32(enc);
   if (!size || *size > kLimit) {
     return std::nullopt;
@@ -40,10 +38,8 @@ std::optional<Record> Record::Decode(
     return std::nullopt;
   }
 
-  std::vector<uint8_t> data(
-      enc.begin() + sizeof(uint32_t),
-      enc.begin() + sizeof(uint32_t) + *size
-  );
+  std::vector<uint8_t> data(enc.begin() + sizeof(uint32_t),
+                            enc.begin() + sizeof(uint32_t) + *size);
   return std::optional<Record>{data};
 }
 

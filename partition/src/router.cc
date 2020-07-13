@@ -6,8 +6,7 @@
 
 namespace wombat::broker::partition {
 
-Router::Router(std::shared_ptr<Responder> responder)
-    : responder_{responder} {}
+Router::Router(std::shared_ptr<Responder> responder) : responder_{responder} {}
 
 void Router::Route(const Event& evt) const {
   if (handlers_.find(evt.message.type()) == handlers_.end()) {

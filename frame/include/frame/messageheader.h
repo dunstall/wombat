@@ -26,9 +26,7 @@ class MessageHeader : public Frame {
  public:
   static constexpr int kSize = 12;
 
-  MessageHeader(Type type,
-                uint32_t partition_id,
-                uint32_t payload_size);
+  MessageHeader(Type type, uint32_t partition_id, uint32_t payload_size);
 
   ~MessageHeader() override {}
 

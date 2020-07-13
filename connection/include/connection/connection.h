@@ -3,8 +3,8 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "connection/socket.h"
@@ -25,10 +25,7 @@ class Connection {
   virtual void Send(const frame::Message& msg);
 
  private:
-  enum class State {
-    kHeaderPending,
-    kPayloadPending
-  };
+  enum class State { kHeaderPending, kPayloadPending };
 
   static constexpr size_t kBufSize = 1024;
 

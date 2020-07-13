@@ -14,12 +14,9 @@
 
 namespace wombat::broker::log {
 
-SystemSegment::SystemSegment(
-    uint32_t id,
-    const std::filesystem::path& dir,
-    uint32_t limit)
-  : Segment{dir / IdToName(id), limit}
-{
+SystemSegment::SystemSegment(uint32_t id, const std::filesystem::path& dir,
+                             uint32_t limit)
+    : Segment{dir / IdToName(id), limit} {
   std::filesystem::create_directories(dir);
 
   // Note cannot use O_APPEND as this does not work with sendfile.

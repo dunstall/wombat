@@ -20,12 +20,9 @@ bool Offset::operator!=(const Offset& record) const {
   return !(*this == record);
 }
 
-std::vector<uint8_t> Offset::Encode() const {
-  return EncodeU32(offset_);
-}
+std::vector<uint8_t> Offset::Encode() const { return EncodeU32(offset_); }
 
-std::optional<Offset> Offset::Decode(
-    const std::vector<uint8_t>& enc) {
+std::optional<Offset> Offset::Decode(const std::vector<uint8_t>& enc) {
   std::optional<uint32_t> offset = DecodeU32(enc);
   if (!offset) {
     return std::nullopt;

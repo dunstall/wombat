@@ -15,9 +15,7 @@ class ServerException : public std::exception {
 
   ServerException(const std::string& msg, int err);
 
-  const char* what() const noexcept {
-    return msg_.c_str();
-  }
+  const char* what() const noexcept { return msg_.c_str(); }
 
  private:
   std::string msg_;

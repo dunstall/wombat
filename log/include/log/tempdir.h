@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <string>
 
 namespace wombat::broker::log {

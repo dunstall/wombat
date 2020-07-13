@@ -23,10 +23,8 @@ TEST_F(MessageTest, Get) {
 TEST_F(MessageTest, ExceedSizeLimit) {
   const uint32_t partition_id = 0xaabbccdd;
   const std::vector<uint8_t> payload(513);
-  EXPECT_THROW(
-      Message(Type::kProduceRequest, partition_id, payload),
-      std::invalid_argument
-  );
+  EXPECT_THROW(Message(Type::kProduceRequest, partition_id, payload),
+               std::invalid_argument);
 }
 
 TEST_F(MessageTest, Encode) {
@@ -36,10 +34,10 @@ TEST_F(MessageTest, Encode) {
   const Message message{type, partition_id, payload};
 
   const std::vector<uint8_t> expected{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x00, 0x04,  // Size
-    0x0a, 0x0b, 0x0c, 0x0d,  // Payload
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x00, 0x04,  // Size
+      0x0a, 0x0b, 0x0c, 0x0d,  // Payload
   };
   EXPECT_EQ(expected, message.Encode());
 }
@@ -51,9 +49,9 @@ TEST_F(MessageTest, EncodeLimit) {
   const Message message{type, partition_id, payload};
 
   std::vector<uint8_t> expected{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x02, 0x00,  // Size
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x02, 0x00,  // Size
   };
   expected.insert(expected.end(), payload.begin(), payload.end());
 
@@ -62,10 +60,10 @@ TEST_F(MessageTest, EncodeLimit) {
 
 TEST_F(MessageTest, DecodeOk) {
   const std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x00, 0x04,  // Size
-    0x0a, 0x0b, 0x0c, 0x0d,  // Payload
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x00, 0x04,  // Size
+      0x0a, 0x0b, 0x0c, 0x0d,  // Payload
   };
 
   const Type type = Type::kConsumeRequest;
@@ -78,8 +76,7 @@ TEST_F(MessageTest, DecodeOk) {
 
 TEST_F(MessageTest, DecodeHeaderTooSmall) {
   std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,
-    0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
   };
 
   EXPECT_FALSE(Message::Decode(enc));
@@ -89,9 +86,9 @@ TEST_F(MessageTest, DecodePayloadTooSmall) {
   const std::vector<uint8_t> payload(0x10, 0xff);
 
   std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x02, 0x00,  // Size
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x02, 0x00,  // Size
   };
   enc.insert(enc.end(), payload.begin(), payload.end());
 
@@ -102,9 +99,9 @@ TEST_F(MessageTest, DecodePayloadExceedsSize) {
   const std::vector<uint8_t> payload(0x10, 0xff);
 
   std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x00, 0x05,  // Size is only 5.
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x00, 0x05,  // Size is only 5.
   };
   enc.insert(enc.end(), payload.begin(), payload.end());
 

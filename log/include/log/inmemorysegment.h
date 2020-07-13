@@ -13,8 +13,7 @@ namespace wombat::broker::log {
 // uses globals (singletons) to manage state.
 class InMemorySegment : public Segment {
  public:
-  InMemorySegment(uint32_t id,
-                  const std::filesystem::path& dir,
+  InMemorySegment(uint32_t id, const std::filesystem::path& dir,
                   uint32_t limit);
 
   ~InMemorySegment() override;

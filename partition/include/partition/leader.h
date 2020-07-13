@@ -13,8 +13,7 @@ namespace wombat::broker::partition {
 
 class Leader : public Partition {
  public:
-  Leader(uint32_t id,
-         std::shared_ptr<Responder> responder,
+  Leader(uint32_t id, std::shared_ptr<Responder> responder,
          std::shared_ptr<log::Log> log);
 
   ~Leader() override;

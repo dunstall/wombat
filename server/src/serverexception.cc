@@ -16,7 +16,7 @@ ServerException::ServerException(const std::string& msg) : msg_{msg} {
 }
 
 ServerException::ServerException(const std::string& msg, int err) : msg_{msg} {
-/*   std::stringstream ss{}; */
+  /*   std::stringstream ss{}; */
   // ss << msg;
   // ss << ": " << std::strerror(err);
   // ss << " (" << err << ")";

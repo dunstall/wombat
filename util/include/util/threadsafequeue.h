@@ -3,14 +3,14 @@
 #pragma once
 
 #include <condition_variable>
-#include <optional>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <utility>
 
 namespace wombat::broker::util {
 
-template<class T>
+template <class T>
 class ThreadSafeQueue {
  public:
   ThreadSafeQueue() : data_queue_{}, cv_{} {}
@@ -29,7 +29,7 @@ class ThreadSafeQueue {
 
   T WaitAndPop() {
     std::unique_lock<std::mutex> lk(mut_);
-    cv_.wait(lk, [this]{ return !data_queue_.empty(); });
+    cv_.wait(lk, [this] { return !data_queue_.empty(); });
     T val = std::move(data_queue_.front());
     data_queue_.pop();
     return val;
@@ -38,7 +38,7 @@ class ThreadSafeQueue {
   template <typename R, typename P>
   std::optional<T> WaitForAndPop(const std::chrono::duration<R, P>& dur) {
     std::unique_lock<std::mutex> lk(mut_);
-    if (cv_.wait_for(lk, dur, [this]{ return !data_queue_.empty(); })) {
+    if (cv_.wait_for(lk, dur, [this] { return !data_queue_.empty(); })) {
       T val = std::move(data_queue_.front());
       data_queue_.pop();
       return val;

@@ -10,18 +10,15 @@
 
 namespace wombat::broker::frame {
 
-Message::Message(Type type,
-                 uint32_t partition_id,
+Message::Message(Type type, uint32_t partition_id,
                  const std::vector<uint8_t>& payload)
     : Message{MessageHeader(type, partition_id, payload.size()), payload} {}
 
-Message::Message(MessageHeader header,
-                 const std::vector<uint8_t>& payload)
+Message::Message(MessageHeader header, const std::vector<uint8_t>& payload)
     : header_{header}, payload_{payload} {}
 
 bool Message::operator==(const Message& message) const {
-  return header_ == message.header_
-      && payload_ == message.payload_;
+  return header_ == message.header_ && payload_ == message.payload_;
 }
 
 bool Message::operator!=(const Message& message) const {
@@ -44,13 +41,10 @@ std::optional<Message> Message::Decode(const std::vector<uint8_t>& enc) {
     return std::nullopt;
   }
 
-  return Message{
-    *header,
-    std::vector<uint8_t>(
-        enc.begin() + MessageHeader::kSize,
-        enc.begin() + MessageHeader::kSize + header->payload_size()
-    )
-  };
+  return Message{*header,
+                 std::vector<uint8_t>(enc.begin() + MessageHeader::kSize,
+                                      enc.begin() + MessageHeader::kSize +
+                                          header->payload_size())};
 }
 
 }  // namespace wombat::broker::frame

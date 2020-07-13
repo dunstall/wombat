@@ -10,8 +10,7 @@
 
 namespace wombat::broker::frame {
 
-MessageHeader::MessageHeader(Type type,
-                             uint32_t partition_id,
+MessageHeader::MessageHeader(Type type, uint32_t partition_id,
                              uint32_t payload_size)
     : type_{type}, partition_id_{partition_id}, payload_size_{payload_size} {
   if (payload_size_ > kLimit) {
@@ -20,9 +19,8 @@ MessageHeader::MessageHeader(Type type,
 }
 
 bool MessageHeader::operator==(const MessageHeader& header) const {
-  return type_ == header.type_
-      && partition_id_ == header.partition_id_
-      && payload_size_ == header.payload_size_;
+  return type_ == header.type_ && partition_id_ == header.partition_id_ &&
+         payload_size_ == header.payload_size_;
 }
 
 bool MessageHeader::operator!=(const MessageHeader& header) const {
@@ -46,17 +44,13 @@ std::optional<MessageHeader> MessageHeader::Decode(
   }
 
   std::optional<uint32_t> id = DecodeU32(
-      std::vector<uint8_t>(enc.begin() + sizeof(uint32_t), enc.end())
-  );
+      std::vector<uint8_t>(enc.begin() + sizeof(uint32_t), enc.end()));
   if (!id) {
     return std::nullopt;
   }
 
-  std::optional<uint32_t> payload_size = DecodeU32(
-      std::vector<uint8_t>(
-          enc.begin() + sizeof(uint32_t) + sizeof(uint32_t), enc.end()
-      )
-  );
+  std::optional<uint32_t> payload_size = DecodeU32(std::vector<uint8_t>(
+      enc.begin() + sizeof(uint32_t) + sizeof(uint32_t), enc.end()));
   if (!payload_size || payload_size > kLimit) {
     return std::nullopt;
   }

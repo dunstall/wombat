@@ -14,13 +14,9 @@ namespace wombat::broker::partition {
 Partition::Partition(uint32_t id, std::shared_ptr<Responder> responder)
     : id_{id}, router_{responder} {}
 
-Partition::~Partition() {
-  Stop();
-}
+Partition::~Partition() { Stop(); }
 
-void Partition::Handle(const Event& evt) {
-  events_.Push(evt);
-}
+void Partition::Handle(const Event& evt) { events_.Push(evt); }
 
 void Partition::Poll() {
   while (running_) {

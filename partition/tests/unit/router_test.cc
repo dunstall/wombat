@@ -46,13 +46,11 @@ TEST_F(RouterTest, RouteToFoundHandler) {
 
   Router router{responder};
   // Add redundent handlers that should be ignored.
-  router.AddRoute(
-      frame::Type::kConsumeRequest, std::make_unique<MockHandler>()
-  );
+  router.AddRoute(frame::Type::kConsumeRequest,
+                  std::make_unique<MockHandler>());
   router.AddRoute(frame::Type::kProduceRequest, std::move(handler));
-  router.AddRoute(
-      frame::Type::kConsumeResponse, std::make_unique<MockHandler>()
-  );
+  router.AddRoute(frame::Type::kConsumeResponse,
+                  std::make_unique<MockHandler>());
   router.Route(evt);
 }
 
@@ -68,13 +66,11 @@ TEST_F(RouterTest, RouteToFoundHandlerNoResponse) {
 
   Router router{responder};
   // Add redundent handlers that should be ignored.
-  router.AddRoute(
-      frame::Type::kConsumeRequest, std::make_unique<MockHandler>()
-  );
+  router.AddRoute(frame::Type::kConsumeRequest,
+                  std::make_unique<MockHandler>());
   router.AddRoute(frame::Type::kProduceRequest, std::move(handler));
-  router.AddRoute(
-      frame::Type::kConsumeResponse, std::make_unique<MockHandler>()
-  );
+  router.AddRoute(frame::Type::kConsumeResponse,
+                  std::make_unique<MockHandler>());
   router.Route(evt);
 }
 

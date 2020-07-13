@@ -15,12 +15,10 @@ namespace wombat::broker::frame {
 // payload.
 class Message : public Frame {
  public:
-  Message(Type type,
-          uint32_t partition_id,
+  Message(Type type, uint32_t partition_id,
           const std::vector<uint8_t>& payload);
 
-  Message(MessageHeader header,
-          const std::vector<uint8_t>& payload);
+  Message(MessageHeader header, const std::vector<uint8_t>& payload);
 
   ~Message() override {}
 

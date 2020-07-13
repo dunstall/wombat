@@ -56,9 +56,8 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& conn) {
 }
 
 std::optional<frame::Message> TcpConnection::Receive() {
-  int n = read(
-      connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_
-  );
+  int n =
+      read(connfd_, incoming_buf_.data() + n_read_, request_bytes_remaining_);
   if (n < 1) {
     if ((n == -1 && errno == ECONNRESET) || n == 0) {
       LOG(WARNING) << "connection reset by client";
@@ -73,8 +72,8 @@ std::optional<frame::Message> TcpConnection::Receive() {
 bool TcpConnection::Send(const frame::Message& msg) {
   // TODO(AD) Use outgoing_buf_. For now just assume all data can be written.
   const std::vector<uint8_t> data = msg.Encode();
-  return (write(connfd_, data.data(), data.size())
-      == static_cast<int>(data.size()));
+  return (write(connfd_, data.data(), data.size()) ==
+          static_cast<int>(data.size()));
 }
 
 std::optional<frame::Message> TcpConnection::HandleRead(int n) {
@@ -97,18 +96,15 @@ std::optional<frame::Message> TcpConnection::HandleRead(int n) {
       request_bytes_remaining_ = frame::MessageHeader::kSize;
       return frame::Message{*header_, {}};
     }
-  } else if (state_ == State::kPayloadPending
-      && request_bytes_remaining_ == 0) {
+  } else if (state_ == State::kPayloadPending &&
+             request_bytes_remaining_ == 0) {
     state_ = State::kHeaderPending;
     request_bytes_remaining_ = frame::MessageHeader::kSize;
     n_read_ = 0;
     return frame::Message{
         *header_,
-        std::vector<uint8_t>(
-            incoming_buf_.begin(),
-            incoming_buf_.begin() + header_->payload_size()
-        )
-    };
+        std::vector<uint8_t>(incoming_buf_.begin(),
+                             incoming_buf_.begin() + header_->payload_size())};
   }
 
   return std::nullopt;
@@ -116,12 +112,8 @@ std::optional<frame::Message> TcpConnection::HandleRead(int n) {
 
 std::string TcpConnection::AddrToString(const struct sockaddr_in& addr) const {
   std::string s(INET_ADDRSTRLEN, '\0');
-  inet_ntop(
-      AF_INET,
-      &addr.sin_addr.s_addr,
-      const_cast<char*>(s.c_str()),
-      INET_ADDRSTRLEN
-  );
+  inet_ntop(AF_INET, &addr.sin_addr.s_addr, const_cast<char*>(s.c_str()),
+            INET_ADDRSTRLEN);
   return s + ":" + std::to_string(ntohs(addr.sin_port));
 }
 

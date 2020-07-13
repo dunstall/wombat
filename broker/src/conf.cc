@@ -29,19 +29,14 @@ std::optional<Conf> Conf::Parse(const std::string& s) {
   return Conf(partitions);
 }
 
-PartitionConf::PartitionConf(Type type,
-                             uint32_t id,
+PartitionConf::PartitionConf(Type type, uint32_t id,
                              const std::filesystem::path& path,
-                             const std::string& addr,
-                             uint16_t port)
+                             const std::string& addr, uint16_t port)
     : type_{type}, id_{id}, path_{path}, addr_{addr}, port_{port} {}
 
 bool PartitionConf::operator==(const PartitionConf& cfg) const {
-  return type_ == cfg.type_
-      && id_ == cfg.id_
-      && path_ == cfg.path_
-      && addr_ == cfg.addr_
-      && port_ == cfg.port_;
+  return type_ == cfg.type_ && id_ == cfg.id_ && path_ == cfg.path_ &&
+         addr_ == cfg.addr_ && port_ == cfg.port_;
 }
 
 bool PartitionConf::operator!=(const PartitionConf& cfg) const {

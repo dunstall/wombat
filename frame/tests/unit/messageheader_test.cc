@@ -21,10 +21,8 @@ TEST_F(MessageHeaderTest, Get) {
 }
 
 TEST_F(MessageHeaderTest, ExceedSizeLimit) {
-  EXPECT_THROW(
-      MessageHeader(Type::kProduceRequest, 0, 513),
-      std::invalid_argument
-  );
+  EXPECT_THROW(MessageHeader(Type::kProduceRequest, 0, 513),
+               std::invalid_argument);
 }
 
 TEST_F(MessageHeaderTest, Encode) {
@@ -34,9 +32,9 @@ TEST_F(MessageHeaderTest, Encode) {
   const MessageHeader header{type, partition_id, payload_size};
 
   const std::vector<uint8_t> expected{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x00, 0xff,  // Payload size
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x00, 0xff,  // Payload size
   };
   EXPECT_EQ(expected, header.Encode());
 }
@@ -48,9 +46,9 @@ TEST_F(MessageHeaderTest, EncodeLimit) {
   const MessageHeader header{type, partition_id, payload_size};
 
   std::vector<uint8_t> expected{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x02, 0x00,  // Payload size
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x02, 0x00,  // Payload size
   };
 
   EXPECT_EQ(expected, header.Encode());
@@ -58,9 +56,9 @@ TEST_F(MessageHeaderTest, EncodeLimit) {
 
 TEST_F(MessageHeaderTest, DecodeOk) {
   const std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,  // Type
-    0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
-    0x00, 0x00, 0x00, 0xfa,  // Payload size
+      0x00, 0x00, 0x00, 0x01,  // Type
+      0xaa, 0xbb, 0xcc, 0xdd,  // Partition ID
+      0x00, 0x00, 0x00, 0xfa,  // Payload size
   };
 
   const MessageHeader expected{Type::kConsumeRequest, 0xaabbccdd, 0xfa};
@@ -71,20 +69,15 @@ TEST_F(MessageHeaderTest, DecodeOk) {
 
 TEST_F(MessageHeaderTest, DecodeHeaderTooSmall) {
   std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,
-    0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   };
 
   EXPECT_FALSE(MessageHeader::Decode(enc));
 }
 
 TEST_F(MessageHeaderTest, DecodeExceedsLimit) {
-  std::vector<uint8_t> enc{
-    0x00, 0x00, 0x00, 0x01,
-    0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x02, 0x01
-  };
+  std::vector<uint8_t> enc{0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+                           0x00, 0x00, 0x00, 0x00, 0x02, 0x01};
 
   EXPECT_FALSE(MessageHeader::Decode(enc));
 }

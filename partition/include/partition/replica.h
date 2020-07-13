@@ -13,8 +13,7 @@ namespace wombat::broker::partition {
 
 class Replica : public Partition {
  public:
-  Replica(uint32_t id,
-          std::shared_ptr<Responder> responder,
+  Replica(uint32_t id, std::shared_ptr<Responder> responder,
           std::shared_ptr<log::Log> log);
 
   ~Replica() override;

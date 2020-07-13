@@ -9,8 +9,8 @@
 #include "event/event.h"
 #include "frame/message.h"
 #include "frame/record.h"
-#include "partition/handler.h"
 #include "log/log.h"
+#include "partition/handler.h"
 
 namespace wombat::broker::partition {
 

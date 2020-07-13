@@ -40,10 +40,7 @@ class TcpConnection : public Connection {
   bool Send(const frame::Message& msg) override;
 
  private:
-  enum class State {
-    kHeaderPending,
-    kPayloadPending
-  };
+  enum class State { kHeaderPending, kPayloadPending };
 
   static const size_t kReadBufSize = 1024;
 

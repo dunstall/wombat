@@ -16,7 +16,8 @@ namespace wombat::broker::partition {
 class MockLog : public log::Log {
  public:
   MOCK_METHOD(void, Append, (const std::vector<uint8_t>& data), (override));
-  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size), (override));  // NOLINT
+  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size),
+              (override));  // NOLINT
 };
 
 class ProduceHandlerTest : public ::testing::Test {
@@ -30,9 +31,8 @@ TEST_F(ProduceHandlerTest, HandleValidProduceRequest) {
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
   const frame::Record record{data};
-  const frame::Message msg{
-      frame::Type::kProduceRequest, kPartitionId, record.Encode()
-  };
+  const frame::Message msg{frame::Type::kProduceRequest, kPartitionId,
+                           record.Encode()};
 
   EXPECT_CALL(*log, Append(record.Encode())).Times(1);
   EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));

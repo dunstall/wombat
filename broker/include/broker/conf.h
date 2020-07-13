@@ -26,17 +26,11 @@ class Conf {
 
 class PartitionConf {
  public:
-  enum class Type {
-    kLeader,
-    kReplica
-  };
+  enum class Type { kLeader, kReplica };
 
   PartitionConf() = default;
-  PartitionConf(Type type,
-                uint32_t id,
-                const std::filesystem::path& path,
-                const std::string& addr,
-                uint16_t port);
+  PartitionConf(Type type, uint32_t id, const std::filesystem::path& path,
+                const std::string& addr, uint16_t port);
 
   Type type() const { return type_; }
 

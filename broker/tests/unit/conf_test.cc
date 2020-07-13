@@ -13,20 +13,10 @@ class ConfTest : public ::testing::Test {};
 
 TEST_F(ConfTest, ParseOk) {
   std::list<PartitionConf> expected{};
-  expected.emplace_back(
-      PartitionConf::Type::kLeader,
-      9248,
-      "/usr/local/wombat/log",
-      "192.168.1.5",
-      3101
-  );
-  expected.emplace_back(
-      PartitionConf::Type::kReplica,
-      9258,
-      "/usr/local/wombat/log",
-      "10.26.104.122",
-      9224
-  );
+  expected.emplace_back(PartitionConf::Type::kLeader, 9248,
+                        "/usr/local/wombat/log", "192.168.1.5", 3101);
+  expected.emplace_back(PartitionConf::Type::kReplica, 9258,
+                        "/usr/local/wombat/log", "10.26.104.122", 9224);
 
   const std::string s = R"(leader:9248:/usr/local/wombat/log:192.168.1.5:3101
 replica:9258:/usr/local/wombat/log:10.26.104.122:9224)";
@@ -44,13 +34,8 @@ TEST_F(ConfTest, ParseInvalid) {
 class PartitionConfTest : public ::testing::Test {};
 
 TEST_F(PartitionConfTest, ParseLeaderConfigOk) {
-  PartitionConf expected(
-      PartitionConf::Type::kLeader,
-      8103,
-      "/usr/local/wombat/log",
-      "192.168.1.5",
-      3101
-  );
+  PartitionConf expected(PartitionConf::Type::kLeader, 8103,
+                         "/usr/local/wombat/log", "192.168.1.5", 3101);
 
   const std::string s = "leader:8103:/usr/local/wombat/log:192.168.1.5:3101";
   std::optional<PartitionConf> cfg = PartitionConf::Parse(s);
@@ -60,13 +45,8 @@ TEST_F(PartitionConfTest, ParseLeaderConfigOk) {
 }
 
 TEST_F(PartitionConfTest, ParseReplicaConfigOk) {
-  PartitionConf expected(
-      PartitionConf::Type::kReplica,
-      4124,
-      "/wombat/log",
-      "10.26.104.122",
-      9224
-  );
+  PartitionConf expected(PartitionConf::Type::kReplica, 4124, "/wombat/log",
+                         "10.26.104.122", 9224);
 
   const std::string s = "replica:4124:/wombat/log:10.26.104.122:9224";
   std::optional<PartitionConf> cfg = PartitionConf::Parse(s);

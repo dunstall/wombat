@@ -57,12 +57,8 @@ bool Offsets::LoadOffset(uint32_t offset) {
 
 void Offsets::WriteU32(uint32_t n) {
   uint32_t ordered = htonl(n);
-  std::vector<uint8_t> enc {
-    (uint8_t) (ordered >> 0),
-    (uint8_t) (ordered >> 8),
-    (uint8_t) (ordered >> 16),
-    (uint8_t) (ordered >> 24)
-  };
+  std::vector<uint8_t> enc{(uint8_t)(ordered >> 0), (uint8_t)(ordered >> 8),
+                           (uint8_t)(ordered >> 16), (uint8_t)(ordered >> 24)};
   segment_->Append(enc);
 }
 

@@ -5,8 +5,8 @@
 
 #include "event/event.h"
 #include "event/responder.h"
-#include "frame/offset.h"
 #include "frame/message.h"
+#include "frame/offset.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
@@ -19,7 +19,8 @@ class MockLog : public log::Log {
   explicit MockLog(uint32_t size = 0) : Log{size} {}
 
   MOCK_METHOD(void, Append, (const std::vector<uint8_t>& data), (override));
-  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size), (override));  // NOLINT
+  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size),
+              (override));  // NOLINT
 };
 
 class FakeConnection : public Connection {
@@ -45,9 +46,8 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
 
   const frame::Offset stat{log_size};
-  const frame::Message expected_response{
-      frame::Type::kStatResponse, kPartitionId, stat.Encode()
-  };
+  const frame::Message expected_response{frame::Type::kStatResponse,
+                                         kPartitionId, stat.Encode()};
   const Event expected_event{expected_response, conn};
 
   EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
@@ -58,8 +58,7 @@ TEST_F(StatHandlerTest, HandleUnrecognizedType) {
   StatHandler handler{kPartitionId, log};
 
   const frame::Message msg{
-      frame::Type::kProduceRequest, kPartitionId, {0, 1, 2, 3, 4}
-  };
+      frame::Type::kProduceRequest, kPartitionId, {0, 1, 2, 3, 4}};
 
   EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
 }

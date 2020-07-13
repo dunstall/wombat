@@ -130,7 +130,7 @@ TEST_F(SystemSegmentTest, Send) {
   uint8_t buf[3];
   if (read(fd, buf, 3) != 3) FAIL();
 
-  std::vector<uint8_t> read(buf, buf+3);
+  std::vector<uint8_t> read(buf, buf + 3);
   EXPECT_EQ(data, read);
 }
 
@@ -152,7 +152,7 @@ TEST_F(SystemSegmentTest, SendOverflow) {
   uint8_t buf[3];
   if (read(fd, buf, 3) != 3) FAIL();
 
-  std::vector<uint8_t> read(buf, buf+3);
+  std::vector<uint8_t> read(buf, buf + 3);
   EXPECT_EQ(data, read);
 }
 
