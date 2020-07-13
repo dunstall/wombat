@@ -30,7 +30,7 @@ class Connection {
     kPayloadPending
   };
 
-  static constexpr uint32_t kBufSize = 1024;
+  static constexpr size_t kBufSize = 1024;
 
   std::vector<uint8_t> buf_;
 

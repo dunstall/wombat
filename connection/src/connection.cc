@@ -11,7 +11,8 @@
 namespace wombat::broker::connection {
 
 Connection::Connection(std::unique_ptr<Socket> sock)
-    : sock_{std::move(sock)},
+    : buf_(kBufSize),
+      sock_{std::move(sock)},
       state_{State::kHeaderPending},
       n_read_{0},
       remaining_{frame::MessageHeader::kSize} {}
@@ -25,7 +26,7 @@ std::optional<frame::Message> Connection::Receive() {
     if (state_ == State::kHeaderPending) {
       auto header = frame::MessageHeader::Decode(buf_);
       if (!header) {
-        // TODO(AD) Handle and test - throw ConnectionException?
+        throw std::invalid_argument{"invalid header"};  // TODO(AD)
       }
 
       if (header->payload_size() == 0) {
@@ -39,7 +40,7 @@ std::optional<frame::Message> Connection::Receive() {
     } else if (state_ == State::kPayloadPending) {
       auto msg = frame::Message::Decode(buf_);
       if (!msg) {
-        // TODO(AD) Handle and test - throw ConnectionException?
+        throw std::invalid_argument{"invalid payload"};  // TODO(AD)
       }
 
       state_ = State::kHeaderPending;

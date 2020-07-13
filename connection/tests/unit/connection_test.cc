@@ -47,7 +47,7 @@ TEST_F(ConnectionTest, ReceiveMessageWithNoPayload) {
   std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
   // Return the full message header and write this to buf.
   EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize)).WillOnce(
-      [&](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+      [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
           const auto data = h.Encode();
           buf->insert(buf->begin(), data.begin(), data.end());
           return frame::MessageHeader::kSize;
@@ -66,7 +66,7 @@ TEST_F(ConnectionTest, ReceiveMessageWithPayload) {
   std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
   // Return the message header and write this to buf.
   EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize)).WillOnce(
-      [&](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+      [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
           const auto data = h.Encode();
           buf->insert(buf->begin(), data.begin(), data.end());
           return frame::MessageHeader::kSize;
@@ -74,7 +74,8 @@ TEST_F(ConnectionTest, ReceiveMessageWithPayload) {
   );
   // Return the message payload and write this to buf.
   EXPECT_CALL(*sock, Read(::testing::_, frame::MessageHeader::kSize, m.payload().size())).WillOnce(
-      [&](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+      [m](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+          // TODO(AD) override not insert (check buf valid)
           const auto data = m.payload();
           buf->insert(
               buf->begin() + from,
@@ -92,7 +93,41 @@ TEST_F(ConnectionTest, ReceiveMessageWithPayload) {
   EXPECT_EQ(m, conn.Receive());
 }
 
-// TODO(AD) Receive message in increments (1 bytes)
+TEST_F(ConnectionTest, ReceiveMessageOneByteAtATime) {
+  const frame::MessageHeader h{frame::Type::kDummy, 0, 5};
+  const frame::Message m{frame::Type::kDummy, 0, {1, 2, 3, 4, 5}};
+
+  std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
+
+  size_t from = 0;
+  for (uint8_t b : h.Encode()) {
+    EXPECT_CALL(*sock, Read(::testing::_, from, frame::MessageHeader::kSize - from)).WillOnce(
+        [from, b](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+            (*buf)[from] = b;
+            return 1;
+        }
+    );
+    ++from;
+  }
+
+  size_t i = 0;
+  for (uint8_t b : m.payload()) {
+    EXPECT_CALL(*sock, Read(::testing::_, from, m.payload().size() - i)).WillOnce(
+        [from, b](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+            (*buf)[from] = b;
+            return 1;
+        }
+    );
+    ++from;
+    ++i;
+  }
+
+  Connection conn{std::move(sock)};
+  for (size_t i = 0; i != m.Encode().size() - 1; ++i) {
+    EXPECT_EQ(std::nullopt, conn.Receive());
+  }
+  EXPECT_EQ(m, conn.Receive());
+}
 
 // TODO(AD) Invalid header
 
