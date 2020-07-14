@@ -7,13 +7,15 @@ Distributed messaging system
 See Wiki
 
 ## Build
-Install [Bazelisk](https://github.com/bazelbuild/bazelisk) (launcher for Bazel)
-as bazel and run:
+Run:
 ```
-bazel build ...
+./bin/bazelisk build ...
 ```
 
 And to run unit and integration tests run:
 ```
-bazel test ...
+./bin/bazelisk test ...
 ```
+
+Note bazelisk is compiled for Linux x64. If needed install the correct binary
+from [Bazelisk](https://github.com/bazelbuild/bazelisk).
