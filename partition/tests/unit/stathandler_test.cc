@@ -10,18 +10,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
+#include "log/mocklog.h"
 #include "partition/stathandler.h"
 
 namespace wombat::broker::partition {
-
-class MockLog : public log::Log {
- public:
-  explicit MockLog(uint32_t size = 0) : Log{size} {}
-
-  MOCK_METHOD(void, Append, (const std::vector<uint8_t>& data), (override));
-  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size),
-              (override));  // NOLINT
-};
 
 class FakeConnection : public Connection {
  public:
@@ -38,7 +30,7 @@ class StatHandlerTest : public ::testing::Test {
 TEST_F(StatHandlerTest, HandleValidStatRequest) {
   const uint32_t log_size = 0xffffaaaa;
 
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>(log_size);
+  std::shared_ptr<log::MockLog> log = std::make_shared<log::MockLog>(log_size);
   StatHandler handler{kPartitionId, log};
 
   const frame::Message msg{frame::Type::kStatRequest, kPartitionId, {}};
@@ -54,7 +46,7 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
 }
 
 TEST_F(StatHandlerTest, HandleUnrecognizedType) {
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
+  std::shared_ptr<log::MockLog> log = std::make_shared<log::MockLog>();
   StatHandler handler{kPartitionId, log};
 
   const frame::Message msg{

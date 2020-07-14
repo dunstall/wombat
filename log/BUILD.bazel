@@ -10,6 +10,18 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "mock-log",
+    srcs = glob(["tests/mock/*.cc"]),
+    hdrs = glob(["tests/mock/log/*.h"]),
+    linkopts = ["-lstdc++fs"],
+    strip_include_prefix = "tests/mock/",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@gtest",
+    ],
+)
+
 cc_test(
     name = "log-test",
     srcs = glob(["tests/unit/*.cc"]),

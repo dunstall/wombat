@@ -14,12 +14,26 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "partition-mock",
+    srcs = glob(["tests/mock/*.cc"]),
+    hdrs = glob(["tests/mock/partition/*.h"]),
+    linkopts = ["-lstdc++fs"],
+    strip_include_prefix = "tests/mock/",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@gtest",
+    ],
+)
+
 cc_test(
     name = "partition-test",
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":partition",
+        ":partition-mock",
+        "//log:mock-log",
         "@gtest//:gtest_main",
     ],
 )

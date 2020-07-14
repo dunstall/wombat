@@ -32,6 +32,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":broker",
+        "//partition:partition-mock",
         "@gtest//:gtest_main",
     ],
 )

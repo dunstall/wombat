@@ -11,16 +11,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
+#include "log/mocklog.h"
 #include "partition/consumehandler.h"
 
 namespace wombat::broker::partition {
-
-class MockLog : public log::Log {
- public:
-  MOCK_METHOD(void, Append, (const std::vector<uint8_t>& data), (override));
-  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size),
-              (override));  // NOLINT
-};
 
 class FakeConnection : public Connection {
  public:
@@ -36,7 +30,7 @@ class ConsumeHandlerTest : public ::testing::Test {
 };
 
 TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
+  std::shared_ptr<log::MockLog> log = std::make_shared<log::MockLog>();
   ConsumeHandler handler{kPartitionId, log};
 
   const std::vector<uint8_t> payload{1, 2, 3, 4, 5};
@@ -62,7 +56,7 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
 }
 
 TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
+  std::shared_ptr<log::MockLog> log = std::make_shared<log::MockLog>();
   ConsumeHandler handler{kPartitionId, log};
 
   EXPECT_CALL(*log, Lookup(kOffset, sizeof(uint32_t)))

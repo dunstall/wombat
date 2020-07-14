@@ -10,16 +10,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "partition/handler.h"
+#include "partition/mockhandler.h"
 #include "partition/router.h"
 
 namespace wombat::broker::partition {
-
-class MockHandler : public Handler {
- public:
-  MockHandler() : Handler(0) {}
-
-  MOCK_METHOD(std::optional<Event>, Handle, (const Event& evt), (override));
-};
 
 class MockResponder : public Responder {
  public:

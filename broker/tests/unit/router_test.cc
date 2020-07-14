@@ -8,18 +8,10 @@
 #include "frame/message.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "partition/mockpartition.h"
 #include "partition/partition.h"
 
 namespace wombat::broker {
-
-class MockPartition : public partition::Partition {
- public:
-  explicit MockPartition(uint32_t id) : partition::Partition{id, nullptr} {}
-
-  MOCK_METHOD(void, Handle, (const Event& evt), (override));
-
-  void Process() override {}
-};
 
 class RouterTest : public ::testing::Test {
  protected:
@@ -28,8 +20,8 @@ class RouterTest : public ::testing::Test {
 
 TEST_F(RouterTest, RouteToSinglePartition) {
   const uint32_t id = 0xff00001;
-  std::unique_ptr<MockPartition> partition =
-      std::make_unique<MockPartition>(id);
+  std::unique_ptr<partition::MockPartition> partition =
+      std::make_unique<partition::MockPartition>(id);
   EXPECT_CALL(*partition, Handle(CreateEvent(id))).Times(1);
 
   Router router{};
@@ -46,8 +38,8 @@ TEST_F(RouterTest, RoutedPartitionNotFound) {
 TEST_F(RouterTest, RouteToMultiPartitions) {
   Router router{};
   for (uint32_t id = 0; id != 0xf; ++id) {
-    std::unique_ptr<MockPartition> partition =
-        std::make_unique<MockPartition>(id);
+    std::unique_ptr<partition::MockPartition> partition =
+        std::make_unique<partition::MockPartition>(id);
     EXPECT_CALL(*partition, Handle(CreateEvent(id))).Times(1);
     router.AddPartition(std::move(partition));
   }
@@ -60,11 +52,11 @@ TEST_F(RouterTest, RouteToMultiPartitions) {
 TEST_F(RouterTest, AddPartitionOverrides) {
   const uint32_t id = 0xff00001;
 
-  std::unique_ptr<MockPartition> partition1 =
-      std::make_unique<MockPartition>(id);
+  std::unique_ptr<partition::MockPartition> partition1 =
+      std::make_unique<partition::MockPartition>(id);
   EXPECT_CALL(*partition1, Handle(CreateEvent(id))).Times(1);
-  std::unique_ptr<MockPartition> partition2 =
-      std::make_unique<MockPartition>(id);
+  std::unique_ptr<partition::MockPartition> partition2 =
+      std::make_unique<partition::MockPartition>(id);
   EXPECT_CALL(*partition2, Handle(CreateEvent(id))).Times(1);
 
   Router router{};

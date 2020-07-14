@@ -9,16 +9,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "log/log.h"
+#include "log/mocklog.h"
 #include "partition/producehandler.h"
 
 namespace wombat::broker::partition {
-
-class MockLog : public log::Log {
- public:
-  MOCK_METHOD(void, Append, (const std::vector<uint8_t>& data), (override));
-  MOCK_METHOD(std::vector<uint8_t>, Lookup, (uint32_t offset, uint32_t size),
-              (override));  // NOLINT
-};
 
 class ProduceHandlerTest : public ::testing::Test {
  protected:
@@ -26,7 +20,7 @@ class ProduceHandlerTest : public ::testing::Test {
 };
 
 TEST_F(ProduceHandlerTest, HandleValidProduceRequest) {
-  std::shared_ptr<MockLog> log = std::make_shared<MockLog>();
+  std::shared_ptr<log::MockLog> log = std::make_shared<log::MockLog>();
   ProduceHandler handler{kPartitionId, log};
 
   const std::vector<uint8_t> data{1, 2, 3, 4, 5};
