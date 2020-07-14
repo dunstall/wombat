@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "connection/connection.h"
+#include "connection/connectionexception.h"
 #include "connection/mocksocket.h"
 #include "frame/message.h"
 #include "gmock/gmock.h"
@@ -40,6 +41,13 @@ TEST_F(ConnectionTest, ReceivePartialHeader) {
   EXPECT_EQ(std::nullopt, conn.Receive());
 }
 
+auto ResponseWriter(const std::vector<uint8_t>& data) {
+  return [data](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
+    buf->insert(buf->begin() + from, data.begin(), data.end());
+    return data.size();
+  };
+}
+
 TEST_F(ConnectionTest, ReceiveMessageWithNoPayload) {
   const frame::MessageHeader h{frame::Type::kDummy, 0, 0};
   const frame::Message m{h, {}};
@@ -47,12 +55,7 @@ TEST_F(ConnectionTest, ReceiveMessageWithNoPayload) {
   std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
   // Return the full message header and write this to buf.
   EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize))
-      .WillOnce(
-          [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-            const auto data = h.Encode();
-            buf->insert(buf->begin(), data.begin(), data.end());
-            return frame::MessageHeader::kSize;
-          });
+      .WillOnce(ResponseWriter(h.Encode()));
 
   Connection conn{std::move(sock)};
   // As the message has no payload this is the full message.
@@ -66,22 +69,11 @@ TEST_F(ConnectionTest, ReceiveMessageWithPayload) {
   std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
   // Return the message header and write this to buf.
   EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize))
-      .WillOnce(
-          [h](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-            const auto data = h.Encode();
-            buf->insert(buf->begin(), data.begin(), data.end());
-            return frame::MessageHeader::kSize;
-          });
+      .WillOnce(ResponseWriter(h.Encode()));
   // Return the message payload and write this to buf.
   EXPECT_CALL(*sock, Read(::testing::_, frame::MessageHeader::kSize,
                           m.payload().size()))
-      .WillOnce(
-          [m](std::vector<uint8_t>* buf, size_t from, size_t n) -> size_t {
-            // TODO(AD) override not insert (check buf valid)
-            const auto data = m.payload();
-            buf->insert(buf->begin() + from, data.begin(), data.end());
-            return m.payload().size();
-          });
+      .WillOnce(ResponseWriter(m.payload()));
 
   Connection conn{std::move(sock)};
   // Reads header.
@@ -100,22 +92,14 @@ TEST_F(ConnectionTest, ReceiveMessageOneByteAtATime) {
   for (uint8_t b : h.Encode()) {
     EXPECT_CALL(*sock,
                 Read(::testing::_, from, frame::MessageHeader::kSize - from))
-        .WillOnce([from, b](std::vector<uint8_t>* buf, size_t from,
-                            size_t n) -> size_t {
-          (*buf)[from] = b;
-          return 1;
-        });
+        .WillOnce(ResponseWriter({b}));
     ++from;
   }
 
   size_t i = 0;
   for (uint8_t b : m.payload()) {
     EXPECT_CALL(*sock, Read(::testing::_, from, m.payload().size() - i))
-        .WillOnce([from, b](std::vector<uint8_t>* buf, size_t from,
-                            size_t n) -> size_t {
-          (*buf)[from] = b;
-          return 1;
-        });
+        .WillOnce(ResponseWriter({b}));
     ++from;
     ++i;
   }
@@ -127,10 +111,19 @@ TEST_F(ConnectionTest, ReceiveMessageOneByteAtATime) {
   EXPECT_EQ(m, conn.Receive());
 }
 
-// TODO(AD) Invalid header
+TEST_F(ConnectionTest, ReceiveInvalidHeader) {
+  // A header of all 0xff is invalid.
+  const std::vector<uint8_t> data(frame::MessageHeader::kSize, 0xff);
 
-// TODO(AD) Invalid message
+  std::unique_ptr<MockSocket> sock = std::make_unique<MockSocket>();
+  // Return the full message header and write this to buf.
+  EXPECT_CALL(*sock, Read(::testing::_, 0, frame::MessageHeader::kSize))
+      .WillOnce(ResponseWriter(data));
 
-// TODO(AD) Socket exception
+  Connection conn{std::move(sock)};
+  EXPECT_THROW(conn.Receive(), ConnectionException);
+}
+
+// TODO(AD) Socket exception - use Throw
 
 }  // namespace wombat::broker::connection

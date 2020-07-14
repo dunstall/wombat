@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 
+#include "connection/connectionexception.h"
 #include "connection/socket.h"
 #include "frame/message.h"
 
@@ -26,7 +27,7 @@ std::optional<frame::Message> Connection::Receive() {
     if (state_ == State::kHeaderPending) {
       auto header = frame::MessageHeader::Decode(buf_);
       if (!header) {
-        throw std::invalid_argument{"invalid header"};  // TODO(AD)
+        throw ConnectionException{"invalid header"};
       }
 
       if (header->payload_size() == 0) {
@@ -40,7 +41,7 @@ std::optional<frame::Message> Connection::Receive() {
     } else if (state_ == State::kPayloadPending) {
       auto msg = frame::Message::Decode(buf_);
       if (!msg) {
-        throw std::invalid_argument{"invalid payload"};  // TODO(AD)
+        throw ConnectionException{"invalid payload"};
       }
 
       state_ = State::kHeaderPending;
