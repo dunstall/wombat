@@ -18,6 +18,13 @@ class Connection {
 
   virtual ~Connection() {}
 
+  // Reads from the connection. If a full message has been received it is
+  // returned otherwise returns nullopt.
+  //
+  // If there is an error with the underlying socket a SocketException is
+  // returned. If the connection receives an invalid message a
+  // ConnectionException is returned. In both cases the connection should be
+  // closed.
   virtual std::optional<frame::Message> Receive();
 
   // TODO(AD) On send register with a singleton thread that keeps polling
@@ -28,6 +35,16 @@ class Connection {
   enum class State { kHeaderPending, kPayloadPending };
 
   static constexpr size_t kBufSize = 1024;
+
+  std::optional<frame::Message> HandleHeader();
+
+  std::optional<frame::Message> HandleMessage();
+
+  void Read();
+
+  void SetHeaderPendingState();
+
+  void SetPayloadPendingState(uint32_t payload_size);
 
   std::vector<uint8_t> buf_;
 

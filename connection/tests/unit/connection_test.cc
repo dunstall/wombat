@@ -124,6 +124,4 @@ TEST_F(ConnectionTest, ReceiveInvalidHeader) {
   EXPECT_THROW(conn.Receive(), ConnectionException);
 }
 
-// TODO(AD) Socket exception - use Throw
-
 }  // namespace wombat::broker::connection

@@ -19,42 +19,63 @@ Connection::Connection(std::unique_ptr<Socket> sock)
       remaining_{frame::MessageHeader::kSize} {}
 
 std::optional<frame::Message> Connection::Receive() {
-  uint32_t n = sock_->Read(&buf_, n_read_, remaining_);
-  n_read_ += n;
-  remaining_ -= n;
-
-  if (remaining_ == 0) {
-    if (state_ == State::kHeaderPending) {
-      auto header = frame::MessageHeader::Decode(buf_);
-      if (!header) {
-        throw ConnectionException{"invalid header"};
-      }
-
-      if (header->payload_size() == 0) {
-        n_read_ = 0;
-        remaining_ = frame::MessageHeader::kSize;
-        return frame::Message{*header, {}};
-      }
-
-      state_ = State::kPayloadPending;
-      remaining_ = header->payload_size();
-    } else if (state_ == State::kPayloadPending) {
-      auto msg = frame::Message::Decode(buf_);
-      if (!msg) {
-        throw ConnectionException{"invalid payload"};
-      }
-
-      state_ = State::kHeaderPending;
-      n_read_ = 0;
-      remaining_ = frame::MessageHeader::kSize;
-
-      return *msg;
-    }
+  Read();
+  if (remaining_ != 0) {
+    return std::nullopt;
   }
 
-  return std::nullopt;
+  switch (state_) {
+    case State::kHeaderPending:
+      return HandleHeader();
+    case State::kPayloadPending:
+      return HandleMessage();
+    default:
+      throw ConnectionException{"invalid connection state"};
+  }
 }
 
 void Connection::Send(const frame::Message& msg) {}
+
+std::optional<frame::Message> Connection::HandleHeader() {
+  auto header = frame::MessageHeader::Decode(buf_);
+  if (!header) {
+    throw ConnectionException{"invalid header"};
+  }
+
+  if (header->payload_size() == 0) {
+    SetHeaderPendingState();
+    return frame::Message{*header, {}};
+  } else {
+    SetPayloadPendingState(header->payload_size());
+    return std::nullopt;
+  }
+}
+
+std::optional<frame::Message> Connection::HandleMessage() {
+  auto msg = frame::Message::Decode(buf_);
+  if (!msg) {
+    throw ConnectionException{"invalid payload"};
+  }
+
+  SetHeaderPendingState();
+  return *msg;
+}
+
+void Connection::Read() {
+  uint32_t n = sock_->Read(&buf_, n_read_, remaining_);
+  n_read_ += n;
+  remaining_ -= n;
+}
+
+void Connection::SetHeaderPendingState() {
+  n_read_ = 0;
+  state_ = State::kHeaderPending;
+  remaining_ = frame::MessageHeader::kSize;
+}
+
+void Connection::SetPayloadPendingState(uint32_t payload_size) {
+  state_ = State::kPayloadPending;
+  remaining_ = payload_size;
+}
 
 }  // namespace wombat::broker::connection
