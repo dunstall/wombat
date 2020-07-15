@@ -6,6 +6,7 @@
 
 namespace wombat::broker {
 
+// TODO(AD) Implement - move to own package and remove the event package
 class Responder {
  public:
   virtual ~Responder() {}

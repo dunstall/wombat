@@ -1,12 +1,13 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "event/event.h"
+#include "connection/event.h"
 
 #include <memory>
 
+#include "connection/connection.h"
 #include "frame/message.h"
 
-namespace wombat::broker {
+namespace wombat::broker::connection {
 
 Event::Event(frame::Message _message, std::shared_ptr<Connection> _connection)
     : message{_message}, connection{_connection} {}
@@ -17,4 +18,4 @@ bool Event::operator==(const Event& evt) const {
 
 bool Event::operator!=(const Event& evt) const { return !(*this == evt); }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::connection

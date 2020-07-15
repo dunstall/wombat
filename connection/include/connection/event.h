@@ -4,11 +4,11 @@
 
 #include <memory>
 
-#include "event/connection.h"
+#include "connection/connection.h"
 #include "frame/message.h"
 #include "util/threadsafequeue.h"
 
-namespace wombat::broker {
+namespace wombat::broker::connection {
 
 struct Event {
   Event(frame::Message _message, std::shared_ptr<Connection> _connection);
@@ -23,4 +23,4 @@ struct Event {
 
 using EventQueue = util::ThreadSafeQueue<Event>;
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::connection
