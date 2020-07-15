@@ -4,7 +4,7 @@
 
 #include "connection/event.h"
 
-namespace wombat::broker {
+namespace wombat::broker::server {
 
 // TODO(AD) Implement - move to own package and remove the event package
 class Responder {
@@ -20,4 +20,4 @@ class Responder {
   virtual void Respond(const connection::Event& evt);
 };
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::server

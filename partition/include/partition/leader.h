@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "event/responder.h"
+#include "server/responder.h"
 #include "log/log.h"
 #include "partition/partition.h"
 
@@ -13,7 +13,7 @@ namespace wombat::broker::partition {
 
 class Leader : public Partition {
  public:
-  Leader(uint32_t id, std::shared_ptr<Responder> responder,
+  Leader(uint32_t id, std::shared_ptr<server::Responder> responder,
          std::shared_ptr<log::Log> log);
 
   ~Leader() override;

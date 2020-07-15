@@ -8,14 +8,14 @@
 #include <thread>
 
 #include "connection/event.h"
-#include "event/responder.h"
 #include "partition/router.h"
+#include "server/responder.h"
 
 namespace wombat::broker::partition {
 
 class Partition {
  public:
-  explicit Partition(uint32_t id, std::shared_ptr<Responder> responder);
+  explicit Partition(uint32_t id, std::shared_ptr<server::Responder> responder);
 
   virtual ~Partition();
 

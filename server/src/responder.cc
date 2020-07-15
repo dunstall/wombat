@@ -1,9 +1,9 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "event/responder.h"
 #include "connection/event.h"
+#include "server/responder.h"
 
-namespace wombat::broker {
+namespace wombat::broker::server {
 
 void Responder::Respond(const connection::Event& evt) {
   // TODO(AD) This must push to a queue that is handled in a background thread
@@ -13,4 +13,4 @@ void Responder::Respond(const connection::Event& evt) {
   evt.connection->Send(evt.message);
 }
 
-}  // namespace wombat::broker
+}  // namespace wombat::broker::server

@@ -5,7 +5,7 @@
 
 #include "connection/connection.h"
 #include "connection/event.h"
-#include "event/responder.h"
+#include "server/responder.h"
 #include "frame/message.h"
 #include "frame/offset.h"
 #include "gmock/gmock.h"

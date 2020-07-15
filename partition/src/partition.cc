@@ -11,7 +11,7 @@
 
 namespace wombat::broker::partition {
 
-Partition::Partition(uint32_t id, std::shared_ptr<Responder> responder)
+Partition::Partition(uint32_t id, std::shared_ptr<server::Responder> responder)
     : id_{id}, router_{responder} {}
 
 Partition::~Partition() { Stop(); }

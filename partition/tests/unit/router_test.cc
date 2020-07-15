@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "connection/event.h"
-#include "event/responder.h"
+#include "server/responder.h"
 #include "frame/message.h"
 #include "frame/messageheader.h"
 #include "gmock/gmock.h"
@@ -15,7 +15,8 @@
 
 namespace wombat::broker::partition {
 
-class MockResponder : public Responder {
+// TODO(AD) Remove
+class MockResponder : public server::Responder {
  public:
   MOCK_METHOD(void, Respond, (const connection::Event& evt), (override));
 };

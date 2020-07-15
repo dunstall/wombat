@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "connection/event.h"
-#include "event/responder.h"
+#include "server/responder.h"
 #include "frame/messageheader.h"
 #include "partition/handler.h"
 
@@ -14,7 +14,7 @@ namespace wombat::broker::partition {
 
 class Router {
  public:
-  explicit Router(std::shared_ptr<Responder> responder);
+  explicit Router(std::shared_ptr<server::Responder> responder);
 
   Router(const Router& conn) = delete;
   Router& operator=(const Router& conn) = delete;
@@ -27,7 +27,7 @@ class Router {
   void AddRoute(frame::Type type, std::unique_ptr<Handler> handler);
 
  private:
-  std::shared_ptr<Responder> responder_;
+  std::shared_ptr<server::Responder> responder_;
 
   std::unordered_map<frame::Type, std::unique_ptr<Handler>> handlers_;
 };

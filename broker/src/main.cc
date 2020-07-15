@@ -9,13 +9,13 @@
 #include "broker/conf.h"
 #include "broker/router.h"
 #include "connection/event.h"
-#include "event/responder.h"
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
 #include "partition/leader.h"
 #include "partition/partition.h"
 #include "server/listener.h"
+#include "server/responder.h"
 #include "util/threadable.h"
 
 namespace wombat::broker {
@@ -50,7 +50,7 @@ void Run(const std::filesystem::path& path) {
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
         router.AddPartition(std::make_unique<partition::Leader>(
-            p.id(), std::make_shared<Responder>(), log));
+            p.id(), std::make_shared<server::Responder>(), log));
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Replica not yet supported.
@@ -60,6 +60,10 @@ void Run(const std::filesystem::path& path) {
         break;
     }
   }
+
+  // TODO(AD) Create responder here - no packages should know about server
+  // package except this - just pass the queue
+
   std::shared_ptr<server::Listener> listener =
       std::make_shared<server::Listener>(kPort);
   util::Threadable threadable_server(listener);

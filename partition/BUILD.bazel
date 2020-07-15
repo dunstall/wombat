@@ -7,9 +7,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//connection",
-        "//event",
         "//frame",
         "//log",
+        "//server",  # TODO(AD) Remove
         "//util",
         "@glog",
     ],
