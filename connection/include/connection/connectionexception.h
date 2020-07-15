@@ -9,7 +9,9 @@ namespace wombat::broker::connection {
 
 class ConnectionException : public std::exception {
  public:
-  explicit ConnectionException(const std::string& msg) : msg_{msg} {};
+  explicit ConnectionException(const std::string& msg);
+
+  ConnectionException(const std::string& msg, int err);
 
   const char* what() const noexcept { return msg_.c_str(); }
 

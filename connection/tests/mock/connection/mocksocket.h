@@ -17,7 +17,8 @@ class MockSocket : public Socket {
               (override));
   MOCK_METHOD(size_t, Read, (std::vector<uint8_t> * buf, size_t from, size_t n),
               (override));
-  MOCK_METHOD(size_t, Write, (const std::vector<uint8_t>& buf, size_t from),
+  MOCK_METHOD(size_t, Write,
+              (const std::vector<uint8_t>& buf, size_t from, size_t n),
               (override));
 };
 

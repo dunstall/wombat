@@ -21,10 +21,9 @@ class Connection {
   // Reads from the connection. If a full message has been received it is
   // returned otherwise returns nullopt.
   //
-  // If there is an error with the underlying socket a SocketException is
-  // returned. If the connection receives an invalid message a
-  // ConnectionException is returned. In both cases the connection should be
-  // closed.
+  // If there is an error with the underlying socket or if the connection
+  // receives an invalid message a ConnectionException is thrown. The
+  // connection should be closed.
   virtual std::optional<frame::Message> Receive();
 
   // TODO(AD) On send register with a singleton thread that keeps polling

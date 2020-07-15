@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,8 @@ namespace wombat::broker::connection {
 
 class StreamSocket : public Socket {
  public:
+  explicit StreamSocket(int sockfd);
+
   ~StreamSocket() override;
 
   StreamSocket(const StreamSocket& sock) = delete;
@@ -24,7 +27,9 @@ class StreamSocket : public Socket {
 
   size_t Read(std::vector<uint8_t>* buf, size_t from, size_t n) override;
 
-  size_t Write(const std::vector<uint8_t>& buf, size_t from) override;
+  size_t Write(const std::vector<uint8_t>& buf, size_t from, size_t n) override;
+
+  std::optional<int> sockfd_ = std::nullopt;
 };
 
 }  // namespace wombat::broker::connection
