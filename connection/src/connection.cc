@@ -34,7 +34,10 @@ std::optional<frame::Message> Connection::Receive() {
   }
 }
 
-void Connection::Send(const frame::Message& msg) {}
+void Connection::Send(const frame::Message& msg) {
+  // TODO(AD) Temp (to keep broker in working state)
+  sock_->Write(msg.Encode(), 0, msg.Encode().size());
+}
 
 std::optional<frame::Message> Connection::HandleHeader() {
   auto header = frame::MessageHeader::Decode(buf_);
