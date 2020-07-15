@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "event/event.h"
+#include "connection/event.h"
 
 namespace wombat::broker {
 
@@ -17,7 +17,7 @@ class Responder {
   // Responder(Responder&& conn) = delete;
   // Responder& operator=(Responder&& conn) = delete;
 
-  virtual void Respond(const Event& evt);
+  virtual void Respond(const connection::Event& evt);
 };
 
 }  // namespace wombat::broker
