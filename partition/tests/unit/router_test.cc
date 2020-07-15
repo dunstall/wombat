@@ -3,7 +3,7 @@
 #include <memory>
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "event/responder.h"
 #include "frame/message.h"
 #include "frame/messageheader.h"
@@ -17,7 +17,7 @@ namespace wombat::broker::partition {
 
 class MockResponder : public Responder {
  public:
-  MOCK_METHOD(void, Respond, (const Event& evt), (override));
+  MOCK_METHOD(void, Respond, (const connection::Event& evt), (override));
 };
 
 class RouterTest : public ::testing::Test {
@@ -27,12 +27,12 @@ class RouterTest : public ::testing::Test {
 
 TEST_F(RouterTest, RouteToFoundHandler) {
   const frame::Message msg{frame::Type::kProduceRequest, kPartitionId, {}};
-  const Event evt{msg, nullptr};
+  const connection::Event evt{msg, nullptr};
 
   std::unique_ptr<MockHandler> handler = std::make_unique<MockHandler>();
 
   const frame::Message msg_resp{frame::Type::kStatResponse, kPartitionId, {}};
-  const Event evt_resp{msg, nullptr};
+  const connection::Event evt_resp{msg, nullptr};
   EXPECT_CALL(*handler, Handle(evt)).WillOnce(::testing::Return(evt_resp));
 
   std::shared_ptr<MockResponder> responder = std::make_shared<MockResponder>();
@@ -50,7 +50,7 @@ TEST_F(RouterTest, RouteToFoundHandler) {
 
 TEST_F(RouterTest, RouteToFoundHandlerNoResponse) {
   const frame::Message msg{frame::Type::kProduceRequest, kPartitionId, {}};
-  const Event evt{msg, nullptr};
+  const connection::Event evt{msg, nullptr};
 
   std::unique_ptr<MockHandler> handler = std::make_unique<MockHandler>();
 
@@ -70,7 +70,7 @@ TEST_F(RouterTest, RouteToFoundHandlerNoResponse) {
 
 TEST_F(RouterTest, RouteToNotFoundHandler) {
   const frame::Message msg{frame::Type::kProduceRequest, kPartitionId, {}};
-  const Event evt{msg, nullptr};
+  const connection::Event evt{msg, nullptr};
 
   std::unique_ptr<MockHandler> handler = std::make_unique<MockHandler>();
 

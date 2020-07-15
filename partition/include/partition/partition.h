@@ -7,7 +7,7 @@
 #include <memory>
 #include <thread>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "event/responder.h"
 #include "partition/router.h"
 
@@ -27,7 +27,7 @@ class Partition {
 
   uint32_t id() const { return id_; }
 
-  virtual void Handle(const Event& evt);
+  virtual void Handle(const connection::Event& evt);
 
  protected:
   void Poll();
@@ -38,7 +38,7 @@ class Partition {
 
   void Stop();
 
-  EventQueue events_;
+  connection::EventQueue events_;
 
   uint32_t id_;
 

@@ -13,7 +13,7 @@ class MockPartition : public partition::Partition {
  public:
   explicit MockPartition(uint32_t id) : partition::Partition{id, nullptr} {}
 
-  MOCK_METHOD(void, Handle, (const Event& evt), (override));
+  MOCK_METHOD(void, Handle, (const connection::Event& evt), (override));
 
   void Process() override {}
 };

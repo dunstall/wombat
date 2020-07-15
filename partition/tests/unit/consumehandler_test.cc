@@ -4,7 +4,8 @@
 #include <optional>
 #include <vector>
 
-#include "event/event.h"
+#include "connection/connection.h"
+#include "connection/event.h"
 #include "frame/message.h"
 #include "frame/offset.h"
 #include "frame/record.h"
@@ -16,11 +17,13 @@
 
 namespace wombat::broker::partition {
 
-class FakeConnection : public Connection {
+class FakeConnection : public connection::Connection {
  public:
+  FakeConnection() : connection::Connection{nullptr} {}
+
   std::optional<frame::Message> Receive() override { return std::nullopt; }
 
-  bool Send(const frame::Message& msg) override { return false; }
+  void Send(const frame::Message& msg) override{};
 };
 
 class ConsumeHandlerTest : public ::testing::Test {
@@ -51,8 +54,8 @@ TEST_F(ConsumeHandlerTest, HandleValidConsumeRequest) {
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const frame::Message expected_response{frame::Type::kConsumeResponse,
                                          kPartitionId, record.Encode()};
-  const Event expected_event{expected_response, conn};
-  EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
+  const connection::Event expected_event{expected_response, conn};
+  EXPECT_EQ(expected_event, handler.Handle(connection::Event{msg, conn}));
 }
 
 TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
@@ -69,22 +72,22 @@ TEST_F(ConsumeHandlerTest, HandleOffsetExceedsLogSize) {
   std::shared_ptr<FakeConnection> conn = std::make_shared<FakeConnection>();
   const frame::Message expected_response{
       frame::Type::kConsumeResponse, kPartitionId, frame::Record{}.Encode()};
-  const Event expected_event{expected_response, conn};
-  EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
+  const connection::Event expected_event{expected_response, conn};
+  EXPECT_EQ(expected_event, handler.Handle(connection::Event{msg, conn}));
 }
 
 TEST_F(ConsumeHandlerTest, HandleUnrecognizedRequestType) {
   ConsumeHandler handler{kPartitionId, nullptr};
 
   const frame::Message msg{frame::Type::kProduceRequest, kPartitionId, {}};
-  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
+  EXPECT_EQ(std::nullopt, handler.Handle(connection::Event{msg, nullptr}));
 }
 
 TEST_F(ConsumeHandlerTest, HandleInvalidRequest) {
   ConsumeHandler handler{kPartitionId, nullptr};
 
   const frame::Message msg{frame::Type::kConsumeRequest, kPartitionId, {}};
-  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
+  EXPECT_EQ(std::nullopt, handler.Handle(connection::Event{msg, nullptr}));
 }
 
 }  // namespace wombat::broker::partition

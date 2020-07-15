@@ -5,7 +5,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "event/responder.h"
 #include "frame/messageheader.h"
 #include "partition/handler.h"
@@ -22,7 +22,7 @@ class Router {
   Router(Router&& conn) = default;
   Router& operator=(Router&& conn) = default;
 
-  void Route(const Event& evt) const;
+  void Route(const connection::Event& evt) const;
 
   void AddRoute(frame::Type type, std::unique_ptr<Handler> handler);
 

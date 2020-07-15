@@ -8,14 +8,14 @@
 
 #include "broker/conf.h"
 #include "broker/router.h"
-#include "event/event.h"
+#include "connection/event.h"
 #include "event/responder.h"
 #include "glog/logging.h"
 #include "log/log.h"
 #include "log/systemlog.h"
 #include "partition/leader.h"
 #include "partition/partition.h"
-#include "server/server.h"
+#include "server/listener.h"
 #include "util/threadable.h"
 
 namespace wombat::broker {
@@ -60,12 +60,12 @@ void Run(const std::filesystem::path& path) {
         break;
     }
   }
-  std::shared_ptr<server::Server> server =
-      std::make_shared<server::Server>(kPort);
-  util::Threadable threadable_server(server);
+  std::shared_ptr<server::Listener> listener =
+      std::make_shared<server::Listener>(kPort);
+  util::Threadable threadable_server(listener);
 
   while (true) {
-    router.Route(server->events()->WaitAndPop());
+    router.Route(listener->events()->WaitAndPop());
   }
 }
 

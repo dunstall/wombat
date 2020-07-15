@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 
 namespace wombat::broker::partition {
 
@@ -15,7 +15,8 @@ class Handler {
 
   virtual ~Handler() {}
 
-  virtual std::optional<Event> Handle(const Event& evt) = 0;
+  virtual std::optional<connection::Event> Handle(
+      const connection::Event& evt) = 0;
 
  protected:
   uint32_t id_;

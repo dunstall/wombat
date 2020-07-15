@@ -6,7 +6,7 @@
 #include <memory>
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "frame/message.h"
 #include "frame/record.h"
 #include "log/log.h"
@@ -20,7 +20,7 @@ class ConsumeHandler : public Handler {
 
   ~ConsumeHandler() override {}
 
-  std::optional<Event> Handle(const Event& evt);
+  std::optional<connection::Event> Handle(const connection::Event& evt);
 
  private:
   bool IsValidType(const frame::Message& msg) const;

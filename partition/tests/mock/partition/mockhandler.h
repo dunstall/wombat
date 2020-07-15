@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "gmock/gmock.h"
 #include "partition/handler.h"
 
@@ -14,7 +14,8 @@ class MockHandler : public Handler {
  public:
   MockHandler() : Handler(0) {}
 
-  MOCK_METHOD(std::optional<Event>, Handle, (const Event& evt), (override));
+  MOCK_METHOD(std::optional<connection::Event>, Handle,
+              (const connection::Event& evt), (override));
 };
 
 }  // namespace wombat::broker::partition

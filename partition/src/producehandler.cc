@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "frame/record.h"
 #include "glog/logging.h"
 #include "log/log.h"
@@ -15,7 +15,8 @@ namespace wombat::broker::partition {
 ProduceHandler::ProduceHandler(uint32_t id, std::shared_ptr<log::Log> log)
     : Handler(id), log_{log} {}
 
-std::optional<Event> ProduceHandler::Handle(const Event& evt) {
+std::optional<connection::Event> ProduceHandler::Handle(
+    const connection::Event& evt) {
   if (evt.message.type() != frame::Type::kProduceRequest) {
     LOG(ERROR) << "ProduceHandler::Handle called with invalid type";
     return std::nullopt;

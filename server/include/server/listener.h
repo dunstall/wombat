@@ -11,27 +11,29 @@
 #include <unordered_map>
 #include <vector>
 
-#include "event/connection.h"
-#include "event/event.h"
+#include "connection/connection.h"
+#include "connection/event.h"
 #include "util/pollable.h"
 
 namespace wombat::broker::server {
 
-// Server handles reading requests from connections to clients. This does
+// Listener handles reading requests from connections to clients. This does
 // not write to the clients (thats left to responder).
-class Server : public util::Pollable {
+class Listener : public util::Pollable {
  public:
-  explicit Server(uint16_t port, int max_clients = 1024);
+  explicit Listener(uint16_t port, int max_clients = 1024);
 
-  ~Server() override {}
+  ~Listener() override {}
 
-  Server(const Server& conn) = delete;
-  Server& operator=(const Server& conn) = delete;
+  Listener(const Listener& conn) = delete;
+  Listener& operator=(const Listener& conn) = delete;
 
-  Server(Server&& conn) = delete;
-  Server& operator=(Server&& conn) = delete;
+  Listener(Listener&& conn) = delete;
+  Listener& operator=(Listener&& conn) = delete;
 
-  std::shared_ptr<EventQueue> events() const { return event_queue_; }
+  std::shared_ptr<connection::EventQueue> events() const {
+    return event_queue_;
+  }
 
   void Poll() override;
 
@@ -49,11 +51,9 @@ class Server : public util::Pollable {
 
   bool PendingRead(int i) const;
 
-  bool PendingWrite(int i) const;  // TODO(AD) Redundent
-
   int listenfd_;
 
-  std::unordered_map<int, std::shared_ptr<Connection>> connections_;
+  std::unordered_map<int, std::shared_ptr<connection::Connection>> connections_;
 
   int max_fd_index_ = 0;
 
@@ -63,7 +63,7 @@ class Server : public util::Pollable {
 
   int max_clients_;
 
-  std::shared_ptr<EventQueue> event_queue_;
+  std::shared_ptr<connection::EventQueue> event_queue_;
 };
 
 }  // namespace wombat::broker::server

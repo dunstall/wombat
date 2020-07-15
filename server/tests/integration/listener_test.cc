@@ -13,7 +13,7 @@
 
 #include "frame/record.h"
 #include "gtest/gtest.h"
-#include "server/server.h"
+#include "server/listener.h"
 #include "util/threadable.h"
 #include "util/threadsafequeue.h"
 
@@ -21,23 +21,23 @@ namespace wombat::broker::server {
 
 using namespace std::chrono_literals;  // NOLINT
 
-class ServerTest : public ::testing::Test {
+class ListenerTest : public ::testing::Test {
  protected:
   const std::string kLocalhost = "127.0.0.1";
 
   int CreateSocket() const;
 
-  struct sockaddr_in ServerAddr(uint16_t port) const;
+  struct sockaddr_in ListenerAddr(uint16_t port) const;
 
   uint16_t RandomPort() const;
 };
 
-TEST_F(ServerTest, TestConnectOk) {
+TEST_F(ListenerTest, TestConnectOk) {
   const uint16_t port = RandomPort();
-  std::shared_ptr<Server> server = std::make_shared<Server>(port);
+  std::shared_ptr<Listener> server = std::make_shared<Listener>(port);
   util::Threadable threadable_server(server);
 
-  struct sockaddr_in servaddr = ServerAddr(port);
+  struct sockaddr_in servaddr = ListenerAddr(port);
 
   int sock = CreateSocket();
   EXPECT_NE(connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr)), -1);
@@ -49,11 +49,11 @@ TEST_F(ServerTest, TestConnectOk) {
   close(sock);
 }
 
-TEST_F(ServerTest, TestConnectExceedClientLimit) {
+TEST_F(ListenerTest, TestConnectExceedClientLimit) {
   const uint16_t port = RandomPort();
-  std::shared_ptr<Server> server = std::make_shared<Server>(port, 1);
+  std::shared_ptr<Listener> server = std::make_shared<Listener>(port, 1);
   util::Threadable threadable_server(server);
-  struct sockaddr_in servaddr = ServerAddr(port);
+  struct sockaddr_in servaddr = ListenerAddr(port);
 
   int sock1 = CreateSocket();
   int sock2 = CreateSocket();
@@ -83,11 +83,11 @@ TEST_F(ServerTest, TestConnectExceedClientLimit) {
   close(sock3);
 }
 
-TEST_F(ServerTest, TestSendMessages) {
+TEST_F(ListenerTest, TestSendMessages) {
   const uint16_t port = RandomPort();
-  std::shared_ptr<Server> server = std::make_shared<Server>(port);
+  std::shared_ptr<Listener> server = std::make_shared<Listener>(port);
   util::Threadable threadable_server(server);
-  struct sockaddr_in servaddr = ServerAddr(port);
+  struct sockaddr_in servaddr = ListenerAddr(port);
 
   int sock = CreateSocket();
   connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr));
@@ -102,7 +102,7 @@ TEST_F(ServerTest, TestSendMessages) {
   }
 
   for (int i = 0; i != n_requests; ++i) {
-    std::optional<Event> e = server->events()->WaitForAndPop(100ms);
+    std::optional<connection::Event> e = server->events()->WaitForAndPop(100ms);
     ASSERT_TRUE(e);
     EXPECT_EQ(request, e->message);
   }
@@ -110,11 +110,11 @@ TEST_F(ServerTest, TestSendMessages) {
   close(sock);
 }
 
-TEST_F(ServerTest, TestSendMessagesOneByteAtATime) {
+TEST_F(ListenerTest, TestSendMessagesOneByteAtATime) {
   const uint16_t port = RandomPort();
-  std::shared_ptr<Server> server = std::make_shared<Server>(port);
+  std::shared_ptr<Listener> server = std::make_shared<Listener>(port);
   util::Threadable threadable_server(server);
-  struct sockaddr_in servaddr = ServerAddr(port);
+  struct sockaddr_in servaddr = ListenerAddr(port);
 
   int sock = CreateSocket();
   connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr));
@@ -134,7 +134,7 @@ TEST_F(ServerTest, TestSendMessagesOneByteAtATime) {
   }
 
   for (int i = 0; i != n_requests; ++i) {
-    std::optional<Event> e = server->events()->WaitForAndPop(100ms);
+    std::optional<connection::Event> e = server->events()->WaitForAndPop(100ms);
     ASSERT_TRUE(e);
     EXPECT_EQ(request, e->message);
   }
@@ -142,7 +142,7 @@ TEST_F(ServerTest, TestSendMessagesOneByteAtATime) {
   close(sock);
 }
 
-struct sockaddr_in ServerTest::ServerAddr(uint16_t port) const {
+struct sockaddr_in ListenerTest::ListenerAddr(uint16_t port) const {
   struct sockaddr_in servaddr;
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(port);
@@ -150,7 +150,7 @@ struct sockaddr_in ServerTest::ServerAddr(uint16_t port) const {
   return servaddr;
 }
 
-int ServerTest::CreateSocket() const {
+int ListenerTest::CreateSocket() const {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
 
   struct timeval timeout;
@@ -164,7 +164,7 @@ int ServerTest::CreateSocket() const {
   return sock;
 }
 
-uint16_t ServerTest::RandomPort() const {
+uint16_t ListenerTest::RandomPort() const {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> distrib(1024, 0xffff);

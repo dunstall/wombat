@@ -1,7 +1,7 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "connection/event.h"
 #include "event/responder.h"
+#include "connection/event.h"
 
 namespace wombat::broker {
 

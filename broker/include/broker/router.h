@@ -5,7 +5,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "log/log.h"
 #include "partition/partition.h"
 
@@ -13,7 +13,7 @@ namespace wombat::broker {
 
 class Router {
  public:
-  bool Route(const Event& evt);
+  bool Route(const connection::Event& evt);
 
   void AddPartition(std::unique_ptr<partition::Partition> partition);
 

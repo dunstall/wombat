@@ -3,7 +3,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "event/event.h"
+#include "connection/connection.h"
+#include "connection/event.h"
 #include "event/responder.h"
 #include "frame/message.h"
 #include "frame/offset.h"
@@ -15,11 +16,13 @@
 
 namespace wombat::broker::partition {
 
-class FakeConnection : public Connection {
+class FakeConnection : public connection::Connection {
  public:
+  FakeConnection() : connection::Connection{nullptr} {}
+
   std::optional<frame::Message> Receive() override { return std::nullopt; }
 
-  bool Send(const frame::Message& msg) override { return false; }
+  void Send(const frame::Message& msg) override{};
 };
 
 class StatHandlerTest : public ::testing::Test {
@@ -40,9 +43,9 @@ TEST_F(StatHandlerTest, HandleValidStatRequest) {
   const frame::Offset stat{log_size};
   const frame::Message expected_response{frame::Type::kStatResponse,
                                          kPartitionId, stat.Encode()};
-  const Event expected_event{expected_response, conn};
+  const connection::Event expected_event{expected_response, conn};
 
-  EXPECT_EQ(expected_event, handler.Handle(Event{msg, conn}));
+  EXPECT_EQ(expected_event, handler.Handle(connection::Event{msg, conn}));
 }
 
 TEST_F(StatHandlerTest, HandleUnrecognizedType) {
@@ -52,7 +55,7 @@ TEST_F(StatHandlerTest, HandleUnrecognizedType) {
   const frame::Message msg{
       frame::Type::kProduceRequest, kPartitionId, {0, 1, 2, 3, 4}};
 
-  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
+  EXPECT_EQ(std::nullopt, handler.Handle(connection::Event{msg, nullptr}));
 }
 
 }  // namespace wombat::broker::partition

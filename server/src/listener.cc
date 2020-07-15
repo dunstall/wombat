@@ -1,6 +1,6 @@
 // Copyright 2020 Andrew Dunstall
 
-#include "server/server.h"
+#include "server/listener.h"
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -15,23 +15,24 @@
 #include <unordered_map>
 #include <vector>
 
+#include "connection/connectionexception.h"
+#include "connection/streamsocket.h"
 #include "glog/logging.h"
 #include "server/serverexception.h"
-#include "server/tcpconnection.h"
 
 namespace wombat::broker::server {
 
-Server::Server(uint16_t port, int max_clients)
+Listener::Listener(uint16_t port, int max_clients)
     : port_{port},
       fds_(max_clients),
       max_clients_{max_clients},
-      event_queue_{std::make_shared<EventQueue>()} {
+      event_queue_{std::make_shared<connection::EventQueue>()} {
   signal(SIGPIPE, SIG_IGN);
   LOG(INFO) << "server listening on port " << port;
   Listen();
 }
 
-void Server::Poll() {
+void Listener::Poll() {
   int ready = poll(fds_.data(), max_fd_index_ + 1, kPollTimeoutMS);
   if (ready == -1) {
     LOG(WARNING) << "leader poll error " << strerror(errno);
@@ -52,7 +53,7 @@ void Server::Poll() {
   }
 }
 
-void Server::Listen() {
+void Listener::Listen() {
   struct sockaddr_in servaddr;
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(port_);
@@ -80,10 +81,13 @@ void Server::Listen() {
   }
 }
 
-void Server::Accept() {
+void Listener::Accept() {
+  LOG(INFO) << "accepting new connection";
+
   struct sockaddr_in cliaddr;
   socklen_t clilen = sizeof(cliaddr);
 
+  // TODO(AD) Accept non-blocking
   int connfd = accept(listenfd_, (struct sockaddr*)&cliaddr, &clilen);
   if (connfd == -1) {
     LOG(WARNING) << "failed to accept connection " << strerror(errno);
@@ -95,8 +99,9 @@ void Server::Accept() {
       fds_[i].fd = connfd;
       fds_[i].events = POLLRDNORM | POLLWRNORM | POLLERR;
       max_fd_index_ = std::max(max_fd_index_, i);
-      connections_.emplace(connfd,
-                           std::make_shared<TcpConnection>(connfd, cliaddr));
+      connections_.emplace(
+          connfd, std::make_shared<connection::Connection>(
+                      std::make_unique<connection::StreamSocket>(connfd)));
       return;
     }
   }
@@ -106,38 +111,31 @@ void Server::Accept() {
   close(connfd);
 }
 
-void Server::Read(int i) {
+void Listener::Read(int i) {
   int connfd = fds_[i].fd;
-  std::shared_ptr<Connection> conn = connections_.at(connfd);
+  std::shared_ptr<connection::Connection> conn = connections_.at(connfd);
   try {
     std::optional<frame::Message> request = conn->Receive();
     if (request) {
-      Event e{*request, conn};
+      connection::Event e{*request, conn};
       event_queue_->Push(e);
     }
-  } catch (const ConnectionException& e) {
+  } catch (const connection::ConnectionException& e) {
     connections_.erase(connfd);
     fds_[i].fd = -1;
   }
 }
 
-bool Server::PendingConnection() const {
+bool Listener::PendingConnection() const {
   return (fds_[0].revents & POLLRDNORM) != 0;
 }
 
-bool Server::PendingRead(int i) const {
+bool Listener::PendingRead(int i) const {
   if (fds_[i].fd == -1) {
     return false;
   }
   return (fds_[i].revents & POLLRDNORM) != 0 ||
          (fds_[i].revents & POLLERR) != 0;
-}
-
-bool Server::PendingWrite(int i) const {
-  if (fds_[i].fd == -1) {
-    return false;
-  }
-  return (fds_[i].revents & POLLWRNORM) != 0;
 }
 
 }  // namespace wombat::broker::server

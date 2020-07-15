@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "log/log.h"
 #include "partition/handler.h"
 
@@ -17,7 +17,8 @@ class ProduceHandler : public Handler {
 
   ~ProduceHandler() override {}
 
-  std::optional<Event> Handle(const Event& evt) override;
+  std::optional<connection::Event> Handle(
+      const connection::Event& evt) override;
 
  private:
   std::shared_ptr<log::Log> log_;

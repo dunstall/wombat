@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "broker/router.h"
-#include "event/event.h"
+#include "connection/event.h"
 #include "frame/message.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -15,7 +15,7 @@ namespace wombat::broker {
 
 class RouterTest : public ::testing::Test {
  protected:
-  Event CreateEvent(uint32_t id) const;
+  connection::Event CreateEvent(uint32_t id) const;
 };
 
 TEST_F(RouterTest, RouteToSinglePartition) {
@@ -68,11 +68,11 @@ TEST_F(RouterTest, AddPartitionOverrides) {
   EXPECT_TRUE(router.Route(CreateEvent(id)));
 }
 
-Event RouterTest::CreateEvent(uint32_t id) const {
+connection::Event RouterTest::CreateEvent(uint32_t id) const {
   const frame::Type type = frame::Type::kConsumeRequest;
   const std::vector<uint8_t> payload(0x200, 0xff);
   const frame::Message msg{type, id, payload};
-  return Event{msg, nullptr};
+  return connection::Event{msg, nullptr};
 }
 
 }  // namespace wombat::broker

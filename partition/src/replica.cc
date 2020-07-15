@@ -29,7 +29,7 @@ Replica::Replica(uint32_t id, std::shared_ptr<Responder> responder,
 Replica::~Replica() { Stop(); }
 
 void Replica::Process() {
-  const std::optional<Event> evt = events_.WaitForAndPop(50ms);
+  const std::optional<connection::Event> evt = events_.WaitForAndPop(50ms);
   if (evt) {
     router_.Route(*evt);
   }

@@ -29,19 +29,19 @@ TEST_F(ProduceHandlerTest, HandleValidProduceRequest) {
                            record.Encode()};
 
   EXPECT_CALL(*log, Append(record.Encode())).Times(1);
-  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
+  EXPECT_EQ(std::nullopt, handler.Handle(connection::Event{msg, nullptr}));
 }
 
 TEST_F(ProduceHandlerTest, HandleInvalidType) {
   ProduceHandler handler{kPartitionId, nullptr};
   const frame::Message msg{frame::Type::kConsumeRequest, kPartitionId, {}};
-  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
+  EXPECT_EQ(std::nullopt, handler.Handle(connection::Event{msg, nullptr}));
 }
 
 TEST_F(ProduceHandlerTest, HandleInvalidRecord) {
   ProduceHandler handler{kPartitionId, nullptr};
   const frame::Message msg{frame::Type::kProduceRequest, kPartitionId, {}};
-  EXPECT_EQ(std::nullopt, handler.Handle(Event{msg, nullptr}));
+  EXPECT_EQ(std::nullopt, handler.Handle(connection::Event{msg, nullptr}));
 }
 
 }  // namespace wombat::broker::partition

@@ -7,7 +7,7 @@
 #include <optional>
 #include <vector>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "frame/offset.h"
 #include "frame/record.h"
 #include "frame/utils.h"
@@ -20,7 +20,8 @@ namespace wombat::broker::partition {
 ConsumeHandler::ConsumeHandler(uint32_t id, std::shared_ptr<log::Log> log)
     : Handler(id), log_{log} {}
 
-std::optional<Event> ConsumeHandler::Handle(const Event& evt) {
+std::optional<connection::Event> ConsumeHandler::Handle(
+    const connection::Event& evt) {
   if (!IsValidType(evt.message)) {
     LOG(ERROR) << "ConsumeHandler::Handle called with invalid type";
     return std::nullopt;
@@ -35,7 +36,7 @@ std::optional<Event> ConsumeHandler::Handle(const Event& evt) {
 
   const frame::Record record = Lookup(off->offset());
   const frame::Message msg{frame::Type::kConsumeResponse, id_, record.Encode()};
-  return Event{msg, evt.connection};
+  return connection::Event{msg, evt.connection};
 }
 
 bool ConsumeHandler::IsValidType(const frame::Message& msg) const {

@@ -32,7 +32,7 @@ Leader::Leader(uint32_t id, std::shared_ptr<Responder> responder,
 Leader::~Leader() { Stop(); }
 
 void Leader::Process() {
-  const std::optional<Event> evt = events_.WaitForAndPop(50ms);
+  const std::optional<connection::Event> evt = events_.WaitForAndPop(50ms);
   if (evt) {
     router_.Route(*evt);
   }

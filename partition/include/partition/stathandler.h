@@ -6,7 +6,7 @@
 #include <memory>
 #include <optional>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "frame/message.h"
 #include "log/log.h"
 #include "partition/handler.h"
@@ -19,7 +19,8 @@ class StatHandler : public Handler {
 
   ~StatHandler() override {}
 
-  std::optional<Event> Handle(const Event& evt) override;
+  std::optional<connection::Event> Handle(
+      const connection::Event& evt) override;
 
  private:
   bool IsValidType(const frame::Message& msg) const;

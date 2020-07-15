@@ -5,13 +5,13 @@
 #include <filesystem>
 #include <memory>
 
-#include "event/event.h"
+#include "connection/event.h"
 #include "log/systemlog.h"
 #include "partition/partition.h"
 
 namespace wombat::broker {
 
-bool Router::Route(const Event& evt) {
+bool Router::Route(const connection::Event& evt) {
   if (partitions_.find(evt.message.partition_id()) != partitions_.end()) {
     partitions_.at(evt.message.partition_id())->Handle(evt);
     return true;
