@@ -3,7 +3,7 @@ package consumer
 import (
 	"net"
 
-	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/dunstall/wombat/client/pkg/record"
 )
 
 // TODO(AD) Set timeout on socket

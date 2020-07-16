@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dunstall/wombatclient/pkg/consumer/registry"
+	"github.com/dunstall/wombat/client/pkg/consumer/registry"
 	"github.com/golang/glog"
 	"github.com/samuel/go-zookeeper/zk"
 )

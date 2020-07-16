@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "chunk.go",
+        "consumerregistry.go",
+        "membership.go",
+    ],
+    importpath = "github.com/dunstall/wombat/client/pkg/consumer/membership",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//client/pkg/consumer/registry:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_samuel_go_zookeeper//zk:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["membership_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//client/pkg/consumer/registry:go_default_library",
+        "//client/pkg/consumer/registry/mock_registry:go_default_library",
+        "@com_github_golang_mock//gomock:go_default_library",
+        "@com_github_samuel_go_zookeeper//zk:go_default_library",
+    ],
+)

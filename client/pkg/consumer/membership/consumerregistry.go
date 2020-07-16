@@ -3,7 +3,7 @@ package membership
 import (
 	"path"
 
-	"github.com/dunstall/wombatclient/pkg/consumer/registry"
+	"github.com/dunstall/wombat/client/pkg/consumer/registry"
 )
 
 type consumerRegistry struct{}

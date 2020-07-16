@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "connection.go",
+        "consumer.go",
+    ],
+    importpath = "github.com/dunstall/wombat/client/pkg/consumer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//client/pkg/consumer/conf:go_default_library",
+        "//client/pkg/consumer/membership:go_default_library",
+        "//client/pkg/consumer/registry:go_default_library",
+        "//client/pkg/record:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+    ],
+)

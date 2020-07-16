@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "connection.go",
+        "loadbalancer.go",
+        "producer.go",
+    ],
+    importpath = "github.com/dunstall/wombat/client/pkg/producer",
+    visibility = ["//visibility:public"],
+    deps = ["//client/pkg/record:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["loadbalancer_test.go"],
+    embed = [":go_default_library"],
+)

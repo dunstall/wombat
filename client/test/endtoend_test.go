@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dunstall/wombatclient/pkg/consumer"
-	"github.com/dunstall/wombatclient/pkg/producer"
-	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/dunstall/wombat/client/pkg/consumer"
+	"github.com/dunstall/wombat/client/pkg/producer"
+	"github.com/dunstall/wombat/client/pkg/record"
 	"github.com/google/uuid"
 )
 

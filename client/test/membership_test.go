@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dunstall/wombatclient/pkg/consumer/membership"
-	"github.com/dunstall/wombatclient/pkg/consumer/registry"
+	"github.com/dunstall/wombat/client/pkg/consumer/membership"
+	"github.com/dunstall/wombat/client/pkg/consumer/registry"
 	"github.com/google/uuid"
 	"github.com/samuel/go-zookeeper/zk"
 )

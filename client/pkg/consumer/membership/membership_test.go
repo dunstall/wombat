@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dunstall/wombatclient/pkg/consumer/registry"
-	"github.com/dunstall/wombatclient/pkg/consumer/registry/mock_registry"
+	"github.com/dunstall/wombat/client/pkg/consumer/registry"
+	"github.com/dunstall/wombat/client/pkg/consumer/registry/mock_registry"
 	"github.com/golang/mock/gomock"
 	"github.com/samuel/go-zookeeper/zk"
 )

@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/dunstall/wombatclient/pkg/consumer/conf"
-	"github.com/dunstall/wombatclient/pkg/consumer/membership"
-	"github.com/dunstall/wombatclient/pkg/consumer/registry"
-	"github.com/dunstall/wombatclient/pkg/record"
+	"github.com/dunstall/wombat/client/pkg/consumer/conf"
+	"github.com/dunstall/wombat/client/pkg/consumer/membership"
+	"github.com/dunstall/wombat/client/pkg/consumer/registry"
+	"github.com/dunstall/wombat/client/pkg/record"
 	"github.com/google/uuid"
 )
 
@@ -29,12 +29,12 @@ func New(confPath string) (Consumer, error) {
 	if err != nil {
 		return Consumer{}, err
 	}
-	if err := r.Watch(path.Join("/", "partition", conf.Group())); err != nil { // TODO(AD)
-		return Consumer{}, err
-	}
-	if err := r.Watch(path.Join("/", "group", conf.Group())); err != nil { // TODO(AD)
-		return Consumer{}, err
-	}
+ /*  if err := r.Watch(path.Join("/", "partition", conf.Group())); err != nil { // TODO(AD) */
+		// return Consumer{}, err
+	// }
+	// if err := r.Watch(path.Join("/", "group", conf.Group())); err != nil { // TODO(AD)
+		// return Consumer{}, err
+	/* } */
 
 	// TODO(AD) must rebalance before poll
 

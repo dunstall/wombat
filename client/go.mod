@@ -1,4 +1,4 @@
-module github.com/dunstall/wombatclient
+module github.com/dunstall/wombat/client
 
 go 1.14
 
