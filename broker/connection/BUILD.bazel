@@ -1,24 +1,21 @@
 cc_library(
-    name = "partition",
+    name = "connection",
     srcs = glob(["src/*.cc"]),
-    hdrs = glob(["include/partition/*.h"]),
+    hdrs = glob(["include/connection/*.h"]),
     linkopts = ["-lstdc++fs"],
     strip_include_prefix = "include/",
     visibility = ["//visibility:public"],
     deps = [
-        "//connection",
-        "//frame",
-        "//log",
-        "//server",  # TODO(AD) Remove
-        "//util",
+        "//broker/frame",
+        "//broker/util",
         "@glog",
     ],
 )
 
 cc_library(
-    name = "partition-mock",
+    name = "connection-mock",
     srcs = glob(["tests/mock/*.cc"]),
-    hdrs = glob(["tests/mock/partition/*.h"]),
+    hdrs = glob(["tests/mock/connection/*.h"]),
     linkopts = ["-lstdc++fs"],
     strip_include_prefix = "tests/mock/",
     visibility = ["//visibility:public"],
@@ -28,13 +25,22 @@ cc_library(
 )
 
 cc_test(
-    name = "partition-test",
+    name = "connection-unit-test",
     srcs = glob(["tests/unit/*.cc"]),
     copts = ["-Iexternal/gtest/include"],
     deps = [
-        ":partition",
-        ":partition-mock",
-        "//log:mock-log",
+        ":connection",
+        ":connection-mock",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "connection-integration-test",
+    srcs = glob(["tests/integration/*.cc"]),
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":connection",
         "@gtest//:gtest_main",
     ],
 )

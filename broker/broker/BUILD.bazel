@@ -7,12 +7,12 @@ cc_library(
     hdrs = glob(["include/broker/*.h"]),
     strip_include_prefix = "include/",
     deps = [
-        "//connection",
-        "//frame",
-        "//log",
-        "//partition",
-        "//server",
-        "//util",
+        "//broker/connection",
+        "//broker/frame",
+        "//broker/log",
+        "//broker/partition",
+        "//broker/server",
+        "//broker/util",
     ],
 )
 
@@ -32,7 +32,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":broker",
-        "//partition:partition-mock",
+        "//broker/partition:partition-mock",
         "@gtest//:gtest_main",
     ],
 )

@@ -1,9 +1,9 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "producer",
+    name = "consumer",
     srcs = glob(["*.go"]),
-    importpath = "github.com/dunstall/wombat/pkg/producer",
+    importpath = "github.com/dunstall/wombat/pkg/consumer",
     visibility = ["//visibility:public"],
-    deps = ["//client/pkg/record"],
+    deps = ["//broker/client/pkg/record"],
 )
