@@ -4,7 +4,6 @@
 #include <optional>
 
 #include "connection/event.h"
-#include "server/responder.h"
 #include "frame/message.h"
 #include "frame/messageheader.h"
 #include "gmock/gmock.h"
@@ -12,6 +11,7 @@
 #include "partition/handler.h"
 #include "partition/mockhandler.h"
 #include "partition/router.h"
+#include "server/responder.h"
 
 namespace wombat::broker::partition {
 

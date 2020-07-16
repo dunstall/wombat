@@ -6,9 +6,9 @@
 #include <unordered_map>
 
 #include "connection/event.h"
-#include "server/responder.h"
 #include "frame/messageheader.h"
 #include "partition/handler.h"
+#include "server/responder.h"
 
 namespace wombat::broker::partition {
 

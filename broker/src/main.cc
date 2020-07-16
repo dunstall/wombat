@@ -41,6 +41,9 @@ void Run(const std::filesystem::path& path) {
     std::exit(EXIT_FAILURE);
   }
 
+  std::shared_ptr<server::Responder> responder =
+      std::make_shared<server::Responder>();
+
   Router router{};
   for (const PartitionConf& p : cfg->partitions()) {
     LOG(INFO) << "adding partition " << p.id();
@@ -49,8 +52,10 @@ void Run(const std::filesystem::path& path) {
 
     switch (p.type()) {
       case PartitionConf::Type::kLeader:
-        router.AddPartition(std::make_unique<partition::Leader>(
-            p.id(), std::make_shared<server::Responder>(), log));
+        // TODO(AD) No packages should know about server package except this -
+        // just pass the queue
+        router.AddPartition(
+            std::make_unique<partition::Leader>(p.id(), responder, log));
         break;
       case PartitionConf::Type::kReplica:
         // TODO(AD) Replica not yet supported.
@@ -61,12 +66,11 @@ void Run(const std::filesystem::path& path) {
     }
   }
 
-  // TODO(AD) Create responder here - no packages should know about server
-  // package except this - just pass the queue
-
   std::shared_ptr<server::Listener> listener =
       std::make_shared<server::Listener>(kPort);
-  util::Threadable threadable_server(listener);
+  util::Threadable threadable_listener(listener);
+
+  util::Threadable threadable_responder(responder);
 
   while (true) {
     router.Route(listener->events()->WaitAndPop());

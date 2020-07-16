@@ -5,9 +5,9 @@
 #include <cstdint>
 #include <memory>
 
-#include "server/responder.h"
 #include "log/log.h"
 #include "partition/partition.h"
+#include "server/responder.h"
 
 namespace wombat::broker::partition {
 
