@@ -9,6 +9,8 @@ Wombat combines ideas from a number of distributed systems, including:
   * The response is routed to a responder stage that writes the response to the client.
 * Client coordination using ZooKeeper
 
+The broker is written in C++ and the client in Golang.
+
 ## In Progresss
 
 ## Build
