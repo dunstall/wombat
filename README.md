@@ -27,4 +27,4 @@ And to run unit and integration tests run:
 Note bazelisk is compiled for Linux x64. If needed install the correct binary
 from [Bazelisk](https://github.com/bazelbuild/bazelisk).
 
-<a href="https://www.gistgrok.com/">Online C++ Shell and Compiler</a>
+<a href="https://www.gistgrok.com/">GistGrok: Online C++ Shell and Compiler</a>
